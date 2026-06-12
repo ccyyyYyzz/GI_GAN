@@ -4,20 +4,30 @@ Protocol: guarded TRAIN loader (train_split=unlabeled), held-out val
 (val_split=train, verified disjoint), CheckpointManager with forced final
 save, run IDs g2r_*, ALL metrics on unclipped tensors. The discriminator
 receives exactly concat(candidate, x_data) and never any residual-derived
-feature.
+feature. No test-split evaluation at any point: every gate runs on val.
 
-Run:  python -m src.g2r_modec_train --config configs/g2r/g2r_modec_smoke_scr5.yaml
+Noise/certificate semantics: the noise setting is identical to the paper-1
+main results. With finite measurement noise the exact (lambda=0) x_star
+audit fits the RECORDED noisy y by design — that is certificate semantics
+(the certificate asserts consistency with the recorded measurements, not
+with the unknown clean signal); lambda is recorded in the certificate
+tuple. A Morozov-lambda variant is deferred to the noise phase.
+
+Run:  python -m src.g2r_modec_train --config configs/g2r/<run>.yaml
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import time
 from pathlib import Path
 
 import numpy as np
 import torch
+
+from eval.checker import check_results, pass_fail_table
 
 from .datasets import get_val_dataloader
 from .eval import make_measurement
@@ -93,6 +103,17 @@ def deterministic_baseline(generator, measurement, y, bundle_config):
 
 
 @torch.no_grad()
+def chunked_baseline(generator, measurement, y, bundle_config, chunk: int):
+    xs, xd, bl = [], [], []
+    for start in range(0, y.shape[0], chunk):
+        a, b, c = deterministic_baseline(generator, measurement, y[start : start + chunk], bundle_config)
+        xs.append(a)
+        xd.append(b)
+        bl.append(c)
+    return torch.cat(xs), torch.cat(xd), torch.cat(bl)
+
+
+@torch.no_grad()
 def audited_anchor(measurement, x_data, y):
     flat = measurement.flatten_img(x_data.float())
     return measurement.unflatten_img(measurement.dc_project(flat, y.float()))
@@ -126,6 +147,144 @@ def sample_k(sampler, x_data, x_star, k, z_dim, device, generator_seed=None):
     return x_hat.reshape(b, k, *x_hat.shape[1:])
 
 
+@torch.no_grad()
+def chunked_sample_k(sampler, x_data, x_star, k, z_dim, device, generator_seed, chunk: int):
+    """Chunked eval sampling with z drawn ONCE so chunking never changes z."""
+    n = x_data.shape[0]
+    gen = torch.Generator(device="cpu").manual_seed(int(generator_seed))
+    z_all = torch.randn(n * k, z_dim, generator=gen)
+    outs = []
+    for start in range(0, n, chunk):
+        stop = min(start + chunk, n)
+        z = z_all[start * k : stop * k].to(device)
+        xd = x_data[start:stop].repeat_interleave(k, dim=0)
+        xs = x_star[start:stop].repeat_interleave(k, dim=0)
+        x_hat = sampler(xd, xs, z)
+        outs.append(x_hat.reshape(stop - start, k, *x_hat.shape[1:]))
+    return torch.cat(outs)
+
+
+TRAJ_FIELDS = [
+    "step", "n_images", "k_samples",
+    "psnr_mean_db", "psnr_sample_db", "psnr_baseline_db",
+    "lpips_sample", "lpips_baseline",
+    "std_median", "nvr", "edge_spearman",
+    "relmeas_median_f64", "relmeas_p95_f64", "relmeas_max_f64",
+    "g_cal", "g_div", "g_nvr", "g_mean", "g_cert", "g_perc",
+    "gates_passed",
+]
+
+
+class GateEvaluator:
+    """Seed-pinned val-subset gate evaluation through eval/checker itself.
+
+    The val tensors (images, noisy y, frozen baseline, x_star) are computed
+    once with eval_seed so every arm, step, and training seed evaluates on
+    identical inputs; trajectory evals use the prefix [:n_traj].
+    """
+
+    def __init__(self, config, measurement, baseline_gen, bundle_config, val_loader, device, p0_path):
+        self.device = device
+        self.eval_seed = int(config.get("eval_seed", config.get("seed", 1234)))
+        self.k_eval = int(config.get("k_eval", 8))
+        self.z_dim = int(config["z_dim"])
+        self.chunk = int(config.get("eval_chunk_images", 16))
+        self.bridge_A_path = str(config["bridge_A_path"])
+        self.p0_path = str(p0_path)
+        self.measurement = measurement
+        self.exact_audit = bool(config.get("exact_x_star_audit", True))
+        self.x_star_mode = str(config.get("x_star_mode", "deterministic"))
+
+        x_val = next(iter(val_loader))[0].to(device)
+        set_seed(self.eval_seed + 7)  # pin measurement noise across arms/steps
+        self.y = measurement.measure(x_val)
+        self.x = x_val
+        x_star_det, self.x_data, self.baseline = chunked_baseline(
+            baseline_gen, measurement, self.y, bundle_config, self.chunk
+        )
+        self.x_star = compute_x_star(
+            self.x_star_mode, x_star_det, self.x_data, measurement, self.y, exact_audit=self.exact_audit
+        )
+        with np.load(self.bridge_A_path) as data:
+            key = "A" if "A" in data.files else data.files[0]
+            self.A64 = np.asarray(data[key], dtype=np.float64)
+        live_A = measurement.get_current_A().detach().cpu().numpy()
+        if not np.array_equal(self.A64.astype(np.float32), live_A.astype(np.float32)):
+            raise RuntimeError("Bridge A artifact does not match the live operator; refusing to evaluate.")
+
+    @torch.no_grad()
+    def run(self, sampler, *, step: int, n: int, out_dir: Path, tag: str, distributional: bool):
+        was_training = sampler.training
+        sampler.eval()
+        x, y = self.x[:n], self.y[:n]
+        samples_unclipped = chunked_sample_k(
+            sampler, self.x_data[:n], self.x_star[:n], self.k_eval, self.z_dim,
+            self.device, self.eval_seed + 99, self.chunk,
+        )
+        if was_training:
+            sampler.train()
+        samples_clipped = samples_unclipped.clamp(0.0, 1.0)
+        sample_mean = samples_unclipped.mean(dim=1).clamp(0.0, 1.0)
+
+        dump_dir = ensure_dir(out_dir / "evals")
+        dump_path = dump_dir / f"{tag}.npz"
+        np.savez(
+            dump_path,
+            x=x.detach().cpu().numpy().reshape(n, -1),
+            samples=samples_clipped.detach().cpu().numpy().reshape(n, self.k_eval, -1),
+            samples_unclipped=samples_unclipped.detach().cpu().numpy().reshape(n, self.k_eval, -1),
+            sample_mean=sample_mean.detach().cpu().numpy().reshape(n, -1),
+            baseline=self.baseline[:n].detach().cpu().numpy().reshape(n, -1),
+            y=y.detach().cpu().numpy(),
+            ref_x=x.detach().cpu().numpy().reshape(n, -1),
+            A_path=self.bridge_A_path,
+            P0_path=self.p0_path,
+        )
+        report = check_results(
+            dump_path,
+            perceptual_backend="lpips",
+            compute_distributional=distributional,
+            device=str(self.device),
+        )
+        # RelMeasErr p95 in float64 (checker reports max/median only).
+        s64 = samples_unclipped.detach().cpu().numpy().reshape(n * self.k_eval, -1).astype(np.float64)
+        y64 = np.repeat(y.detach().cpu().numpy().astype(np.float64), self.k_eval, axis=0)
+        resid = s64 @ self.A64.T - y64
+        rel = np.linalg.norm(resid, axis=1) / np.maximum(np.linalg.norm(y64, axis=1), 1e-300)
+        gates = report["gates"]
+        row = {
+            "step": step,
+            "n_images": n,
+            "k_samples": self.k_eval,
+            "psnr_mean_db": gates["G-CAL"]["values"]["avg_sample_mean_psnr_db"],
+            "psnr_sample_db": gates["G-CAL"]["values"]["avg_sample_psnr_db"],
+            "psnr_baseline_db": gates["G-MEAN"]["values"]["avg_baseline_psnr_db"],
+            "lpips_sample": gates["G-PERC"]["values"]["mean_sample_lpips"],
+            "lpips_baseline": gates["G-PERC"]["values"]["mean_baseline_lpips"],
+            "std_median": gates["G-DIV"]["values"]["median_pixel_std"],
+            "nvr": gates["G-NVR"]["values"]["null_variance_ratio"],
+            "edge_spearman": gates["G-DIV"]["values"]["spearman_std_vs_gt_sobel"],
+            "relmeas_median_f64": float(np.median(rel)),
+            "relmeas_p95_f64": float(np.percentile(rel, 95)),
+            "relmeas_max_f64": float(np.max(rel)),
+            "g_cal": gates["G-CAL"]["status"],
+            "g_div": gates["G-DIV"]["status"],
+            "g_nvr": gates["G-NVR"]["status"],
+            "g_mean": gates["G-MEAN"]["status"],
+            "g_cert": gates["G-CERT"]["status"],
+            "g_perc": gates["G-PERC"]["status"],
+            "gates_passed": sum(1 for g in gates.values() if g["passed"]),
+        }
+        csv_path = out_dir / "gate_trajectory.csv"
+        write_header = not csv_path.exists()
+        with csv_path.open("a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=TRAJ_FIELDS)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(row)
+        return report, row, dump_path
+
+
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
@@ -156,24 +315,27 @@ def main() -> None:
     )
 
     # --- guarded loaders ----------------------------------------------------
+    eval_seed = int(config.get("eval_seed", config.get("seed", 1234)))
+    raw_limit = config.get("limit_train_samples")
     train_loader = get_train_dataloader_guarded(
         dataset_root=config["dataset_root"],
         img_size=int(bundle_config["img_size"]),
         batch_size=int(config["batch_size"]),
         num_workers=int(config.get("num_workers", 0)),
-        limit_train_samples=int(config["limit_train_samples"]),
+        limit_train_samples=int(raw_limit) if raw_limit is not None else None,
         seed=int(config.get("seed", 1234)),
         train_split=str(config.get("train_split", "unlabeled")),
         pin_memory=device.type == "cuda",
         context="g2r_modec train loader",
     )
+    n_val = int(config.get("limit_val_samples", 16))
     val_loader = get_val_dataloader(
         dataset_root=config["dataset_root"],
         img_size=int(bundle_config["img_size"]),
-        batch_size=int(config.get("limit_val_samples", 16)),
+        batch_size=n_val,
         num_workers=0,
-        limit_val_samples=int(config.get("limit_val_samples", 16)),
-        seed=int(config.get("seed", 1234)),
+        limit_val_samples=n_val,
+        seed=eval_seed,
         val_split=str(config.get("val_split", "train")),
     )
     heldout = assert_val_loader_held_out(val_loader, train_loader, context="g2r_modec val loader")
@@ -227,6 +389,14 @@ def main() -> None:
     r1_interval = int(config.get("r1_interval", 16))
     log_every = int(config.get("log_every", 25))
     x_star_mode = str(config.get("x_star_mode", "deterministic"))
+    exact_x_star = bool(config.get("exact_x_star_audit", True))
+    gate_eval_every = int(config.get("gate_eval_every", 0))
+    gate_eval_n = int(config.get("gate_eval_n", min(128, n_val)))
+    keep_step_checkpoints = int(config.get("keep_step_checkpoints", 3))
+
+    evaluator = GateEvaluator(
+        config, measurement, baseline_gen, bundle_config, val_loader, device, p0_entry["artifact"]["path"]
+    )
 
     def save_fn(path: Path, context: dict) -> None:
         torch.save(
@@ -241,6 +411,21 @@ def main() -> None:
             },
             path,
         )
+        # Prune old periodic checkpoints (keep the newest few + final).
+        steps_files = sorted(path.parent.glob("step_*.pt"))
+        for old in steps_files[:-keep_step_checkpoints]:
+            old.unlink(missing_ok=True)
+
+    # Collapse detector (pre-registered operationalization of "std median
+    # falls for >4000 consecutive steps"): EMA (halflife ~200 steps) of the
+    # train-batch median pixel std, sampled every log_every steps; the
+    # consecutive-decline counter advances by log_every per declining sample
+    # and resets on any non-decline. Trigger when counter > 4000 steps.
+    ema_std = None
+    ema_prev = None
+    decline_steps = 0
+    collapse_detected = False
+    ema_alpha = 1.0 - 0.5 ** (log_every / 200.0)
 
     log_rows: list[dict] = []
     step = 0
@@ -259,10 +444,7 @@ def main() -> None:
             b = x.shape[0]
             y = measurement.measure(x)
             x_star_det, x_data, _ = deterministic_baseline(baseline_gen, measurement, y, bundle_config)
-            x_star = compute_x_star(
-                x_star_mode, x_star_det, x_data, measurement, y,
-                exact_audit=bool(config.get("exact_x_star_audit", True)),
-            )
+            x_star = compute_x_star(x_star_mode, x_star_det, x_data, measurement, y, exact_audit=exact_x_star)
 
             # ---------------- D step (TTUR: D faster) ----------------------
             with torch.autocast(device_type=device.type, enabled=use_amp):
@@ -345,7 +527,7 @@ def main() -> None:
                 }
                 log_rows.append(row)
                 print(
-                    f"[{step:4d}/{total_steps}] d={row['d_loss']:.4f} g={row['g_loss']:.4f} "
+                    f"[{step:5d}/{total_steps}] d={row['d_loss']:.4f} g={row['g_loss']:.4f} "
                     f"l_rec={row['l_rec']:.4f} sd={row['l_sd_reward']:.5f} adv={row['l_adv']:.4f} "
                     f"omega={omega:.2e} relmeas_med={row['rel_meas_err_unclipped_median']:.3e} "
                     f"pix_std_med={row['median_pixel_std']:.4f} |gG|={g_gnorm:.3f} |gD|={d_gnorm:.3f}"
@@ -353,57 +535,51 @@ def main() -> None:
                 if not np.isfinite([row["d_loss"], row["g_loss"]]).all():
                     raise RuntimeError(f"Non-finite loss at step {step}: {row}")
 
+                # collapse detection on the std EMA
+                std_now = row["median_pixel_std"]
+                ema_std = std_now if ema_std is None else (1 - ema_alpha) * ema_std + ema_alpha * std_now
+                if ema_prev is not None:
+                    if ema_std < ema_prev:
+                        decline_steps += log_every
+                    else:
+                        decline_steps = 0
+                ema_prev = ema_std
+                if decline_steps > 4000 and not collapse_detected:
+                    collapse_detected = True
+                    ckpt.save("collapse_snapshot.pt", reason="collapse_snapshot")
+                    print(
+                        f"[collapse] std EMA declined for {decline_steps} consecutive steps at step {step}; "
+                        "snapshot saved, stopping this arm."
+                    )
+                    break
+
+            if gate_eval_every and step % gate_eval_every == 0:
+                report, row_t, _ = evaluator.run(
+                    sampler, step=step, n=gate_eval_n, out_dir=out,
+                    tag=f"traj_step{step:06d}", distributional=False,
+                )
+                print(
+                    f"[gate@{step}] psnr_mean={row_t['psnr_mean_db']:.2f} (base {row_t['psnr_baseline_db']:.2f}) "
+                    f"psnr_sample={row_t['psnr_sample_db']:.2f} lpips={row_t['lpips_sample']:.4f} "
+                    f"(base {row_t['lpips_baseline']:.4f}) std_med={row_t['std_median']:.4f} "
+                    f"nvr={row_t['nvr']:.3f} edge_rho={row_t['edge_spearman']:.3f} "
+                    f"relmeas_med={row_t['relmeas_median_f64']:.2e} passed={row_t['gates_passed']}/6"
+                )
+
     (out / "train_log.json").write_text(json.dumps(log_rows, indent=2), encoding="utf-8")
 
-    # ---------------- post-training: eval dump for eval/checker -------------
+    # ---------------- final gate eval (full val set, FID/KID included) ------
     sampler.eval()
-    val_batch = next(iter(val_loader))
-    x_val = val_batch[0].to(device)
-    set_seed(int(config.get("seed", 1234)) + 7)
-    y_val = measurement.measure(x_val)
-    x_star_det, x_data_val, baseline_clipped = deterministic_baseline(
-        baseline_gen, measurement, y_val, bundle_config
+    final_report, final_row, final_dump = evaluator.run(
+        sampler, step=step, n=n_val, out_dir=out, tag="final", distributional=True
     )
-    x_star_val = compute_x_star(
-        x_star_mode, x_star_det, x_data_val, measurement, y_val,
-        exact_audit=bool(config.get("exact_x_star_audit", True)),
+    (out / "final_gate_report.json").write_text(
+        json.dumps(final_report, indent=2, sort_keys=True), encoding="utf-8"
     )
-    k_eval = int(config.get("k_eval", 8))
-    with torch.no_grad():
-        samples_unclipped = sample_k(
-            sampler, x_data_val, x_star_val, k_eval, z_dim, device, generator_seed=int(config.get("seed", 1234)) + 99
-        )
-    samples_clipped = samples_unclipped.clamp(0.0, 1.0)
-    sample_mean = samples_unclipped.mean(dim=1).clamp(0.0, 1.0)
-    rel_eval = unclipped_rel_meas_err(
-        measurement,
-        samples_unclipped.reshape(-1, *samples_unclipped.shape[2:]),
-        y_val.repeat_interleave(k_eval, dim=0),
-    )
-
-    # Sanity: the bridge A artifact must match the live operator (float32).
-    with np.load(config["bridge_A_path"]) as data:
-        key = "A" if "A" in data.files else data.files[0]
-        bridge_A = np.asarray(data[key])
-    live_A = measurement.get_current_A().detach().cpu().numpy()
-    if not np.array_equal(bridge_A.astype(np.float32), live_A.astype(np.float32)):
-        raise RuntimeError("Bridge A artifact does not match the live scr5 operator; refusing to dump.")
-
-    dump_path = out / "smoke_dump.npz"
-    np.savez(
-        dump_path,
-        x=x_val.detach().cpu().numpy().reshape(x_val.shape[0], -1),
-        samples=samples_clipped.detach().cpu().numpy().reshape(x_val.shape[0], k_eval, -1),
-        samples_unclipped=samples_unclipped.detach().cpu().numpy().reshape(x_val.shape[0], k_eval, -1),
-        sample_mean=sample_mean.detach().cpu().numpy().reshape(x_val.shape[0], -1),
-        baseline=baseline_clipped.detach().cpu().numpy().reshape(x_val.shape[0], -1),
-        y=y_val.detach().cpu().numpy(),
-        ref_x=x_val.detach().cpu().numpy().reshape(x_val.shape[0], -1),
-        A_path=str(config["bridge_A_path"]),
-        P0_path=str(p0_entry["artifact"]["path"]),
-    )
+    print(pass_fail_table(final_report))
 
     # ---------------- checkpoint save/restore roundtrip ---------------------
+    n_rt = min(16, n_val)
     roundtrip_path = out / "roundtrip_check.pt"
     save_fn(roundtrip_path, {"run_id": run_id, "step": step, "reason": "roundtrip_check"})
     sampler2 = ModeCSampler(
@@ -419,26 +595,38 @@ def main() -> None:
     sampler2.load_state_dict(payload["sampler"])
     sampler2.eval()
     with torch.no_grad():
-        again = sample_k(
-            sampler2, x_data_val, x_star_val, k_eval, z_dim, device, generator_seed=int(config.get("seed", 1234)) + 99
+        ref = chunked_sample_k(
+            sampler, evaluator.x_data[:n_rt], evaluator.x_star[:n_rt],
+            evaluator.k_eval, z_dim, device, evaluator.eval_seed + 99, evaluator.chunk,
         )
-    roundtrip_max_diff = float((again - samples_unclipped).abs().max())
+        again = chunked_sample_k(
+            sampler2, evaluator.x_data[:n_rt], evaluator.x_star[:n_rt],
+            evaluator.k_eval, z_dim, device, evaluator.eval_seed + 99, evaluator.chunk,
+        )
+    roundtrip_max_diff = float((again - ref).abs().max())
 
     summary = {
         "run_id": run_id,
         "steps": step,
         "k_train": k,
-        "k_eval": k_eval,
+        "k_eval": evaluator.k_eval,
+        "omega_adv": omega_adv,
+        "beta_sd": beta_sd,
+        "seed": int(config.get("seed", 1234)),
+        "eval_seed": evaluator.eval_seed,
         "guard_fired_on_deliberate_violation": guard_fired,
         "heldout_val": heldout,
+        "collapse_detected": collapse_detected,
+        "final_gates": {name: g["status"] for name, g in final_report["gates"].items()},
+        "final_gates_passed": int(final_row["gates_passed"]),
+        "final_metrics_row": final_row,
         "rel_meas_err_unclipped": {
-            "median": float(rel_eval.median()),
-            "p95": float(rel_eval.quantile(0.95)),
-            "max": float(rel_eval.max()),
+            "median": final_row["relmeas_median_f64"],
+            "p95": final_row["relmeas_p95_f64"],
+            "max": final_row["relmeas_max_f64"],
         },
-        "median_pixel_std_eval": float(samples_unclipped.std(dim=1, unbiased=False).median()),
         "roundtrip_max_abs_diff": roundtrip_max_diff,
-        "dump_path": str(dump_path),
+        "dump_path": str(final_dump),
         "final_log_row": log_rows[-1] if log_rows else None,
     }
     save_json(summary, out / "smoke_summary.json")

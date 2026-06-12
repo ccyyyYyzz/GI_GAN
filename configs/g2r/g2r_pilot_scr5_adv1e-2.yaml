@@ -1,0 +1,61 @@
+﻿# Phase 3 pilot arm: omega_adv = 1e-3, scr5, K=4, full unlabeled train pool.
+#
+# Noise/certificate semantics: noise_std is inherited from the paper-1 main
+# results (bundle resolved_config, 0.01). With finite noise the exact
+# (lambda=0) x_star audit fits the RECORDED noisy y by design 鈥?that is
+# certificate semantics; lambda is recorded in the certificate tuple. A
+# Morozov-lambda variant is deferred to the noise phase.
+#
+# Gate evaluation: every 2000 steps on a FIXED seed-pinned val subset
+# (eval_seed decouples the eval set from the training seed; N=128 trajectory
+# prefix of the N=512 final set, K=8, identical across arms and steps).
+# All gates run on val (val_split=train); the test split is never touched.
+run_id: g2r_pilot_scr5_adv1e-2
+output_dir: E:\ns_mc_gan_gi\outputs_g2r\g2r_pilot_scr5_adv1e-2
+device: cuda
+seed: 1234
+eval_seed: 1234
+
+bundle_root: E:\ns_mc_gan_gi\outputs_phase15\imported_noleak
+task: scr5
+dataset_root: E:\ns_mc_gan_gi\data
+train_split: unlabeled
+val_split: train
+limit_train_samples: null     # full unlabeled pool (100k)
+limit_val_samples: 512        # final gate eval set
+batch_size: 8
+num_workers: 0
+
+p0_manifest: E:\ns_mc_gan_gi\results\g2r_protocol\p0\p0_manifest.json
+bridge_A_path: E:\ns_mc_gan_gi_code\eval\bridge_outputs\scr5_bridge_A.npz
+
+k_samples: 4
+k_eval: 8
+z_dim: 64
+z_channels: 64
+per_scale_injection: false
+x_star_mode: deterministic
+exact_x_star_audit: true
+sampler_delta_mode: true
+freeze_stage1: true
+
+beta_sd: 1.0                  # keeps the sqrt(pi/(2K(K-1))) scaling in code
+omega_adv: 1.0e-2
+adv_ramp_frac: 0.15
+pacgan: false
+
+g_lr: 2.0e-5
+d_lr: 1.0e-4
+amp: true
+r1_enabled: false
+r1_gamma: 1.0
+r1_interval: 16
+d_channels: 64
+
+total_steps: 20000
+checkpoint_every: 1000
+keep_step_checkpoints: 3
+log_every: 25
+gate_eval_every: 2000
+gate_eval_n: 128
+eval_chunk_images: 16
