@@ -18,7 +18,7 @@ FIG_DIR = OUT_DIR / "figures"
 LATEX_DIR = OUT_DIR / "latex_project_v50"
 LATEX_FIG_DIR = LATEX_DIR / "figures"
 USER_SVG = Path("C:/Users/CYZ的computer/Downloads/fig1_draft.svg")
-PROJECT_SVG = Path("C:/Users/CYZ的computer/Documents/Codex/2026-06-04/files-mentioned-by-the-user-txt/ns_mc_gan_gi/fig1_draft.svg")
+PROJECT_SVG = Path(__file__).resolve().parents[1] / "fig1_draft.svg"
 
 
 BLUE = "#2b5ba8"
