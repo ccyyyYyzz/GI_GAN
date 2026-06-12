@@ -1,0 +1,53 @@
+# Mode C posterior sampler — 500-step smoke test on scr5.
+# Protocol: train_split=unlabeled, val_split=train (verified disjoint),
+# all metrics on UNCLIPPED tensors, run ID prefixed g2r_.
+run_id: g2r_modec_smoke
+output_dir: E:\ns_mc_gan_gi\outputs_g2r\g2r_modec_smoke
+device: cuda
+seed: 1234
+
+# data / operator
+bundle_root: E:\ns_mc_gan_gi\outputs_phase15\imported_noleak
+task: scr5
+dataset_root: E:\ns_mc_gan_gi\data
+train_split: unlabeled
+val_split: train
+limit_train_samples: 256
+limit_val_samples: 16
+batch_size: 8
+num_workers: 0
+
+# P0 + checker artifacts (verified; never rebuilt here)
+p0_manifest: E:\ns_mc_gan_gi\results\g2r_protocol\p0\p0_manifest.json
+bridge_A_path: E:\ns_mc_gan_gi_code\eval\bridge_outputs\scr5_bridge_A.npz
+
+# sampler
+k_samples: 2
+k_eval: 8
+z_dim: 64
+z_channels: 64
+per_scale_injection: false
+x_star_mode: deterministic   # deterministic (audited) | anchor (audited)
+exact_x_star_audit: true     # lambda=0 audit -> float32-floor RelMeasErr
+sampler_delta_mode: true
+freeze_stage1: true
+
+# losses
+beta_sd: 1.0
+omega_adv: 3.0e-3
+adv_ramp_frac: 0.15
+pacgan: false
+
+# optimization (TTUR)
+g_lr: 2.0e-5
+d_lr: 1.0e-4
+amp: true
+r1_enabled: false
+r1_gamma: 1.0
+r1_interval: 16
+d_channels: 64
+
+# schedule
+total_steps: 500
+checkpoint_every: 100
+log_every: 25
