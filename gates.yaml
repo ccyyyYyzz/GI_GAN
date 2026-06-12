@@ -1,0 +1,79 @@
+# Pre-registered admissibility gates for the g2r_ posterior-sampling GAN series.
+# Registered 2026-06-12 on branch g2r-protocol, BEFORE any g2r_ training run.
+#
+# Conventions (binding):
+#   * RelMeasErr is ALWAYS computed on the UNCLIPPED reconstruction vector;
+#     clipping to [0,1] is for display/PSNR only.
+#   * "deterministic baseline" = the published paper-1 mean-mode reconstruction
+#     for the same (ensemble, rate) config and checkpoint.
+#   * All gates are evaluated on the canonical eval subset
+#     (STL-10 test split, randperm(seed 43)[:2000]) exactly once, at the end.
+version: 1
+run_series: g2r_
+preregistered_at: "2026-06-12"
+
+gates:
+  G-CAL:
+    description: >-
+      Calibration: each posterior sample's PSNR must sit in the band
+      [meanPSNR - 3.5 dB, meanPSNR - 1 dB], where meanPSNR is the PSNR of the
+      deterministic mean reconstruction. Samples indistinguishable from the
+      mean (offset > -1 dB) indicate collapsed diversity; offsets below
+      -3.5 dB indicate broken calibration.
+    metric: per_sample_psnr_offset_db        # sample PSNR minus meanPSNR, per sample
+    band: [-3.5, -1.0]                       # dB, inclusive
+    min_fraction_in_band: 1.0
+
+  G-DIV:
+    description: >-
+      Diversity: posterior samples must vary. Median per-pixel sample std over
+      the eval set must be at least 1e-2 (images in [0,1]), and the std map
+      must correlate with image edges (uncertainty concentrates on structure,
+      not uniform noise).
+    metric: median_per_pixel_sample_std
+    min: 1.0e-2
+    edge_correlation_metric: std_edge_correlation   # Pearson r between std map and edge map
+    edge_correlation_min: 0.2
+
+  G-NVR:
+    description: >-
+      Null-variance ratio: the fraction of sample variance living in the
+      null-space of A must be substantial; posterior variation that lives in
+      the row space is measurement-inconsistent hallucination.
+    metric: null_variance_ratio
+    min: 0.1
+
+  G-MEAN:
+    description: >-
+      Mean fidelity: the PSNR of the mean of K posterior samples must not fall
+      more than 0.3 dB below the deterministic baseline PSNR.
+    metric: psnr_mean_of_samples
+    baseline_metric: psnr_deterministic_baseline
+    max_drop_db: 0.3
+
+  G-CERT:
+    description: >-
+      Certificate: every posterior sample's UNCLIPPED RelMeasErr, recomputed in
+      float64 (fresh A, fresh solve), must be at most 1e-10. Clipped values are
+      never used for this gate.
+    metric: rel_meas_err_unclipped_max_float64
+    max: 1.0e-10
+
+  G-PERC:
+    description: >-
+      Perceptual: mean LPIPS of posterior samples must be strictly better
+      (lower) than the deterministic baseline's LPIPS. FID and KID are
+      reported alongside but are report-only (no threshold).
+    metric: lpips_sample_mean
+    baseline_metric: lpips_deterministic_baseline
+    direction: lower_is_better
+    report_only_metrics: [fid, kid]
+
+  G-PROTO:
+    description: >-
+      Protocol: split assertions were active for every training-time loop
+      (split_guard_active recorded true in the run audit), and the test split
+      was evaluated exactly once, at the end of the run series.
+    require:
+      split_guard_active: true
+      test_eval_count: 1

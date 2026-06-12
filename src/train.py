@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -43,6 +44,8 @@ from .pattern_diagnostics import (
 )
 from .pattern_regularizers import total_pattern_loss
 from .pattern_utils import save_pattern_grid, save_pattern_stats_json
+from .run_protocol import enforce_run_protocol
+from .split_guard import assert_train_loader_disjoint_from_test, assert_val_loader_held_out
 from .utils import (
     apply_experiment_defaults,
     compare_metric_sets,
@@ -789,6 +792,9 @@ def main() -> None:
 
     set_seed(int(config["seed"]))
     device = resolve_device(config["device"])
+    # Protocol gate: refuses paper-1 output dirs; for g2r_ runs also enforces
+    # the run-ID prefix and forbids val_split == "test" during training.
+    protocol_info = enforce_run_protocol(config["output_dir"], config)
     output_dir = ensure_dir(config["output_dir"])
     sample_dir = ensure_dir(output_dir / "samples")
     log_dir = ensure_dir(output_dir / "tb")
@@ -845,11 +851,33 @@ def main() -> None:
         limit_train_samples=config["limit_train_samples"],
         limit_val_samples=config["limit_val_samples"],
         seed=config["seed"],
+        train_split=str(config.get("train_split", "train+unlabeled")),
+        val_split=str(config.get("val_split", "test")),
         pin_memory=pin_memory,
         dataset_name=config.get("dataset_name", "stl10"),
         class_filter=config.get("class_filter"),
         use_augmentation=bool(config.get("use_augmentation", False)),
     )
+    # Split guard: every training-time loop (incl. the adversarial update)
+    # may consume the TRAIN split only; raises SplitViolationError otherwise.
+    split_guard_info = assert_train_loader_disjoint_from_test(
+        train_loader, context="train.py train_loader"
+    )
+    run_notes.append(
+        f"Split guard active: train loader draws {split_guard_info['n_samples']} samples "
+        f"from split(s) {split_guard_info['splits']}; test overlap 0."
+    )
+    if protocol_info.get("g2r_protocol_enforced"):
+        # The name-based val_split gate is not enough: 'val' resolves to the
+        # TEST set for mnist/fashion_mnist/cifar10_gray, and STL-10 train-side
+        # splits can overlap the training pool. Verify the RESOLVED loaders.
+        heldout_info = assert_val_loader_held_out(
+            val_loader, train_loader, context="train.py val_loader (g2r)"
+        )
+        run_notes.append(
+            f"g2r run protocol enforced: run_id={protocol_info['run_id']}; held-out "
+            f"validation verified (splits {heldout_info['val_splits']}, train overlap 0)."
+        )
 
     generator = build_generator(config, measurement=measurement).to(device)
     discriminator = PatchDiscriminator().to(device)
@@ -1043,406 +1071,412 @@ def main() -> None:
             scaler=scaler,
         )
 
-    for epoch in range(start_epoch_index, int(config["epochs"]) + 1):
-        generator.train()
-        discriminator.train()
-        pattern_epoch_stats = None
-        pattern_train_epoch_enabled = pattern_updates_enabled(config, epoch)
-        lambda_adv_epoch = current_lambda_adv(config, epoch)
-        use_adv = bool(config.get("use_adversarial", True)) and lambda_adv_epoch > 0
-        generator_frozen = bool(config.get("freeze_generator_all", False)) or epoch <= int(
-            config.get("freeze_generator_epochs", 0)
-        )
-        discriminator_frozen = bool(config.get("freeze_discriminator_all", False)) or epoch <= int(
-            config.get("freeze_discriminator_epochs", 0)
-        )
-        set_requires_grad(generator, not generator_frozen)
-        set_requires_grad(discriminator, not discriminator_frozen)
-        stage = config.get("training_stage") or {}
-        refiner_start_epoch = int(stage.get("refiner_start_epoch", 0) or 0) if isinstance(stage, dict) else 0
-        refiner_enabled = not (hasattr(generator, "refiner") and refiner_start_epoch > 0 and epoch < refiner_start_epoch)
-        if hasattr(generator, "refiner"):
-            set_requires_grad(generator.refiner, (not generator_frozen) and refiner_enabled)
-        if pattern_bank is not None:
-            pattern_bank.set_tau(current_tau(config, epoch))
-        epoch_g = []
-        epoch_d = []
-        epoch_train_parts = {
-            "total": [],
-            "l1": [],
-            "dc": [],
-            "ssim": [],
-            "ms_ssim": [],
-            "edge": [],
-            "frequency": [],
-        }
-        progress = tqdm(train_loader, desc=f"Epoch {epoch}/{config['epochs']}")
-
-        for batch in progress:
-            x = batch[0].to(device, non_blocking=True)
-            pattern_update_this_step = (
-                pattern_bank is not None
-                and opt_patterns is not None
-                and pattern_train_epoch_enabled
-                and global_step % max(1, int(config.get("pattern_update_every", 1))) == 0
+    # Last fully COMPLETED epoch: mid-epoch saves record this (not the
+    # in-flight epoch) so that resume retrains an interrupted epoch instead
+    # of silently skipping its remainder (resume starts at epoch+1).
+    completed_epoch = start_epoch_index - 1
+    try:
+        for epoch in range(start_epoch_index, int(config["epochs"]) + 1):
+            generator.train()
+            discriminator.train()
+            pattern_epoch_stats = None
+            pattern_train_epoch_enabled = pattern_updates_enabled(config, epoch)
+            lambda_adv_epoch = current_lambda_adv(config, epoch)
+            use_adv = bool(config.get("use_adversarial", True)) and lambda_adv_epoch > 0
+            generator_frozen = bool(config.get("freeze_generator_all", False)) or epoch <= int(
+                config.get("freeze_generator_epochs", 0)
             )
+            discriminator_frozen = bool(config.get("freeze_discriminator_all", False)) or epoch <= int(
+                config.get("freeze_discriminator_epochs", 0)
+            )
+            set_requires_grad(generator, not generator_frozen)
+            set_requires_grad(discriminator, not discriminator_frozen)
+            stage = config.get("training_stage") or {}
+            refiner_start_epoch = int(stage.get("refiner_start_epoch", 0) or 0) if isinstance(stage, dict) else 0
+            refiner_enabled = not (hasattr(generator, "refiner") and refiner_start_epoch > 0 and epoch < refiner_start_epoch)
+            if hasattr(generator, "refiner"):
+                set_requires_grad(generator.refiner, (not generator_frozen) and refiner_enabled)
             if pattern_bank is not None:
-                set_requires_grad(pattern_bank, pattern_update_this_step)
-            y = measurement.measure(x)
+                pattern_bank.set_tau(current_tau(config, epoch))
+            epoch_g = []
+            epoch_d = []
+            epoch_train_parts = {
+                "total": [],
+                "l1": [],
+                "dc": [],
+                "ssim": [],
+                "ms_ssim": [],
+                "edge": [],
+                "frequency": [],
+            }
+            progress = tqdm(train_loader, desc=f"Epoch {epoch}/{config['epochs']}")
 
-            if use_adv and not discriminator_frozen:
-                set_requires_grad(discriminator, True)
-                opt_d.zero_grad(set_to_none=True)
-                with torch.no_grad():
-                    x_hat_detached, x_data_detached = reconstruct_from_measurements(
-                        generator,
-                        measurement,
-                        y,
-                        use_null_project=bool(config["use_null_project"]),
-                        use_dc_project=bool(config["use_dc_project"]),
-                        use_final_dc_project=bool(config.get("use_final_dc_project", config["use_dc_project"])),
-                        backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
-                        enable_refiner=refiner_enabled,
-                        output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
-                    )
-                with torch.cuda.amp.autocast(enabled=use_amp):
-                    real_scores = discriminator(x)
-                    fake_scores = discriminator(x_hat_detached.detach())
-                    gp = gradient_penalty(discriminator, x, x_hat_detached.detach(), device)
-                    d_loss = (
-                        discriminator_wgan_loss(real_scores, fake_scores)
-                        + float(config["lambda_gp"]) * gp
-                    )
-                scaler.scale(d_loss).backward()
-                scaler.unscale_(opt_d)
-                clip_gradients(discriminator, config.get("discriminator_grad_clip_norm"))
-                scaler.step(opt_d)
-                scaler.update()
-                d_loss_value = d_loss.item()
-                gp_value = gp.item()
-            else:
-                d_loss_value = 0.0
-                gp_value = 0.0
-            epoch_d.append(d_loss_value)
+            for batch in progress:
+                x = batch[0].to(device, non_blocking=True)
+                pattern_update_this_step = (
+                    pattern_bank is not None
+                    and opt_patterns is not None
+                    and pattern_train_epoch_enabled
+                    and global_step % max(1, int(config.get("pattern_update_every", 1))) == 0
+                )
+                if pattern_bank is not None:
+                    set_requires_grad(pattern_bank, pattern_update_this_step)
+                y = measurement.measure(x)
 
-            g_loss_value = None
-            should_optimize_g_block = (not generator_frozen) or pattern_update_this_step
-            if global_step % int(config["n_critic"]) == 0 and should_optimize_g_block:
-                set_requires_grad(discriminator, False)
-                opt_g.zero_grad(set_to_none=True)
-                if opt_patterns is not None:
-                    opt_patterns.zero_grad(set_to_none=True)
-                with torch.cuda.amp.autocast(enabled=use_amp):
-                    x_hat, x_data, recon_extras = reconstruct_from_measurements(
-                        generator,
-                        measurement,
-                        y,
-                        use_null_project=bool(config["use_null_project"]),
-                        use_dc_project=bool(config["use_dc_project"]),
-                        use_final_dc_project=bool(config.get("use_final_dc_project", config["use_dc_project"])),
-                        backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
-                        enable_refiner=refiner_enabled,
-                        output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
-                        return_extras=True,
-                    )
-                    dc_target = (
-                        recon_extras.get("x_hat_unclamped", x_hat)
-                        if str(config.get("output_range_mode", "clamp_eval_only")).lower() == "clamp_eval_only"
-                        else x_hat
-                    )
-                    l1 = reconstruction_loss(x_hat, x)
-                    dc = data_consistency_loss(measurement, dc_target, y)
-                    tv = total_variation_loss(x_hat)
-                    charb = charbonnier_loss(x_hat, x)
-                    edge = sobel_edge_loss(x_hat, x)
-                    ms_l1 = simple_multiscale_l1(x_hat, x)
-                    ssim_l = differentiable_ssim_loss(x_hat, x)
-                    ms_ssim_l = multiscale_ssim_loss(x_hat, x)
-                    grad_l = gradient_difference_loss(x_hat, x)
-                    freq_l = frequency_loss(x_hat, x)
-                    stage1_aux = torch.zeros((), device=device)
-                    if "x_stage1" in recon_extras and recon_extras["x_stage1"] is not x_hat:
-                        stage1_aux = reconstruction_loss(recon_extras["x_stage1"], x)
-                    if use_adv:
-                        fake_scores_for_g = discriminator(x_hat)
-                        adv = generator_adversarial_loss(fake_scores_for_g)
-                        adv_term = lambda_adv_epoch * adv
-                        adv_value = adv.item()
-                    else:
-                        adv = torch.zeros((), device=device)
-                        adv_term = adv
-                        adv_value = 0.0
-                if pattern_bank is not None and pattern_update_this_step:
-                    pattern_total, pattern_details = total_pattern_loss(
-                        pattern_bank,
-                        x,
-                        lambda_energy=float(config.get("lambda_pattern_energy", 1.0)),
-                        lambda_decorrelation=float(
-                            config.get("lambda_pattern_decorrelation", 0.1)
-                        ),
-                        lambda_binary=float(config.get("lambda_pattern_binary", 0.01)),
-                        lambda_secrip=float(config.get("lambda_pattern_secrip", 0.1)),
-                        lambda_contrast=float(config.get("lambda_pattern_contrast", 0.0)),
-                        target_contrast=float(config.get("target_contrast", 0.45)),
-                        lambda_bounded_contrast=float(
-                            config.get("lambda_pattern_bounded_contrast", 0.0)
-                        ),
-                        continuous_min_contrast=float(config.get("continuous_min_contrast", 0.05)),
-                        continuous_max_contrast=float(config.get("continuous_max_contrast", 0.5)),
-                        lambda_smoothness=float(config.get("lambda_pattern_smoothness", 0.0)),
-                        lambda_flip_margin=current_lambda_flip_margin(config, epoch),
-                        flip_margin_target=float(config.get("flip_margin_target", 0.05)),
-                        lambda_soft_flip=float(config.get("lambda_pattern_soft_flip", 0.0)),
-                        target_soft_flip_delta=float(config.get("target_soft_flip_delta", 0.01)),
-                        initial_pattern_state=initial_pattern_state,
-                        min_flip_fraction_target=float(
-                            config.get("min_flip_fraction_target", 0.001)
-                        ),
-                        max_flip_fraction_target=float(
-                            config.get("max_flip_fraction_target", 0.05)
-                        ),
-                    )
+                if use_adv and not discriminator_frozen:
+                    set_requires_grad(discriminator, True)
+                    opt_d.zero_grad(set_to_none=True)
+                    with torch.no_grad():
+                        x_hat_detached, x_data_detached = reconstruct_from_measurements(
+                            generator,
+                            measurement,
+                            y,
+                            use_null_project=bool(config["use_null_project"]),
+                            use_dc_project=bool(config["use_dc_project"]),
+                            use_final_dc_project=bool(config.get("use_final_dc_project", config["use_dc_project"])),
+                            backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
+                            enable_refiner=refiner_enabled,
+                            output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
+                        )
+                    with torch.cuda.amp.autocast(enabled=use_amp):
+                        real_scores = discriminator(x)
+                        fake_scores = discriminator(x_hat_detached.detach())
+                        gp = gradient_penalty(discriminator, x, x_hat_detached.detach(), device)
+                        d_loss = (
+                            discriminator_wgan_loss(real_scores, fake_scores)
+                            + float(config["lambda_gp"]) * gp
+                        )
+                    scaler.scale(d_loss).backward()
+                    scaler.unscale_(opt_d)
+                    clip_gradients(discriminator, config.get("discriminator_grad_clip_norm"))
+                    scaler.step(opt_d)
+                    scaler.update()
+                    d_loss_value = d_loss.item()
+                    gp_value = gp.item()
                 else:
-                    pattern_total = torch.zeros((), device=device)
-                    pattern_details = {}
-                g_loss = (
-                    float(config["lambda_l1"]) * l1
-                    + float(config["lambda_dc_loss"]) * dc
-                    + float(config["lambda_tv"]) * tv
-                    + float(config.get("lambda_charbonnier", 0.0)) * charb
-                    + float(config.get("lambda_edge", 0.0)) * edge
-                    + float(config.get("lambda_ms_l1", 0.0)) * ms_l1
-                    + float(config.get("lambda_ssim", 0.0)) * ssim_l
-                    + float(config.get("lambda_ms_ssim", 0.0)) * ms_ssim_l
-                    + float(config.get("lambda_gradient", 0.0)) * grad_l
-                    + float(config.get("lambda_frequency", 0.0)) * freq_l
-                    + float(config.get("lambda_stage1_aux", 0.0)) * stage1_aux
-                    + adv_term
-                    + pattern_total
-                )
-                scaler.scale(g_loss).backward()
-                if not generator_frozen:
-                    scaler.unscale_(opt_g)
-                if opt_patterns is not None and pattern_update_this_step:
-                    scaler.unscale_(opt_patterns)
-                gen_clip_before, gen_clip_after = (
-                    clip_gradients(generator, config.get("generator_grad_clip_norm"))
-                    if not generator_frozen
-                    else (None, None)
-                )
-                pat_clip_before, pat_clip_after = (None, None)
-                if pattern_bank is not None and pattern_update_this_step:
-                    pat_clip_before, pat_clip_after = clip_gradients(
-                        pattern_bank, config.get("pattern_grad_clip_norm")
+                    d_loss_value = 0.0
+                    gp_value = 0.0
+                epoch_d.append(d_loss_value)
+
+                g_loss_value = None
+                should_optimize_g_block = (not generator_frozen) or pattern_update_this_step
+                if global_step % int(config["n_critic"]) == 0 and should_optimize_g_block:
+                    set_requires_grad(discriminator, False)
+                    opt_g.zero_grad(set_to_none=True)
+                    if opt_patterns is not None:
+                        opt_patterns.zero_grad(set_to_none=True)
+                    with torch.cuda.amp.autocast(enabled=use_amp):
+                        x_hat, x_data, recon_extras = reconstruct_from_measurements(
+                            generator,
+                            measurement,
+                            y,
+                            use_null_project=bool(config["use_null_project"]),
+                            use_dc_project=bool(config["use_dc_project"]),
+                            use_final_dc_project=bool(config.get("use_final_dc_project", config["use_dc_project"])),
+                            backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
+                            enable_refiner=refiner_enabled,
+                            output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
+                            return_extras=True,
+                        )
+                        dc_target = (
+                            recon_extras.get("x_hat_unclamped", x_hat)
+                            if str(config.get("output_range_mode", "clamp_eval_only")).lower() == "clamp_eval_only"
+                            else x_hat
+                        )
+                        l1 = reconstruction_loss(x_hat, x)
+                        dc = data_consistency_loss(measurement, dc_target, y)
+                        tv = total_variation_loss(x_hat)
+                        charb = charbonnier_loss(x_hat, x)
+                        edge = sobel_edge_loss(x_hat, x)
+                        ms_l1 = simple_multiscale_l1(x_hat, x)
+                        ssim_l = differentiable_ssim_loss(x_hat, x)
+                        ms_ssim_l = multiscale_ssim_loss(x_hat, x)
+                        grad_l = gradient_difference_loss(x_hat, x)
+                        freq_l = frequency_loss(x_hat, x)
+                        stage1_aux = torch.zeros((), device=device)
+                        if "x_stage1" in recon_extras and recon_extras["x_stage1"] is not x_hat:
+                            stage1_aux = reconstruction_loss(recon_extras["x_stage1"], x)
+                        if use_adv:
+                            fake_scores_for_g = discriminator(x_hat)
+                            adv = generator_adversarial_loss(fake_scores_for_g)
+                            adv_term = lambda_adv_epoch * adv
+                            adv_value = adv.item()
+                        else:
+                            adv = torch.zeros((), device=device)
+                            adv_term = adv
+                            adv_value = 0.0
+                    if pattern_bank is not None and pattern_update_this_step:
+                        pattern_total, pattern_details = total_pattern_loss(
+                            pattern_bank,
+                            x,
+                            lambda_energy=float(config.get("lambda_pattern_energy", 1.0)),
+                            lambda_decorrelation=float(
+                                config.get("lambda_pattern_decorrelation", 0.1)
+                            ),
+                            lambda_binary=float(config.get("lambda_pattern_binary", 0.01)),
+                            lambda_secrip=float(config.get("lambda_pattern_secrip", 0.1)),
+                            lambda_contrast=float(config.get("lambda_pattern_contrast", 0.0)),
+                            target_contrast=float(config.get("target_contrast", 0.45)),
+                            lambda_bounded_contrast=float(
+                                config.get("lambda_pattern_bounded_contrast", 0.0)
+                            ),
+                            continuous_min_contrast=float(config.get("continuous_min_contrast", 0.05)),
+                            continuous_max_contrast=float(config.get("continuous_max_contrast", 0.5)),
+                            lambda_smoothness=float(config.get("lambda_pattern_smoothness", 0.0)),
+                            lambda_flip_margin=current_lambda_flip_margin(config, epoch),
+                            flip_margin_target=float(config.get("flip_margin_target", 0.05)),
+                            lambda_soft_flip=float(config.get("lambda_pattern_soft_flip", 0.0)),
+                            target_soft_flip_delta=float(config.get("target_soft_flip_delta", 0.01)),
+                            initial_pattern_state=initial_pattern_state,
+                            min_flip_fraction_target=float(
+                                config.get("min_flip_fraction_target", 0.001)
+                            ),
+                            max_flip_fraction_target=float(
+                                config.get("max_flip_fraction_target", 0.05)
+                            ),
+                        )
+                    else:
+                        pattern_total = torch.zeros((), device=device)
+                        pattern_details = {}
+                    g_loss = (
+                        float(config["lambda_l1"]) * l1
+                        + float(config["lambda_dc_loss"]) * dc
+                        + float(config["lambda_tv"]) * tv
+                        + float(config.get("lambda_charbonnier", 0.0)) * charb
+                        + float(config.get("lambda_edge", 0.0)) * edge
+                        + float(config.get("lambda_ms_l1", 0.0)) * ms_l1
+                        + float(config.get("lambda_ssim", 0.0)) * ssim_l
+                        + float(config.get("lambda_ms_ssim", 0.0)) * ms_ssim_l
+                        + float(config.get("lambda_gradient", 0.0)) * grad_l
+                        + float(config.get("lambda_frequency", 0.0)) * freq_l
+                        + float(config.get("lambda_stage1_aux", 0.0)) * stage1_aux
+                        + adv_term
+                        + pattern_total
                     )
-                if not generator_frozen:
-                    scaler.step(opt_g)
-                if opt_patterns is not None and pattern_update_this_step:
-                    scaler.step(opt_patterns)
-                scaler.update()
-                if ema is not None and not generator_frozen:
-                    ema.update(generator)
-                g_loss_value = g_loss.item()
-                epoch_g.append(g_loss_value)
-                epoch_train_parts["total"].append(float(g_loss_value))
-                epoch_train_parts["l1"].append(float(l1.item()))
-                epoch_train_parts["dc"].append(float(dc.item()))
-                epoch_train_parts["ssim"].append(float(ssim_l.item()))
-                epoch_train_parts["ms_ssim"].append(float(ms_ssim_l.item()))
-                epoch_train_parts["edge"].append(float(edge.item()))
-                epoch_train_parts["frequency"].append(float(freq_l.item()))
+                    scaler.scale(g_loss).backward()
+                    if not generator_frozen:
+                        scaler.unscale_(opt_g)
+                    if opt_patterns is not None and pattern_update_this_step:
+                        scaler.unscale_(opt_patterns)
+                    gen_clip_before, gen_clip_after = (
+                        clip_gradients(generator, config.get("generator_grad_clip_norm"))
+                        if not generator_frozen
+                        else (None, None)
+                    )
+                    pat_clip_before, pat_clip_after = (None, None)
+                    if pattern_bank is not None and pattern_update_this_step:
+                        pat_clip_before, pat_clip_after = clip_gradients(
+                            pattern_bank, config.get("pattern_grad_clip_norm")
+                        )
+                    if not generator_frozen:
+                        scaler.step(opt_g)
+                    if opt_patterns is not None and pattern_update_this_step:
+                        scaler.step(opt_patterns)
+                    scaler.update()
+                    if ema is not None and not generator_frozen:
+                        ema.update(generator)
+                    g_loss_value = g_loss.item()
+                    epoch_g.append(g_loss_value)
+                    epoch_train_parts["total"].append(float(g_loss_value))
+                    epoch_train_parts["l1"].append(float(l1.item()))
+                    epoch_train_parts["dc"].append(float(dc.item()))
+                    epoch_train_parts["ssim"].append(float(ssim_l.item()))
+                    epoch_train_parts["ms_ssim"].append(float(ms_ssim_l.item()))
+                    epoch_train_parts["edge"].append(float(edge.item()))
+                    epoch_train_parts["frequency"].append(float(freq_l.item()))
 
-                writer.add_scalar("train/g_loss", g_loss_value, global_step)
-                writer.add_scalar("train/l1", l1.item(), global_step)
-                writer.add_scalar("train/data_consistency", dc.item(), global_step)
-                writer.add_scalar("train/tv", tv.item(), global_step)
-                writer.add_scalar("train/charbonnier", charb.item(), global_step)
-                writer.add_scalar("train/edge", edge.item(), global_step)
-                writer.add_scalar("train/ms_l1", ms_l1.item(), global_step)
-                writer.add_scalar("train/ssim_loss", ssim_l.item(), global_step)
-                writer.add_scalar("train/ms_ssim_loss", ms_ssim_l.item(), global_step)
-                writer.add_scalar("train/gradient_loss", grad_l.item(), global_step)
-                writer.add_scalar("train/frequency_loss", freq_l.item(), global_step)
-                writer.add_scalar("train/stage1_aux", stage1_aux.item(), global_step)
-                writer.add_scalar("train/adv", adv_value, global_step)
-                writer.add_scalar("train/lambda_adv", lambda_adv_epoch, global_step)
-                if gen_clip_before is not None:
-                    writer.add_scalar("train/generator_grad_norm_before_clip", gen_clip_before, global_step)
-                    writer.add_scalar("train/generator_grad_norm_after_clip", gen_clip_after, global_step)
-                if pat_clip_before is not None:
-                    writer.add_scalar("train/pattern_grad_norm_before_clip", pat_clip_before, global_step)
-                    writer.add_scalar("train/pattern_grad_norm_after_clip", pat_clip_after, global_step)
-                for name, value in pattern_details.items():
-                    writer.add_scalar(f"train/{name}", value.item(), global_step)
+                    writer.add_scalar("train/g_loss", g_loss_value, global_step)
+                    writer.add_scalar("train/l1", l1.item(), global_step)
+                    writer.add_scalar("train/data_consistency", dc.item(), global_step)
+                    writer.add_scalar("train/tv", tv.item(), global_step)
+                    writer.add_scalar("train/charbonnier", charb.item(), global_step)
+                    writer.add_scalar("train/edge", edge.item(), global_step)
+                    writer.add_scalar("train/ms_l1", ms_l1.item(), global_step)
+                    writer.add_scalar("train/ssim_loss", ssim_l.item(), global_step)
+                    writer.add_scalar("train/ms_ssim_loss", ms_ssim_l.item(), global_step)
+                    writer.add_scalar("train/gradient_loss", grad_l.item(), global_step)
+                    writer.add_scalar("train/frequency_loss", freq_l.item(), global_step)
+                    writer.add_scalar("train/stage1_aux", stage1_aux.item(), global_step)
+                    writer.add_scalar("train/adv", adv_value, global_step)
+                    writer.add_scalar("train/lambda_adv", lambda_adv_epoch, global_step)
+                    if gen_clip_before is not None:
+                        writer.add_scalar("train/generator_grad_norm_before_clip", gen_clip_before, global_step)
+                        writer.add_scalar("train/generator_grad_norm_after_clip", gen_clip_after, global_step)
+                    if pat_clip_before is not None:
+                        writer.add_scalar("train/pattern_grad_norm_before_clip", pat_clip_before, global_step)
+                        writer.add_scalar("train/pattern_grad_norm_after_clip", pat_clip_after, global_step)
+                    for name, value in pattern_details.items():
+                        writer.add_scalar(f"train/{name}", value.item(), global_step)
 
-                if global_step % int(config["save_image_every"]) == 0:
-                    save_recon_grid(
-                        x,
-                        x_data,
-                        x_hat,
-                        sample_dir / f"step_{global_step:07d}.png",
+                    if global_step % int(config["save_image_every"]) == 0:
+                        save_recon_grid(
+                            x,
+                            x_data,
+                            x_hat,
+                            sample_dir / f"step_{global_step:07d}.png",
+                        )
+
+                writer.add_scalar("train/d_loss", d_loss_value, global_step)
+                writer.add_scalar("train/gradient_penalty", gp_value, global_step)
+                progress.set_postfix(
+                    d_loss=f"{d_loss_value:.3f}",
+                    g_loss="-" if g_loss_value is None else f"{g_loss_value:.3f}",
+                )
+                global_step += 1
+                checkpoint_every_steps = int(config.get("checkpoint_every_steps", 0) or 0)
+                if checkpoint_every_steps > 0 and global_step % checkpoint_every_steps == 0:
+                    save_checkpoint(
+                        output_dir / "last.pt",
+                        generator,
+                        discriminator,
+                        opt_g,
+                        opt_d,
+                        completed_epoch,
+                        config,
+                        {"periodic_step_save": global_step, "in_flight_epoch": epoch},
+                        pattern_bank=pattern_bank,
+                        opt_patterns=opt_patterns,
+                        initial_pattern_state=initial_pattern_state,
+                        generator_ema=ema.module if ema is not None else None,
+                        scaler=scaler,
                     )
 
-            writer.add_scalar("train/d_loss", d_loss_value, global_step)
-            writer.add_scalar("train/gradient_penalty", gp_value, global_step)
-            progress.set_postfix(
-                d_loss=f"{d_loss_value:.3f}",
-                g_loss="-" if g_loss_value is None else f"{g_loss_value:.3f}",
-            )
-            global_step += 1
+            train_g = sum(epoch_g) / max(1, len(epoch_g))
+            train_d = sum(epoch_d) / max(1, len(epoch_d))
+            print(f"Epoch {epoch}: train_g={train_g:.4f}, train_d={train_d:.4f}")
 
-        train_g = sum(epoch_g) / max(1, len(epoch_g))
-        train_d = sum(epoch_d) / max(1, len(epoch_d))
-        print(f"Epoch {epoch}: train_g={train_g:.4f}, train_d={train_d:.4f}")
-
-        metrics = {}
-        wrote_per_epoch_metrics = False
-        if epoch % int(config["eval_every"]) == 0:
-            epoch_sample_path = sample_dir / f"epoch_{epoch:03d}.png"
-            eval_generator = ema.module if ema is not None else generator
-            metrics = evaluate(
-                eval_generator,
-                val_loader,
-                measurement,
-                device,
-                config,
-                sample_path=epoch_sample_path,
-            )
-            print("Validation comparison:")
-            print(format_metric_comparison(metrics))
-            save_json(metrics, output_dir / "val_metrics_latest.json")
-            append_eval_history(output_dir, epoch, metrics, train_g=train_g, train_d=train_d)
-
-            back = metrics.get("backprojection", {})
-            model = metrics.get("model", {})
-            improve = metrics.get("improvement", {})
-            writer.add_scalar("val/backproj_psnr", back.get("psnr", 0.0), epoch)
-            writer.add_scalar("val/backproj_ssim", back.get("ssim", 0.0), epoch)
-            writer.add_scalar("val/backproj_mse", back.get("mse", 0.0), epoch)
-            writer.add_scalar(
-                "val/backproj_rel_meas_err", back.get("rel_meas_error", 0.0), epoch
-            )
-            writer.add_scalar("val/model_psnr", model.get("psnr", 0.0), epoch)
-            writer.add_scalar("val/model_ssim", model.get("ssim", 0.0), epoch)
-            writer.add_scalar("val/model_mse", model.get("mse", 0.0), epoch)
-            writer.add_scalar(
-                "val/model_rel_meas_err", model.get("rel_meas_error", 0.0), epoch
-            )
-            writer.add_scalar("val/improve_psnr", improve.get("delta_psnr", 0.0), epoch)
-            writer.add_scalar("val/improve_ssim", improve.get("delta_ssim", 0.0), epoch)
-            writer.add_scalar("val/improve_mse", improve.get("delta_mse", 0.0), epoch)
-            pattern = metrics.get("pattern", {})
-            if pattern:
-                writer.add_scalar("pattern/mean", pattern.get("mean", 0.0), epoch)
-                writer.add_scalar("pattern/std", pattern.get("std", 0.0), epoch)
-                writer.add_scalar(
-                    "pattern/binary_fraction_005_095",
-                    pattern.get("binary_fraction_005_095", 0.0),
-                    epoch,
-                )
-                writer.add_scalar(
-                    "pattern/mean_abs_offdiag_corr",
-                    pattern.get("mean_abs_offdiag_corr", 0.0),
-                    epoch,
-                )
-                writer.add_scalar("pattern/row_std_min", pattern.get("row_std_min", 0.0), epoch)
-                writer.add_scalar("pattern/row_std_mean", pattern.get("row_std_mean", 0.0), epoch)
-                writer.add_scalar("pattern/row_std_max", pattern.get("row_std_max", 0.0), epoch)
-
-            if pattern_bank is not None and initial_pattern_state is not None:
-                diagnostics = save_pattern_diagnostics_artifacts(
-                    pattern_bank,
-                    output_dir,
-                    initial_pattern_state,
+            metrics = {}
+            wrote_per_epoch_metrics = False
+            if epoch % int(config["eval_every"]) == 0:
+                epoch_sample_path = sample_dir / f"epoch_{epoch:03d}.png"
+                eval_generator = ema.module if ema is not None else generator
+                metrics = evaluate(
+                    eval_generator,
+                    val_loader,
+                    measurement,
+                    device,
                     config,
-                    epoch=epoch,
-                    secant_batch=pattern_audit_batch,
+                    sample_path=epoch_sample_path,
                 )
-                metrics["pattern_diagnostics"] = diagnostics
-                writer.add_scalar(
-                    "pattern_diagnostics/hard_flip_fraction",
-                    float(diagnostics.get("hard_flip_fraction", 0.0) or 0.0),
-                    epoch,
-                )
-                writer.add_scalar(
-                    "pattern_diagnostics/A_rel_fro_delta",
-                    float(diagnostics.get("A_rel_fro_delta", 0.0) or 0.0),
-                    epoch,
-                )
-                secant_delta = diagnostics.get("secant_rip_delta", 0.0)
-                if isinstance(secant_delta, (int, float)):
-                    writer.add_scalar("pattern_diagnostics/secant_rip_delta", float(secant_delta), epoch)
-                soft_l2_delta = diagnostics.get("soft_l2_delta", 0.0)
-                if isinstance(soft_l2_delta, (int, float)):
-                    writer.add_scalar("pattern_diagnostics/soft_l2_delta", float(soft_l2_delta), epoch)
-                near_005 = diagnostics.get("near_threshold_fraction_0p05", 0.0)
-                if isinstance(near_005, (int, float)):
-                    writer.add_scalar("pattern/near_threshold_fraction_0p05", float(near_005), epoch)
+                print("Validation comparison:")
+                print(format_metric_comparison(metrics))
                 save_json(metrics, output_dir / "val_metrics_latest.json")
+                append_eval_history(output_dir, epoch, metrics, train_g=train_g, train_d=train_d)
 
-            update_best_checkpoints(
-                metrics,
-                epoch,
-                config,
-                output_dir,
-                generator,
-                discriminator,
-                opt_g,
-                opt_d,
-                pattern_bank,
-                opt_patterns,
-                best_values,
-                best_records,
-                epoch_sample_path,
-                initial_pattern_state=initial_pattern_state,
-                generator_ema=ema.module if ema is not None else None,
-                scaler=scaler,
-            )
-            append_per_epoch_metrics(
-                output_dir,
-                epoch,
-                metrics,
-                epoch_train_parts,
-                config,
-                best_records,
-                time.time() - train_start_perf,
-                train_d=train_d,
-            )
-            wrote_per_epoch_metrics = True
+                back = metrics.get("backprojection", {})
+                model = metrics.get("model", {})
+                improve = metrics.get("improvement", {})
+                writer.add_scalar("val/backproj_psnr", back.get("psnr", 0.0), epoch)
+                writer.add_scalar("val/backproj_ssim", back.get("ssim", 0.0), epoch)
+                writer.add_scalar("val/backproj_mse", back.get("mse", 0.0), epoch)
+                writer.add_scalar(
+                    "val/backproj_rel_meas_err", back.get("rel_meas_error", 0.0), epoch
+                )
+                writer.add_scalar("val/model_psnr", model.get("psnr", 0.0), epoch)
+                writer.add_scalar("val/model_ssim", model.get("ssim", 0.0), epoch)
+                writer.add_scalar("val/model_mse", model.get("mse", 0.0), epoch)
+                writer.add_scalar(
+                    "val/model_rel_meas_err", model.get("rel_meas_error", 0.0), epoch
+                )
+                writer.add_scalar("val/improve_psnr", improve.get("delta_psnr", 0.0), epoch)
+                writer.add_scalar("val/improve_ssim", improve.get("delta_ssim", 0.0), epoch)
+                writer.add_scalar("val/improve_mse", improve.get("delta_mse", 0.0), epoch)
+                pattern = metrics.get("pattern", {})
+                if pattern:
+                    writer.add_scalar("pattern/mean", pattern.get("mean", 0.0), epoch)
+                    writer.add_scalar("pattern/std", pattern.get("std", 0.0), epoch)
+                    writer.add_scalar(
+                        "pattern/binary_fraction_005_095",
+                        pattern.get("binary_fraction_005_095", 0.0),
+                        epoch,
+                    )
+                    writer.add_scalar(
+                        "pattern/mean_abs_offdiag_corr",
+                        pattern.get("mean_abs_offdiag_corr", 0.0),
+                        epoch,
+                    )
+                    writer.add_scalar("pattern/row_std_min", pattern.get("row_std_min", 0.0), epoch)
+                    writer.add_scalar("pattern/row_std_mean", pattern.get("row_std_mean", 0.0), epoch)
+                    writer.add_scalar("pattern/row_std_max", pattern.get("row_std_max", 0.0), epoch)
 
-        if not wrote_per_epoch_metrics:
-            append_per_epoch_metrics(
-                output_dir,
-                epoch,
-                metrics,
-                epoch_train_parts,
-                config,
-                best_records,
-                time.time() - train_start_perf,
-                train_d=train_d,
-            )
+                if pattern_bank is not None and initial_pattern_state is not None:
+                    diagnostics = save_pattern_diagnostics_artifacts(
+                        pattern_bank,
+                        output_dir,
+                        initial_pattern_state,
+                        config,
+                        epoch=epoch,
+                        secant_batch=pattern_audit_batch,
+                    )
+                    metrics["pattern_diagnostics"] = diagnostics
+                    writer.add_scalar(
+                        "pattern_diagnostics/hard_flip_fraction",
+                        float(diagnostics.get("hard_flip_fraction", 0.0) or 0.0),
+                        epoch,
+                    )
+                    writer.add_scalar(
+                        "pattern_diagnostics/A_rel_fro_delta",
+                        float(diagnostics.get("A_rel_fro_delta", 0.0) or 0.0),
+                        epoch,
+                    )
+                    secant_delta = diagnostics.get("secant_rip_delta", 0.0)
+                    if isinstance(secant_delta, (int, float)):
+                        writer.add_scalar("pattern_diagnostics/secant_rip_delta", float(secant_delta), epoch)
+                    soft_l2_delta = diagnostics.get("soft_l2_delta", 0.0)
+                    if isinstance(soft_l2_delta, (int, float)):
+                        writer.add_scalar("pattern_diagnostics/soft_l2_delta", float(soft_l2_delta), epoch)
+                    near_005 = diagnostics.get("near_threshold_fraction_0p05", 0.0)
+                    if isinstance(near_005, (int, float)):
+                        writer.add_scalar("pattern/near_threshold_fraction_0p05", float(near_005), epoch)
+                    save_json(metrics, output_dir / "val_metrics_latest.json")
 
-        if pattern_bank is not None and epoch % int(config.get("save_patterns_every", 1)) == 0:
-            pattern_epoch_stats = save_pattern_artifacts(pattern_bank, output_dir, epoch, config)
+                update_best_checkpoints(
+                    metrics,
+                    epoch,
+                    config,
+                    output_dir,
+                    generator,
+                    discriminator,
+                    opt_g,
+                    opt_d,
+                    pattern_bank,
+                    opt_patterns,
+                    best_values,
+                    best_records,
+                    epoch_sample_path,
+                    initial_pattern_state=initial_pattern_state,
+                    generator_ema=ema.module if ema is not None else None,
+                    scaler=scaler,
+                )
+                append_per_epoch_metrics(
+                    output_dir,
+                    epoch,
+                    metrics,
+                    epoch_train_parts,
+                    config,
+                    best_records,
+                    time.time() - train_start_perf,
+                    train_d=train_d,
+                )
+                wrote_per_epoch_metrics = True
 
-        save_checkpoint(
-            output_dir / "last.pt",
-            generator,
-            discriminator,
-            opt_g,
-            opt_d,
-            epoch,
-            config,
-            metrics,
-            pattern_bank=pattern_bank,
-            opt_patterns=opt_patterns,
-            initial_pattern_state=initial_pattern_state,
-            generator_ema=ema.module if ema is not None else None,
-            scaler=scaler,
-        )
-        if epoch % int(config["save_every"]) == 0:
+            if not wrote_per_epoch_metrics:
+                append_per_epoch_metrics(
+                    output_dir,
+                    epoch,
+                    metrics,
+                    epoch_train_parts,
+                    config,
+                    best_records,
+                    time.time() - train_start_perf,
+                    train_d=train_d,
+                )
+
+            if pattern_bank is not None and epoch % int(config.get("save_patterns_every", 1)) == 0:
+                pattern_epoch_stats = save_pattern_artifacts(pattern_bank, output_dir, epoch, config)
+
             save_checkpoint(
-                output_dir / f"epoch_{epoch:04d}.pt",
+                output_dir / "last.pt",
                 generator,
                 discriminator,
                 opt_g,
@@ -1456,6 +1490,51 @@ def main() -> None:
                 generator_ema=ema.module if ema is not None else None,
                 scaler=scaler,
             )
+            if epoch % int(config["save_every"]) == 0:
+                save_checkpoint(
+                    output_dir / f"epoch_{epoch:04d}.pt",
+                    generator,
+                    discriminator,
+                    opt_g,
+                    opt_d,
+                    epoch,
+                    config,
+                    metrics,
+                    pattern_bank=pattern_bank,
+                    opt_patterns=opt_patterns,
+                    initial_pattern_state=initial_pattern_state,
+                    generator_ema=ema.module if ema is not None else None,
+                    scaler=scaler,
+                )
+            completed_epoch = epoch
+
+    finally:
+        # Forced final save (g2r checkpoint discipline): a usable last.pt must
+        # exist even when training exits via an exception or interrupt. The
+        # recorded epoch is the last COMPLETED one, so resume retrains any
+        # interrupted epoch instead of skipping its remainder.
+        exception_in_flight = sys.exc_info()[0] is not None
+        try:
+            save_checkpoint(
+                output_dir / "last.pt",
+                generator,
+                discriminator,
+                opt_g,
+                opt_d,
+                completed_epoch,
+                config,
+                locals().get("metrics", {}),
+                pattern_bank=pattern_bank,
+                opt_patterns=opt_patterns,
+                initial_pattern_state=initial_pattern_state,
+                generator_ema=ema.module if ema is not None else None,
+                scaler=scaler,
+            )
+        except Exception:
+            # Never mask an in-flight training exception with a save failure.
+            if not exception_in_flight:
+                raise
+            print("WARNING: forced final checkpoint save failed while handling an exception.")
 
     if pattern_bank is not None and initial_pattern_state is not None:
         final_diagnostics = save_pattern_diagnostics_artifacts(

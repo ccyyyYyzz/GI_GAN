@@ -1,0 +1,136 @@
+{
+  "kind": "g2r_p0_manifest",
+  "bundle_root": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak",
+  "range_leak_tol": 1e-12,
+  "idempotence_tol": 1e-10,
+  "tasks": [
+    {
+      "task": "rad5",
+      "ensemble": "rademacher",
+      "sampling_pct": 5,
+      "config_path": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\rademacher5_hq_noise001_colab\\resolved_config.yaml",
+      "config_sha256": "a2835bccf3b5f105c8d0a0aed08920329134404f00ba7446aa3c0da2500e32ff",
+      "A_source": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\rademacher5_hq_noise001_colab\\measurement_operator_exact.pt",
+      "A_source_sha256": "4d6af0a87b0382124dfe1f40c291a972d3f68d1dc1b12be25b592d8a78c8c563",
+      "A_source_kind": "measurement_operator_exact.pt",
+      "m": 205,
+      "n": 4096,
+      "rank": 205,
+      "verification_float64": {
+        "n_probes": 32,
+        "range_leak_max": 2.4942303677949857e-15,
+        "range_leak_mean": 2.1856412743485724e-15,
+        "idempotence_fro": 3.685933100852492e-14,
+        "range_leak_tol": 1e-12,
+        "idempotence_tol": 1e-10,
+        "range_leak_pass": true,
+        "idempotence_pass": true,
+        "pass": true
+      },
+      "torch_version": "2.2.1+cu121",
+      "created_at": "2026-06-12T22:50:35+02:00",
+      "artifact": {
+        "path": "E:\\ns_mc_gan_gi\\results\\g2r_protocol\\p0\\p0_rad5.pt",
+        "dtype": "float32",
+        "sha256": "9a33c1ff52e3ae5aaf545a4c7b8d237a9a4d6553dfa11370a4feea2985292021",
+        "bytes": 67110620
+      }
+    },
+    {
+      "task": "scr5",
+      "ensemble": "scrambled_hadamard",
+      "sampling_pct": 5,
+      "config_path": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\resolved_config.yaml",
+      "config_sha256": "4a19141f18e8b36025c7c7f08902837977e433b91497e1775d1b62ad625a9802",
+      "A_source": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\resolved_config.yaml",
+      "A_source_sha256": "4a19141f18e8b36025c7c7f08902837977e433b91497e1775d1b62ad625a9802",
+      "A_source_kind": "rebuilt_from_resolved_config(seed-deterministic)",
+      "m": 205,
+      "n": 4096,
+      "rank": 205,
+      "verification_float64": {
+        "n_probes": 32,
+        "range_leak_max": 1.3313332131712586e-15,
+        "range_leak_mean": 1.1658892998506483e-15,
+        "idempotence_fro": 8.219063198984574e-15,
+        "range_leak_tol": 1e-12,
+        "idempotence_tol": 1e-10,
+        "range_leak_pass": true,
+        "idempotence_pass": true,
+        "pass": true
+      },
+      "torch_version": "2.2.1+cu121",
+      "created_at": "2026-06-12T22:50:38+02:00",
+      "artifact": {
+        "path": "E:\\ns_mc_gan_gi\\results\\g2r_protocol\\p0\\p0_scr5.pt",
+        "dtype": "float32",
+        "sha256": "ad64976e0715e69ba9bbcd18fda2665c5362189f36ec2cc15250a47c77c0d905",
+        "bytes": 67110620
+      }
+    },
+    {
+      "task": "rad10",
+      "ensemble": "rademacher",
+      "sampling_pct": 10,
+      "config_path": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\rademacher10_full_noise001_colab\\resolved_config.yaml",
+      "config_sha256": "6204452a7ccf4326408101a2c11ed43bac2889a2a4235cb5989f13583aaadf01",
+      "A_source": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\rademacher10_full_noise001_colab\\measurement_operator_exact.pt",
+      "A_source_sha256": "cb5cec7b8610478808eac0b078f7d2800fca78fd5c90c1953f8da9e55ce3d8eb",
+      "A_source_kind": "measurement_operator_exact.pt",
+      "m": 410,
+      "n": 4096,
+      "rank": 410,
+      "verification_float64": {
+        "n_probes": 32,
+        "range_leak_max": 2.869752171323473e-15,
+        "range_leak_mean": 2.601708171933267e-15,
+        "idempotence_fro": 5.530186017596841e-14,
+        "range_leak_tol": 1e-12,
+        "idempotence_tol": 1e-10,
+        "range_leak_pass": true,
+        "idempotence_pass": true,
+        "pass": true
+      },
+      "torch_version": "2.2.1+cu121",
+      "created_at": "2026-06-12T22:50:40+02:00",
+      "artifact": {
+        "path": "E:\\ns_mc_gan_gi\\results\\g2r_protocol\\p0\\p0_rad10.pt",
+        "dtype": "float32",
+        "sha256": "f386c23f1d48e77d5d6a5f75b5d8e17668ee1b10ff06c1cbb6da05e1de8fefdb",
+        "bytes": 67110625
+      }
+    },
+    {
+      "task": "scr10",
+      "ensemble": "scrambled_hadamard",
+      "sampling_pct": 10,
+      "config_path": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard10_full_noise001_colab\\resolved_config.yaml",
+      "config_sha256": "33d19cc932a2fd543a5c1d586debe9b38e9c204622f984109070ba0a8ae00306",
+      "A_source": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard10_full_noise001_colab\\resolved_config.yaml",
+      "A_source_sha256": "33d19cc932a2fd543a5c1d586debe9b38e9c204622f984109070ba0a8ae00306",
+      "A_source_kind": "rebuilt_from_resolved_config(seed-deterministic)",
+      "m": 410,
+      "n": 4096,
+      "rank": 410,
+      "verification_float64": {
+        "n_probes": 32,
+        "range_leak_max": 1.1357934611489473e-15,
+        "range_leak_mean": 1.0369373567654907e-15,
+        "idempotence_fro": 1.1280185125736522e-14,
+        "range_leak_tol": 1e-12,
+        "idempotence_tol": 1e-10,
+        "range_leak_pass": true,
+        "idempotence_pass": true,
+        "pass": true
+      },
+      "torch_version": "2.2.1+cu121",
+      "created_at": "2026-06-12T22:50:43+02:00",
+      "artifact": {
+        "path": "E:\\ns_mc_gan_gi\\results\\g2r_protocol\\p0\\p0_scr10.pt",
+        "dtype": "float32",
+        "sha256": "f21e005b757b51eab101361d3c5fca57d33bafc582078c1dca4aad4871f4f0c8",
+        "bytes": 67110625
+      }
+    }
+  ]
+}

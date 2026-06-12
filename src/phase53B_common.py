@@ -16,6 +16,7 @@ import torch.nn.functional as F
 
 from .datasets import get_val_dataloader
 from .eval import make_measurement
+from .split_guard import get_train_dataloader_guarded
 from .exact_measurement import apply_measurement_override_from_config, torch_load
 from .metrics import batch_metrics
 from .models import build_generator
@@ -95,6 +96,10 @@ def configure_task(args: argparse.Namespace, task_key: str, task_out: Path, devi
     config["batch_size"] = int(args.batch_size)
     config["num_workers"] = int(args.num_workers)
     config["limit_val_samples"] = int(args.limit_samples)
+    # Session-level cap for training-time loaders too: bundle resolved configs
+    # carry limit_train_samples=50000, which would blow critic-data collection
+    # up ~100x if inherited.
+    config["limit_train_samples"] = int(args.limit_samples)
     config["phase53B_note"] = "Exploratory certified-blind null-space critic screening; no test-set checkpoint selection."
     if info["exact_A_path"] is not None:
         config["measurement_operator_exact_path"] = str(info["exact_A_path"])
@@ -110,6 +115,8 @@ def configure_task(args: argparse.Namespace, task_key: str, task_out: Path, devi
 
 
 def make_loader(config: dict[str, Any], device: torch.device):
+    """EVAL-ONLY loader (test split). Never use in a training-time loop:
+    GAN/critic updates must use make_train_loader (split-guarded)."""
     return get_val_dataloader(
         dataset_root=config["dataset_root"],
         img_size=int(config["img_size"]),
@@ -120,6 +127,30 @@ def make_loader(config: dict[str, Any], device: torch.device):
         pin_memory=device.type == "cuda",
         dataset_name=config.get("dataset_name", "stl10"),
         class_filter=config.get("class_filter"),
+    )
+
+
+def make_train_loader(config: dict[str, Any], device: torch.device):
+    """TRAIN-split loader for every training-time loop (GAN updates, critic
+    data collection). Split-guarded at creation: raises SplitViolationError
+    if it could reach test-split samples."""
+    raw_limit = config.get("limit_train_samples")
+    if raw_limit is None:
+        # YAML "limit_train_samples: null" means full split for train.py, but
+        # phase53 sessions are capped by the session-level sample limit.
+        raw_limit = config.get("limit_val_samples", 512)
+    return get_train_dataloader_guarded(
+        dataset_root=config["dataset_root"],
+        img_size=int(config["img_size"]),
+        batch_size=int(config.get("batch_size", 16)),
+        num_workers=int(config.get("num_workers", 2)),
+        limit_train_samples=int(raw_limit) if raw_limit is not None else None,
+        seed=int(config.get("seed", 123)),
+        train_split=str(config.get("train_split", "train+unlabeled")),
+        pin_memory=device.type == "cuda",
+        dataset_name=config.get("dataset_name", "stl10"),
+        class_filter=config.get("class_filter"),
+        context="phase53 GAN/critic training loader",
     )
 
 
@@ -186,7 +217,8 @@ def collect_pair_dataset(
     negative_mode: str,
     limit_batches: int | None = None,
 ) -> dict[str, torch.Tensor]:
-    loader = make_loader(config, device)
+    # Critic training data: TRAIN split only (split-guarded).
+    loader = make_train_loader(config, device)
     u_images: list[torch.Tensor] = []
     anchors: list[torch.Tensor] = []
     labels: list[torch.Tensor] = []

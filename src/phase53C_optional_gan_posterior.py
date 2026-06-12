@@ -16,6 +16,7 @@ from .phase53C_common import (
     load_generator,
     make_exact_null_inputs,
     make_loader,
+    make_train_loader,
     prepare_exact_projector,
     relmeas_tensor,
     resolve_device,
@@ -28,6 +29,7 @@ from .phase53C_common import (
 )
 from .metrics import batch_metrics
 from .phase53B_common import anchor_from_y
+from .run_protocol import CheckpointManager, enforce_run_protocol
 from .utils import ensure_dir, reconstruct_from_measurements, set_seed
 
 
@@ -40,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max_steps", type=int, default=180)
     parser.add_argument("--num_samples_per_y", type=int, default=8)
     parser.add_argument("--eval_batches", type=int, default=4)
+    parser.add_argument("--checkpoint_every", type=int, default=60)
     return parser.parse_args()
 
 
@@ -99,6 +102,9 @@ def _posterior_rows(generator, config, measurement, loader, device, task, family
 
 def main() -> None:
     args = parse_args()
+    # g2r protocol: run IDs prefixed g2r_, no paper-1 output dirs; training
+    # in this pilot consumes the TRAIN split only ("none" = no val loader).
+    enforce_run_protocol(args.output_dir, {"run_id": args.session_name, "val_split": "none"})
     out = ensure_dir(args.output_dir)
     write_command_log(out)
     device = resolve_device(args.device)
@@ -132,13 +138,58 @@ def main() -> None:
                 g_opt = torch.optim.AdamW(generator.parameters(), lr=5e-5, weight_decay=1e-5)
                 d_opt = torch.optim.AdamW(critic.parameters(), lr=args.critic_lr, weight_decay=1e-4)
                 steps = 0
-                while steps < args.max_steps:
-                    for batch in make_loader(config, device):
-                        x = batch[0].to(device, non_blocking=True)
-                        y = measurement.measure(x)
-                        anchor = anchor_from_y(measurement, y, config)
-                        with torch.no_grad():
-                            xhat_det, _xd, _ex = reconstruct_from_measurements(
+                beta_tag = f"beta_{beta:.0e}".replace("-", "m")
+                beta_out = ensure_dir(task_out / beta_tag)
+                # TRAIN split only: the GAN update loop must never see test data.
+                train_loader = make_train_loader(config, device)
+
+                def _save_gan_checkpoint(path, context, _generator=generator, _critic=critic, _beta=beta):
+                    torch.save(
+                        {
+                            "generator": _generator.state_dict(),
+                            "critic": _critic.state_dict(),
+                            "beta": _beta,
+                            "config": config,
+                            **context,
+                        },
+                        path,
+                    )
+
+                with CheckpointManager(
+                    beta_out,
+                    run_id=args.session_name,
+                    save_fn=_save_gan_checkpoint,
+                    save_every_steps=int(args.checkpoint_every),
+                    validate_dir=False,
+                ) as ckpt:
+                    while steps < args.max_steps:
+                        for batch in train_loader:
+                            x = batch[0].to(device, non_blocking=True)
+                            y = measurement.measure(x)
+                            anchor = anchor_from_y(measurement, y, config)
+                            with torch.no_grad():
+                                xhat_det, _xd, _ex = reconstruct_from_measurements(
+                                    generator,
+                                    measurement,
+                                    y,
+                                    use_null_project=bool(config.get("use_null_project", True)),
+                                    use_dc_project=True,
+                                    use_final_dc_project=True,
+                                    backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
+                                    enable_refiner=True,
+                                    output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
+                                    return_extras=True,
+                                )
+                            d_pos = critic(_critic_input(measurement, Q, x, anchor))
+                            d_neg = critic(_critic_input(measurement, Q, xhat_det, anchor))
+                            d_loss = 0.5 * (
+                                F.binary_cross_entropy_with_logits(d_pos, torch.ones_like(d_pos))
+                                + F.binary_cross_entropy_with_logits(d_neg, torch.zeros_like(d_neg))
+                            )
+                            d_opt.zero_grad(set_to_none=True)
+                            d_loss.backward()
+                            d_opt.step()
+                            xhat, _xd, _ex = reconstruct_from_measurements(
                                 generator,
                                 measurement,
                                 y,
@@ -150,39 +201,27 @@ def main() -> None:
                                 output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
                                 return_extras=True,
                             )
-                        d_pos = critic(_critic_input(measurement, Q, x, anchor))
-                        d_neg = critic(_critic_input(measurement, Q, xhat_det, anchor))
-                        d_loss = 0.5 * (
-                            F.binary_cross_entropy_with_logits(d_pos, torch.ones_like(d_pos))
-                            + F.binary_cross_entropy_with_logits(d_neg, torch.zeros_like(d_neg))
-                        )
-                        d_opt.zero_grad(set_to_none=True)
-                        d_loss.backward()
-                        d_opt.step()
-                        xhat, _xd, _ex = reconstruct_from_measurements(
-                            generator,
-                            measurement,
-                            y,
-                            use_null_project=bool(config.get("use_null_project", True)),
-                            use_dc_project=True,
-                            use_final_dc_project=True,
-                            backprojection_mode=config.get("backprojection_mode", "ridge_pinv"),
-                            enable_refiner=True,
-                            output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
-                            return_extras=True,
-                        )
-                        g_score = critic(_critic_input(measurement, Q, xhat, anchor))
-                        img_loss = F.l1_loss(xhat, x)
-                        rel = relmeas_tensor(measurement, measurement.flatten_img(xhat.float()), y).mean()
-                        adv = F.binary_cross_entropy_with_logits(g_score, torch.ones_like(g_score))
-                        g_loss = img_loss + 0.05 * rel + float(beta) * adv
-                        g_opt.zero_grad(set_to_none=True)
-                        g_loss.backward()
-                        g_opt.step()
-                        steps += 1
-                        if steps >= args.max_steps:
-                            break
+                            g_score = critic(_critic_input(measurement, Q, xhat, anchor))
+                            img_loss = F.l1_loss(xhat, x)
+                            # RelMeasErr is ALWAYS computed on the UNCLIPPED vector.
+                            rel = relmeas_tensor(
+                                measurement, measurement.flatten_img(_ex["x_hat_unclamped"].float()), y
+                            ).mean()
+                            adv = F.binary_cross_entropy_with_logits(g_score, torch.ones_like(g_score))
+                            g_loss = img_loss + 0.05 * rel + float(beta) * adv
+                            g_opt.zero_grad(set_to_none=True)
+                            g_loss.backward()
+                            g_opt.step()
+                            steps += 1
+                            ckpt.step()
+                            if steps >= args.max_steps:
+                                break
                 generator.eval()
+                # Post-training checkpoint (the historical pilot never saved one).
+                _save_gan_checkpoint(
+                    beta_out / "gan_posterior_trained.pt",
+                    {"run_id": args.session_name, "step": steps, "reason": "post_training"},
+                )
                 eval_metrics = []
                 with torch.no_grad():
                     for bidx, batch in enumerate(make_loader(config, device)):
@@ -202,7 +241,16 @@ def main() -> None:
                             output_range_mode=config.get("output_range_mode", "clamp_eval_only"),
                             return_extras=True,
                         )
-                        eval_metrics.append(batch_metrics(xhat, x, measurement, y))
+                        m = batch_metrics(xhat, x, measurement, y)
+                        # RelMeasErr is ALWAYS computed on the UNCLIPPED vector.
+                        m["rel_meas_error"] = float(
+                            relmeas_tensor(
+                                measurement, measurement.flatten_img(_ex["x_hat_unclamped"].float()), y
+                            )
+                            .mean()
+                            .cpu()
+                        )
+                        eval_metrics.append(m)
                 row = {
                     "task": task,
                     "family": info["metadata"]["display"],

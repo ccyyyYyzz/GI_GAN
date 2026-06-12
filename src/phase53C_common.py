@@ -21,6 +21,7 @@ from .phase53B_common import (
     make_full_shortcut_inputs,
     make_image_inputs,
     make_loader,
+    make_train_loader,
     relmeas_tensor,
     resolve_device,
     save_bar_plot,
@@ -64,7 +65,8 @@ def hard_audit(measurement, image: torch.Tensor, y: torch.Tensor) -> torch.Tenso
 
 
 def collect_exact_null_pair_dataset(config: dict[str, Any], measurement, Q: torch.Tensor, device: torch.device, negative_mode: str = "random_roll") -> dict[str, torch.Tensor]:
-    loader = make_loader(config, device)
+    # Critic training data: TRAIN split only (split-guarded).
+    loader = make_train_loader(config, device)
     u_images: list[torch.Tensor] = []
     anchors: list[torch.Tensor] = []
     labels: list[torch.Tensor] = []
@@ -206,6 +208,7 @@ __all__ = [
     "make_full_shortcut_inputs",
     "make_image_inputs",
     "make_loader",
+    "make_train_loader",
     "prepare_exact_projector",
     "relmeas_tensor",
     "resolve_device",

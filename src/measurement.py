@@ -6,6 +6,10 @@ import torch
 from torch import nn
 
 
+class StaleSolverCacheError(RuntimeError):
+    """Raised when the cached K = A A^T + lambda I / Cholesky no longer matches A."""
+
+
 @dataclass(frozen=True)
 class MeasurementShape:
     img_size: int
@@ -397,14 +401,8 @@ class GhostMeasurementOperator:
                 hybrid_lowfreq_fraction=self.hybrid_lowfreq_fraction,
                 return_metadata=True,
             )
-        eye = torch.eye(self.m, device=self.device, dtype=self.A.dtype)
-        self.K = self.A @ self.A.T + self.lambda_dc * eye
-        self._chol = None
-        self._use_cholesky = True
-        try:
-            self._chol = torch.linalg.cholesky(self.K)
-        except RuntimeError:
-            self._use_cholesky = False
+        self._rebuild_solver_cache()
+        self.assert_solver_cache_fresh()
 
     def _rebuild_solver_cache(self) -> None:
         eye = torch.eye(self.m, device=self.device, dtype=self.A.dtype)
@@ -415,6 +413,67 @@ class GhostMeasurementOperator:
             self._chol = torch.linalg.cholesky(self.K)
         except RuntimeError:
             self._use_cholesky = False
+        # float64 shadow of the solver cache, used only by
+        # assert_solver_cache_fresh to detect stale caches at 1e-10 precision.
+        A64 = self.A.detach().to(torch.float64)
+        eye64 = torch.eye(self.m, device=self.device, dtype=torch.float64)
+        self._K64 = A64 @ A64.T + self.lambda_dc * eye64
+        try:
+            self._chol64 = torch.linalg.cholesky(self._K64)
+        except RuntimeError:
+            self._chol64 = None
+
+    def assert_solver_cache_fresh(self, tol: float = 1e-10, seed: int = 20260612) -> dict[str, float]:
+        """Assert the cached K/Cholesky matches the CURRENT A.
+
+        A fresh float64 solve of (A A^T + lambda I) z = b is compared against a
+        solve using the cached float64 Cholesky factor on a random vector; the
+        two must agree within ``tol`` (1e-10). The float32 runtime cache is
+        also checked against the fresh K at float32 rounding accuracy. Raises
+        StaleSolverCacheError on violation. Guards against the historical
+        exact-A override incident that left a stale Cholesky/solver cache.
+        """
+        if self.K is None or getattr(self, "_K64", None) is None:
+            raise StaleSolverCacheError(
+                "Solver cache is missing (K or _K64 is None); call _rebuild_solver_cache()."
+            )
+        if self.K.shape[0] != self.A.shape[0] or self._K64.shape[0] != self.A.shape[0]:
+            raise StaleSolverCacheError(
+                f"Solver cache shape {tuple(self.K.shape)} does not match current A "
+                f"with m={self.A.shape[0]}; the cache is stale."
+            )
+        A64 = self.A.detach().to(torch.float64)
+        eye64 = torch.eye(self.m, device=self.device, dtype=torch.float64)
+        K_fresh = A64 @ A64.T + self.lambda_dc * eye64
+        gen = torch.Generator()
+        gen.manual_seed(int(seed))
+        b = torch.randn(self.m, 1, dtype=torch.float64, generator=gen).to(self.device)
+        z_fresh = torch.linalg.solve(K_fresh, b)
+        if self._chol64 is not None:
+            z_cached = torch.cholesky_solve(b, self._chol64)
+        else:
+            z_cached = torch.linalg.solve(self._K64, b)
+        rel_solve = float(
+            (torch.linalg.norm(z_fresh - z_cached) / torch.linalg.norm(z_fresh).clamp_min(1e-300)).item()
+        )
+        rel_K32 = float(
+            (
+                torch.linalg.norm(self.K.detach().to(torch.float64) - K_fresh)
+                / torch.linalg.norm(K_fresh).clamp_min(1e-300)
+            ).item()
+        )
+        if rel_solve > float(tol):
+            raise StaleSolverCacheError(
+                f"Stale solver cache: fresh vs cached solve disagree (rel={rel_solve:.3e} > {tol:.1e}). "
+                "A was changed without rebuilding K = A A^T + lambda I and its Cholesky cache."
+            )
+        # float32 cache only needs to match to float32 rounding, but a stale
+        # cache produces O(1) mismatch, far above this threshold.
+        if rel_K32 > 1e-4:
+            raise StaleSolverCacheError(
+                f"Stale float32 solver cache: ||K_cached - K_fresh||/||K_fresh|| = {rel_K32:.3e} > 1e-4."
+            )
+        return {"rel_solve_fresh_vs_cached": rel_solve, "rel_K32_vs_fresh": rel_K32}
 
     def set_A_override(
         self,
@@ -451,20 +510,23 @@ class GhostMeasurementOperator:
         self.measurement_metadata = override_metadata
         if self.pattern_type in HADAMARD_PATTERN_TYPES:
             self.hadamard_metadata = None
-        if rebuild_cache:
-            self._rebuild_solver_cache()
-        else:
-            self.K = None
-            self._chol = None
-            self._use_cholesky = False
+        if not rebuild_cache:
+            raise StaleSolverCacheError(
+                "set_A_override(rebuild_cache=False) is forbidden: any A override "
+                "must rebuild K = A A^T + lambda I and its Cholesky cache "
+                "(historical stale-cache incident)."
+            )
+        self._rebuild_solver_cache()
+        cache_check = self.assert_solver_cache_fresh()
         return {
             "m": self.m,
             "n": self.n,
             "sampling_ratio": self.sampling_ratio,
             "row_norm_mean": stats["row_norm_mean"],
             "row_norm_std": stats["row_norm_std"],
-            "cache_rebuilt": bool(rebuild_cache),
+            "cache_rebuilt": True,
             "uses_cholesky": bool(self._use_cholesky),
+            "solver_cache_rel_solve": cache_check["rel_solve_fresh_vs_cached"],
         }
 
     def flatten_img(self, x: torch.Tensor) -> torch.Tensor:
