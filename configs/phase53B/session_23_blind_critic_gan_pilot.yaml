@@ -1,0 +1,14 @@
+phase: 53B
+session_name: session_23_blind_critic_gan_pilot
+mode: blind_critic_gan_pilot
+trains_generator: true
+trains_discriminator: true
+discriminator_inputs:
+  - P_N_xhat
+  - x_data
+analytic_audit_active: true
+beta_grid:
+  - 1.0e-5
+  - 3.0e-5
+  - 1.0e-4
+outputs_are: exploratory_pilot_not_main_result

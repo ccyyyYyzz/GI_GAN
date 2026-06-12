@@ -1,0 +1,27 @@
+{
+  "seed": 6001,
+  "G_I1": {
+    "name": "G-I1 exact audit/null-gauge identities",
+    "tol": 1e-12,
+    "m": 32,
+    "n": 96,
+    "relative_error_P0_Pi_equals_P0": 6.576104317614908e-16,
+    "relative_error_A_Pi_equals_y": 7.188920929858554e-16,
+    "relative_error_closed_form": 4.166146807559757e-16,
+    "max_relative_error": 7.188920929858554e-16,
+    "pass": true
+  },
+  "G_I2": {
+    "name": "G-I2 Gaussian posterior 3 dB law",
+    "tol_abs": 0.01,
+    "m": 6,
+    "n": 16,
+    "trials": 20000,
+    "noise_std": 0.35,
+    "mmse_trace": 10.65478841870824,
+    "sampler_mse": 21.364425341191197,
+    "sampler_mse_over_mmse": 2.0051477797230035,
+    "pass": true
+  },
+  "pass": true
+}

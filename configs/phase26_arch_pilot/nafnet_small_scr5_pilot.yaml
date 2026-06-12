@@ -1,0 +1,152 @@
+seed: 42
+device: cuda
+img_size: 64
+dataset_root: E:/ns_mc_gan_gi/data
+output_dir: E:/ns_mc_gan_gi/outputs_phase26/arch_pilot/nafnet_small_scr5_pilot
+dataset_name: stl10
+use_augmentation: true
+batch_size: 8
+num_workers: 2
+epochs: 20
+phase14_run_scale: full_colab
+use_amp: true
+use_ema: true
+ema_decay: 0.999
+lr_g: 0.0001
+lr_d: 5.0e-05
+betas:
+- 0.5
+- 0.9
+sampling_ratio: 0.05
+pattern_type: lowfreq_hadamard
+matrix_normalization: orthonormal_rows
+hadamard_include_dc: true
+hadamard_skip_dc: false
+hadamard_random_column_permutation: true
+hadamard_random_row_permutation: true
+backprojection_mode: hadamard_zero_filled
+use_learned_patterns: false
+noise_std: 0.01
+lambda_solver: 0.001
+model_type: nafnet_small
+base_channels: 48
+lambda_l1: 30.0
+lambda_charbonnier: 50.0
+lambda_ssim: 5.0
+lambda_ms_ssim: 5.0
+lambda_edge: 2.0
+lambda_gradient: 2.0
+lambda_frequency: 0.1
+lambda_dc_loss: 10.0
+lambda_tv: 0.0005
+lambda_adv: 0.0
+lambda_gp: 10.0
+n_critic: 1
+training_stage:
+  stage1_epochs: 10
+  refiner_start_epoch: 10
+  adversarial_start_epoch: 999
+save_every: 5
+eval_every: 1
+save_image_every: 1000
+limit_train_samples: 20000
+limit_val_samples: 1000
+use_null_project: true
+use_dc_project: true
+use_adversarial: false
+output_range_mode: clamp_eval_only
+num_eval_samples_to_save: 24
+num_individual_eval_samples: 24
+eval_before_training: true
+score_ssim_weight: 20.0
+score_relmeas_weight: 20.0
+checkpoint_metric_mode: hq
+class_filter: null
+hadamard_row_order: sequency
+hybrid_lowfreq_fraction: 0.7
+pattern_mode: learned_binary_ste
+pattern_init: bernoulli
+pattern_tau: 1.0
+pattern_tau_final: 1.0
+effective_A_mode: centered_standardized
+fixed_reference_pattern_type: rademacher
+fixed_reference_normalization: row_norm_sqrt_n_over_m
+target_transmission: 0.5
+balanced_target_transmission: 0.5
+pattern_logit_abs_init: 2.0
+flip_threshold: 0.5
+flip_margin_target: 0.05
+flip_warmup_epochs: 3
+flip_noise_std: 0.0
+flip_topk_fraction: null
+flip_balance_rows: true
+flip_commit_epoch: null
+min_flip_fraction_target: 0.001
+max_flip_fraction_target: 0.05
+target_soft_flip_delta: 0.01
+flip_margin_decay_epochs: 5
+continuous_A_normalization: row_standardized
+continuous_min_contrast: 0.05
+continuous_target_contrast: 0.25
+continuous_max_contrast: 0.5
+lr_patterns: 5.0e-05
+train_patterns_after_epoch: 0
+freeze_patterns_after_epoch: null
+lambda_pattern_energy: 1.0
+lambda_pattern_decorrelation: 0.1
+lambda_pattern_binary: 0.01
+lambda_pattern_secrip: 0.1
+lambda_pattern_contrast: 0.0
+lambda_pattern_bounded_contrast: 0.0
+lambda_pattern_smoothness: 0.0
+lambda_pattern_flip_margin: 0.0
+lambda_pattern_soft_flip: 0.0
+target_contrast: 0.45
+save_patterns_every: 1
+load_generator_checkpoint: null
+load_discriminator_checkpoint: null
+load_pattern_checkpoint: null
+load_generator_strict: false
+load_discriminator_strict: false
+load_pattern_strict: false
+reset_optimizers_after_load: true
+freeze_generator_epochs: 0
+freeze_discriminator_epochs: 0
+pattern_update_every: 1
+pattern_grad_clip_norm: 1.0
+generator_grad_clip_norm: null
+discriminator_grad_clip_norm: null
+adv_warmup_epochs: 0
+lambda_adv_final: null
+lambda_ms_l1: 0.0
+lambda_perceptual: 0.0
+use_vgg_perceptual: false
+lambda_stage1_aux: 0.0
+early_stop_patience: null
+min_epochs: 0
+save_top_k: 3
+save_pattern_diagnostics: false
+freeze_patterns: false
+freeze_generator_all: false
+freeze_discriminator_all: false
+pattern_requires_grad: true
+resume_checkpoint: null
+resume_mode: full
+resume_strict: true
+experiment_name: nafnet_small_scr5_pilot
+phase26_medium_pilot: true
+phase26_not_final_paper_result: true
+phase26_fixed_outer_formula: x_hat = Pi_y[x_data + P_N(G_theta(x_data))]
+phase26_architecture_note: Small NAFNet-style residual proposer.
+phase26_measurement_lock:
+  same_A: true
+  same_split: true
+  same_loss: true
+  same_budget: true
+  source_method_id: scrambled_hadamard5_hq_noise001_colab
+  family: scrambled_hadamard
+  exact_A_required: false
+exact_A_required: false
+measurement_operator_exact_path: ''
+nafnet_channels: 48
+nafnet_blocks: 8

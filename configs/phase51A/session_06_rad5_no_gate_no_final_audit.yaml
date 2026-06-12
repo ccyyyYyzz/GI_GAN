@@ -1,0 +1,20 @@
+phase: 51A
+session_name: session_06_rad5_no_gate_no_final_audit
+task: rad5
+base_bundle_task: rademacher5_hq_noise001_colab
+variant: no_gate_no_final_audit
+dataset: stl10_hq
+measurement:
+  pattern_type: rademacher
+  sampling_ratio: 0.05
+  exact_A_required: true
+  exact_A_mode: safe_rebuild
+toggles:
+  use_null_project: false
+  use_dc_project: true
+  use_final_dc_project: false
+  measurement_loss_active: true
+notes:
+  - Training config is derived at runtime from the strict no-leak bundle.
+  - Stage-1 audit remains active; final audit is removed.
+  - This is a Colab training config wrapper, not a standalone local-training entry point.

@@ -1,0 +1,10 @@
+phase: 53C
+session_name: session_21_soft_leakage_and_shortcut_audit
+mode: soft_leakage_and_shortcut_audit
+trains_generator: false
+trains_critic: true
+parts:
+  - exact_P0_vs_soft_PN_lambda_leakage
+  - D_full_residual_shortcut_diagnostic
+note: D_full is diagnostic only and is forbidden as the main method.
+outputs_are: exploratory_shortcut_diagnostic

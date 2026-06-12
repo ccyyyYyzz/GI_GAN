@@ -1,0 +1,9 @@
+phase: 53C
+session_name: session_22_feasible_hallucination_figure
+mode: feasible_hallucination_eval_and_figure
+trains_generator: false
+trains_critic: false
+constructs:
+  - cross_feasible_Pi_yi_xj
+purpose: show same-bucket ambiguity and null-space non-identifiability
+outputs_are: figure_candidate_and_diagnostic_metrics

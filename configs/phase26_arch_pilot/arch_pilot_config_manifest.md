@@ -1,0 +1,12 @@
+# Phase 26 Architecture Pilot Config Manifest
+
+These are medium pilot configs, not final paper results.
+
+|config_name|path|output_dir|family|model_type|epochs|limit_train_samples|limit_val_samples|exact_A_required|measurement_operator_exact_path|
+|---|---|---|---|---|---|---|---|---|---|
+|current_hq_rad5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\current_hq_rad5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/current_hq_rad5_pilot|rademacher|hq_unet|20|20000|1000|True|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt|
+|nafnet_small_rad5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\nafnet_small_rad5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/nafnet_small_rad5_pilot|rademacher|nafnet_small|20|20000|1000|True|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt|
+|unrolled_ista_rad5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\unrolled_ista_rad5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/unrolled_ista_rad5_pilot|rademacher|unrolled_ista|20|20000|1000|True|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt|
+|current_hq_scr5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\current_hq_scr5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/current_hq_scr5_pilot|scrambled_hadamard|hq_unet|20|20000|1000|False||
+|nafnet_small_scr5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\nafnet_small_scr5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/nafnet_small_scr5_pilot|scrambled_hadamard|nafnet_small|20|20000|1000|False||
+|unrolled_ista_scr5_pilot|C:\Users\CYZ的computer\Documents\Codex\2026-06-04\files-mentioned-by-the-user-txt\ns_mc_gan_gi\configs\phase26_arch_pilot\unrolled_ista_scr5_pilot.yaml|/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/unrolled_ista_scr5_pilot|scrambled_hadamard|unrolled_ista|20|20000|1000|False||

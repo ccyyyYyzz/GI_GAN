@@ -1,0 +1,10 @@
+phase: 53C
+session_name: session_23_exact_null_critic_evaluator
+mode: exact_null_critic_as_evaluator
+trains_generator: false
+trains_critic: true
+critic_input:
+  - P0_u
+  - x_data
+purpose: evaluate GT, reconstructions, BP anchor, and feasible hallucinations
+outputs_are: exploratory_evaluator_diagnostic

@@ -1,0 +1,79 @@
+{
+  "phase": 26,
+  "drive_root": "\\content\\drive\\MyDrive\\ns_mc_gan_gi",
+  "config_dir": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot",
+  "records": [
+    {
+      "config_name": "current_hq_rad5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\current_hq_rad5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/current_hq_rad5_pilot",
+      "family": "rademacher",
+      "model_type": "hq_unet",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": true,
+      "measurement_operator_exact_path": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt"
+    },
+    {
+      "config_name": "nafnet_small_rad5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\nafnet_small_rad5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/nafnet_small_rad5_pilot",
+      "family": "rademacher",
+      "model_type": "nafnet_small",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": true,
+      "measurement_operator_exact_path": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt"
+    },
+    {
+      "config_name": "unrolled_ista_rad5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\unrolled_ista_rad5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/unrolled_ista_rad5_pilot",
+      "family": "rademacher",
+      "model_type": "unrolled_ista",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": true,
+      "measurement_operator_exact_path": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase15/imported_noleak/rademacher5_hq_noise001_colab/measurement_operator_exact.pt"
+    },
+    {
+      "config_name": "current_hq_scr5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\current_hq_scr5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/current_hq_scr5_pilot",
+      "family": "scrambled_hadamard",
+      "model_type": "hq_unet",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": false,
+      "measurement_operator_exact_path": ""
+    },
+    {
+      "config_name": "nafnet_small_scr5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\nafnet_small_scr5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/nafnet_small_scr5_pilot",
+      "family": "scrambled_hadamard",
+      "model_type": "nafnet_small",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": false,
+      "measurement_operator_exact_path": ""
+    },
+    {
+      "config_name": "unrolled_ista_scr5_pilot",
+      "path": "C:\\Users\\CYZ的computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\configs\\phase26_arch_pilot\\unrolled_ista_scr5_pilot.yaml",
+      "output_dir": "/content/drive/MyDrive/ns_mc_gan_gi/outputs_phase26/arch_pilot/unrolled_ista_scr5_pilot",
+      "family": "scrambled_hadamard",
+      "model_type": "unrolled_ista",
+      "epochs": 20,
+      "limit_train_samples": 20000,
+      "limit_val_samples": 1000,
+      "exact_A_required": false,
+      "measurement_operator_exact_path": ""
+    }
+  ]
+}

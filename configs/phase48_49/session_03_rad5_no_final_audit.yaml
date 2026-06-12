@@ -1,0 +1,13 @@
+phase: 48_49
+session_name: session_03_rad5_no_final_audit
+source_task: rademacher5_hq_noise001_colab
+variant: train_no_final_audit
+merge_with_noleak_resolved_config: true
+strict_no_leak: true
+use_null_project: true
+use_dc_project: true
+use_final_dc_project: false
+exact_A_required: true
+notes:
+  - Stage-1 audit remains active; final/refiner Pi_y audit is disabled.
+  - Same A, split, seed, noise_std, sampling, architecture, optimizer, losses, and budget as final Rad-5 no-leak.

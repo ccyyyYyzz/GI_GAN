@@ -1,0 +1,183 @@
+tasks:
+  - name: sanity_phase9_recheck
+    priority: 1
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.sanity_hadamard_operator --device cuda --output_dir E:/ns_mc_gan_gi/outputs_phase10/sanity_phase9_recheck
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/sanity_phase9_recheck/hadamard_sanity.json
+    allow_fail: false
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Recheck the Phase 9 Hadamard operator sanity on Phase 10 output storage.
+  - name: train_hadamard10_full_noise001
+    priority: 2
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/hadamard10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/per_epoch_metrics.csv
+    allow_fail: false
+    skip_if_outputs_exist: true
+    max_retries: 1
+    notes: Full STL-10 10% low-frequency Hadamard run with noise_std 0.01.
+  - name: eval_hadamard10_full_noise001
+    priority: 3
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001 --config configs/phase10/hadamard10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/eval_metrics.json
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/eval_samples/recon_grid.png
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate best available Hadamard 10% checkpoint.
+  - name: analyze_hadamard10_full_noise001
+    priority: 4
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.analyze_convergence --output_dir E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/convergence_summary.md
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard10_full_noise001/curve_hq_score.png
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Analyze Hadamard 10% convergence.
+  - name: train_hadamard5_medium_noise001
+    priority: 5
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/hadamard5_medium_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_medium_noise001/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_medium_noise001/per_epoch_metrics.csv
+    allow_fail: false
+    skip_if_outputs_exist: true
+    max_retries: 1
+    notes: Medium STL-10 5% low-frequency Hadamard run.
+  - name: eval_hadamard5_medium_noise001
+    priority: 6
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/hadamard5_medium_noise001 --config configs/phase10/hadamard5_medium_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_medium_noise001/eval_metrics.json
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_medium_noise001/eval_samples/recon_grid.png
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate best available Hadamard 5% medium checkpoint.
+  - name: train_rademacher10_full_noise001
+    priority: 7
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/rademacher10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/rademacher10_full_noise001/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/rademacher10_full_noise001/per_epoch_metrics.csv
+    allow_fail: false
+    skip_if_outputs_exist: true
+    max_retries: 1
+    notes: Rademacher 10% full control.
+  - name: eval_rademacher10_full_noise001
+    priority: 8
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/rademacher10_full_noise001 --config configs/phase10/rademacher10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/rademacher10_full_noise001/eval_metrics.json
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate Rademacher control.
+  - name: train_scrambled_hadamard10_full_noise001
+    priority: 9
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/scrambled_hadamard10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/scrambled_hadamard10_full_noise001/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/scrambled_hadamard10_full_noise001/per_epoch_metrics.csv
+    allow_fail: false
+    skip_if_outputs_exist: true
+    max_retries: 1
+    notes: Scrambled low-frequency Hadamard control.
+  - name: eval_scrambled_hadamard10_full_noise001
+    priority: 10
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/scrambled_hadamard10_full_noise001 --config configs/phase10/scrambled_hadamard10_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/scrambled_hadamard10_full_noise001/eval_metrics.json
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate scrambled Hadamard control.
+  - name: train_mnist_hadamard5_full
+    priority: 11
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/mnist_hadamard5_full.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/mnist_hadamard5_full/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/mnist_hadamard5_full/per_epoch_metrics.csv
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: MNIST simple-domain 5% full run.
+  - name: eval_mnist_hadamard5_full
+    priority: 12
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/mnist_hadamard5_full --config configs/phase10/mnist_hadamard5_full.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/mnist_hadamard5_full/eval_metrics.json
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate MNIST simple-domain run.
+  - name: train_fashion_hadamard5_full
+    priority: 13
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/fashion_hadamard5_full.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/fashion_hadamard5_full/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/fashion_hadamard5_full/per_epoch_metrics.csv
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Fashion-MNIST simple-domain 5% full run.
+  - name: eval_fashion_hadamard5_full
+    priority: 14
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/fashion_hadamard5_full --config configs/phase10/fashion_hadamard5_full.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/fashion_hadamard5_full/eval_metrics.json
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate Fashion-MNIST simple-domain run.
+  - name: train_hadamard5_full_noise001
+    priority: 15
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.train --config configs/phase10/hadamard5_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_full_noise001/best_hq.pt
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_full_noise001/per_epoch_metrics.csv
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Full STL-10 5% run; can run after the medium checkpoint establishes feasibility.
+  - name: eval_hadamard5_full_noise001
+    priority: 16
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.eval_auto --output_dir E:/ns_mc_gan_gi/outputs_phase10/hadamard5_full_noise001 --config configs/phase10/hadamard5_full_noise001.yaml --device cuda
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/hadamard5_full_noise001/eval_metrics.json
+    allow_fail: true
+    skip_if_outputs_exist: true
+    max_retries: 0
+    notes: Evaluate full STL-10 5% run.
+  - name: aggregate_phase10
+    priority: 17
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.aggregate_phase10
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/phase10_results.csv
+      - E:/ns_mc_gan_gi/outputs_phase10/phase10_results.md
+    allow_fail: false
+    skip_if_outputs_exist: false
+    max_retries: 0
+    notes: Aggregate all completed, missing, and Phase 9 reference rows.
+  - name: export_phase10_examples
+    priority: 18
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.export_phase10_examples
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/paper_examples/manifest.csv
+    allow_fail: false
+    skip_if_outputs_exist: false
+    max_retries: 0
+    notes: Export paper-style example grids for completed Phase 10 experiments.
+  - name: make_phase10_report
+    priority: 19
+    cmd: conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -m src.make_phase10_report
+    required_outputs:
+      - E:/ns_mc_gan_gi/outputs_phase10/PHASE10_REPORT.md
+    allow_fail: false
+    skip_if_outputs_exist: false
+    max_retries: 0
+    notes: Produce the final Phase 10 report.

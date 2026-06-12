@@ -1,0 +1,36 @@
+{
+  "device": "cuda",
+  "eval_set": {
+    "dataset_class": "torchvision.datasets.STL10",
+    "split": "test",
+    "limit_val_samples": 256,
+    "limit_seed": 43
+  },
+  "measurement_exact_info": {
+    "exact_A_required": false,
+    "exact_A_loaded": false
+  },
+  "mean": {
+    "checkpoint": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\last.pt",
+    "loaded_key": "generator_ema",
+    "sample_count": 256,
+    "rel_meas_error_mean": 0.005484469700604677,
+    "rel_meas_error_std": 0.002216092310845852
+  },
+  "g1_source_checkpoint": {
+    "checkpoint": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling\\scr5\\source_checkpoint.pt",
+    "loaded_key": "generator_ema",
+    "sample_count": 256,
+    "rel_meas_error_mean": 0.005484469700604677,
+    "rel_meas_error_std": 0.002216092310845852
+  },
+  "post_gan_pilot_checkpoint": {
+    "status": "not_found",
+    "searched_root": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling",
+    "candidate_count": 0,
+    "candidates": [],
+    "failure": "The optional GAN pilot updated the generator in memory but did not save a post-GAN/fine-tuned checkpoint; only source_checkpoint.pt is present for Scr-5."
+  },
+  "reported_g1_optional_gan_csv": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling\\optional_gan_results.csv",
+  "source_minus_mean_relmeas": 0.0
+}

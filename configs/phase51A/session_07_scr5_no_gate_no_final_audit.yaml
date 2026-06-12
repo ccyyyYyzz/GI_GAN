@@ -1,0 +1,19 @@
+phase: 51A
+session_name: session_07_scr5_no_gate_no_final_audit
+task: scr5
+base_bundle_task: scrambled_hadamard5_hq_noise001_colab
+variant: no_gate_no_final_audit
+dataset: stl10_hq
+measurement:
+  pattern_type: scrambled_hadamard
+  sampling_ratio: 0.05
+  exact_A_required: false
+toggles:
+  use_null_project: false
+  use_dc_project: true
+  use_final_dc_project: false
+  measurement_loss_active: true
+notes:
+  - Training config is derived at runtime from the strict no-leak bundle.
+  - Scrambled Hadamard must not be treated as low-frequency Hadamard.
+  - Stage-1 audit remains active; final audit is removed.

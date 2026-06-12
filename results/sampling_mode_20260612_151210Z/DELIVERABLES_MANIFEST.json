@@ -1,0 +1,29 @@
+{
+  "root": "C:\\Users\\CYZ\u7684computer\\Documents\\Codex\\2026-06-04\\files-mentioned-by-the-user-txt\\ns_mc_gan_gi\\results\\sampling_mode_20260612_151210Z",
+  "files": [
+    "DELIVERABLES_MANIFEST.json",
+    "G1_POSTMORTEM.md",
+    "G2_CONFIG.yaml",
+    "G2_READY.md",
+    "PROVENANCE_SAMPLING.json",
+    "REPORT.md",
+    "RUNLOG.md",
+    "__pycache__\\build_sampling_dossier.cpython-311.pyc",
+    "__pycache__\\eval_sampling.cpython-311.pyc",
+    "__pycache__\\sampling_metrics.cpython-311.pyc",
+    "build_sampling_dossier.py",
+    "checks\\__pycache__\\gan_identity_gate.cpython-311.pyc",
+    "checks\\gan_identity_gate.py",
+    "checks\\identity_gate_results.json",
+    "eval_sampling.py",
+    "figs\\smoke_std_curve.pdf",
+    "figs\\smoke_std_curve.png",
+    "prompt_codex_input.md",
+    "sampling_metrics.py",
+    "tools\\__pycache__\\split_hash.cpython-311.pyc",
+    "tools\\split_hash.py"
+  ],
+  "ready_to_launch": false,
+  "full_training_launched": false,
+  "smoke_training_launched": false
+}

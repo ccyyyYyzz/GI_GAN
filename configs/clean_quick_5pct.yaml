@@ -1,0 +1,36 @@
+seed: 42
+device: cuda
+img_size: 64
+dataset_root: E:/ns_mc_gan_gi/data
+batch_size: 8
+num_workers: 0
+epochs: 10
+lr_g: 0.0002
+lr_d: 0.0002
+betas: [0.5, 0.9]
+sampling_ratio: 0.05
+pattern_type: rademacher
+noise_std: 0.01
+lambda_solver: 0.001
+lambda_l1: 100.0
+lambda_dc_loss: 10.0
+lambda_tv: 0.001
+lambda_adv: 0.01
+lambda_gp: 10.0
+use_null_project: true
+use_dc_project: true
+use_adversarial: true
+n_critic: 3
+save_every: 1
+eval_every: 1
+save_image_every: 250
+num_eval_samples_to_save: 8
+limit_train_samples: 5000
+limit_val_samples: 500
+output_dir: E:/ns_mc_gan_gi/outputs_clean_phase2/quick_5pct
+phase2_adjustment_notes:
+- "Clean 5% first attempt failed at DataLoader worker startup with num_workers=4 and batch_size=32; batch_size reduced to 16 per Phase 2.1 fallback order."
+- "Clean 5% batch_size=16 attempt produced no checkpoint after a 2 hour timeout; batch_size reduced to 8 while keeping num_workers=4 per Phase 2.1 fallback order."
+- "Clean 5% batch_size=8 and num_workers=4 attempt produced no checkpoint after a 10 minute observation timeout; num_workers reduced to 2 per Phase 2.1 fallback order."
+- "Clean 5% batch_size=8 and num_workers=2 produced epoch-1 artifacts during observation; the partial run was stopped and restarted for a complete 10-epoch run."
+- "Clean 5% batch_size=8 and num_workers=2 restarted run completed epoch 1 but failed on the next worker spawn with pickle data truncated; num_workers reduced to 0 per Phase 2.1 fallback order."

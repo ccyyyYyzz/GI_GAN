@@ -1,0 +1,53 @@
+name: phase_sampling_mode_g2_preflight_scr5_null_gauge
+status: prepared_but_not_launch_ready
+dataset: STL-10
+task: Scr-5 only
+initialize_generator_from: E:\ns_mc_gan_gi\outputs_phase15\imported_noleak\scrambled_hadamard5_hq_noise001_colab\last.pt
+mean_mode_reference:
+  psnr: 22.270757736570168
+  ssim: 0.6316637063606377
+  rel_meas_error: 0.005452804392203688
+measurement:
+  sampling_ratio: 0.05
+  m: 205
+  n: 4096
+  operator: scrambled Hadamard, orthonormal rows
+  audit: Pi_y_lambda stays ON in deliverable path
+  exact_projector: P0 = I - Q Q^T, Q = orth(A^T)
+discriminator:
+  type: small projection-conditioned conv net
+  inputs_allowed:
+  - P0_xhat
+  - x_data
+  inputs_forbidden:
+  - full_xhat
+  - A_xhat_minus_y
+  - RelMeasErr
+  - audit_delta
+  - Pi_y_xhat_minus_xhat
+  loss: hinge
+generator_loss:
+  data_term: existing reconstruction loss on sample mean over P=2 stochastic z samples
+  adversarial_term: beta * -D(P0_xhat, x_data)
+  diversity_term: rcGAN std reward; fallback maximize E||xhat(z1)-xhat(z2)||_1 if
+    rcGAN unavailable
+  beta_sweep:
+  - 0.3*beta0
+  - beta0
+  - 3*beta0
+smoke_test_plan:
+  max_iterations: 200
+  max_training_images: 256
+  fixed_seed: 6002
+  pass_criteria:
+  - finite moving losses
+  - D not saturated; real/fake margins reported
+  - per-sample saving works for K=32
+  - pixel std increases from init
+  - certificate invariant at init and after smoke
+  - kappa computable end-to-end
+safety_blockers:
+- No saved train/val/test split hash files were found for the main no-leak run.
+- Old pilot eval path has no explicit stochastic z; G2 stochastic branch needs implementation
+  review before smoke.
+- No individual G1 stochastic samples exist for cross-checking metrics.

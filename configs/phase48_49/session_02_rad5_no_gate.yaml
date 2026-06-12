@@ -1,0 +1,13 @@
+phase: 48_49
+session_name: session_02_rad5_no_gate
+source_task: rademacher5_hq_noise001_colab
+variant: train_no_gate
+merge_with_noleak_resolved_config: true
+strict_no_leak: true
+use_null_project: false
+use_dc_project: true
+use_final_dc_project: true
+exact_A_required: true
+notes:
+  - Same A, split, seed, noise_std, sampling, architecture, optimizer, losses, and budget as final Rad-5 no-leak.
+  - This wrapper is applied by src.phase48_49_train_ablation.

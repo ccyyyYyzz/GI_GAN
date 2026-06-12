@@ -1,0 +1,21 @@
+{
+  "status": "pass",
+  "tested": [
+    "eval_sampling.save_stochastic_samples_npz",
+    "eval_sampling.save_batch_stochastic_samples",
+    "tools/split_hash.py CLI",
+    "sampling_metrics.summarize_saved_samples",
+    "sampling_metrics.optional_perceptual_availability"
+  ],
+  "perceptual_availability": {
+    "packages": {
+      "lpips": false,
+      "cleanfid": false,
+      "torchmetrics": false
+    },
+    "lpips_available": false,
+    "fid_available": false,
+    "kid_available": false,
+    "requirement_note": "LPIPS requires the lpips package and local backbone weights; FID/KID require clean-fid or torchmetrics with local feature weights/cache."
+  }
+}

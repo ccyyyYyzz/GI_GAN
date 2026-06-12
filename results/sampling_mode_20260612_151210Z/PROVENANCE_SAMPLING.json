@@ -1,0 +1,40 @@
+{
+  "created_utc": "2026-06-12T15:19:59+00:00",
+  "mean_mode_scr5": {
+    "root": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab",
+    "checkpoint": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\last.pt",
+    "checkpoint_sha256": "b7ce32a58a80965e5b83bfd993ae833437210b08b732a7cb0f4b4bfb2e3c0dce",
+    "config": "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\resolved_config.yaml",
+    "metrics": {
+      "mse": 0.007171658153645694,
+      "psnr": 22.270757736570168,
+      "ssim": 0.6316637063606377,
+      "rel_meas_error": 0.005452804392203688,
+      "rel_meas_err_clamped": 0.005452804392203688,
+      "rel_meas_err_unclamped": 0.005510587887838483
+    },
+    "split_candidates": [],
+    "ignored_transfer_manifests": [
+      "E:\\ns_mc_gan_gi\\outputs_phase15\\imported_noleak\\scrambled_hadamard5_hq_noise001_colab\\scrambled5_noleak_split_manifest.json"
+    ],
+    "split_hash_status": "not_locatable"
+  },
+  "g1_pilot": {
+    "root": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling",
+    "source_checkpoint": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling\\scr5\\source_checkpoint.pt",
+    "source_checkpoint_sha256": "b7ce32a58a80965e5b83bfd993ae833437210b08b732a7cb0f4b4bfb2e3c0dce",
+    "optional_gan_results": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling\\optional_gan_results.csv",
+    "posterior_sampling_metrics": "E:\\ns_mc_gan_gi\\outputs_phase53C_exact_null_critic_import\\session_24_optional_gan_and_posterior_sampling\\posterior_sampling_metrics.csv",
+    "split_candidates": [],
+    "ignored_transfer_manifests": [],
+    "split_hash_status": "not_locatable"
+  },
+  "phase60_gate": {
+    "provenance_status": "E:\\ns_mc_gan_gi\\outputs_phase60_gan_sampling_mode_g2\\phase60_provenance_status.json",
+    "safety_status": "E:\\ns_mc_gan_gi\\outputs_phase60_gan_sampling_mode_g2\\g2_safety_status.json",
+    "unsafe_to_run": true,
+    "reasons": [
+      "No saved train/val/test split hash files were found for the main no-leak run."
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+phase: 53C
+session_name: session_20_exact_null_mi_pretest
+mode: exact_null_mi_auc_pretest
+trains_generator: false
+trains_critic: true
+critic_input:
+  - P0_x
+  - x_data
+projector: exact_P0
+forbidden_inputs:
+  - u_raw
+  - Au_minus_y
+  - RelMeasErr
+  - delta_lambda
+  - Pi_y_u_minus_u
+outputs_are: exploratory_innovation_screening

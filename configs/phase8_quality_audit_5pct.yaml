@@ -1,0 +1,4 @@
+dataset_root: E:/ns_mc_gan_gi/data
+output_dir: E:/ns_mc_gan_gi/outputs_phase8/quality_audit
+sampling_ratio: 0.05
+img_size: 64

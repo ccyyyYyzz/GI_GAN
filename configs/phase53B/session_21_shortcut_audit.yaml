@@ -1,0 +1,16 @@
+phase: 53B
+session_name: session_21_shortcut_audit
+mode: shortcut_audit
+trains_generator: false
+trains_discriminator: true
+note: D_full is diagnostic only and must not be used as the main method.
+main_method_discriminator_inputs:
+  - P_N_u
+  - x_data
+diagnostic_full_inputs:
+  - u
+  - x_data
+  - Au_minus_y
+  - RelMeasErr
+  - delta_lambda
+outputs_are: exploratory_shortcut_diagnostic

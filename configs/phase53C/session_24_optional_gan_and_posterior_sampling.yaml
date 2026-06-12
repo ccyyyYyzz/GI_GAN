@@ -1,0 +1,11 @@
+phase: 53C
+session_name: session_24_optional_gan_and_posterior_sampling
+mode: gated_optional_gan_and_posterior_sampling
+trains_generator: gated_optional
+trains_critic: true
+gan_gate: run only if exact-null AUC gate passes, preferably on Scr family
+critic_input:
+  - P0_xhat
+  - x_data
+analytic_audit_active: true
+outputs_are: exploratory_pilot_not_main_result

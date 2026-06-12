@@ -1,0 +1,58 @@
+seed: 42
+device: cuda
+img_size: 64
+dataset_root: E:/ns_mc_gan_gi/data
+output_dir: E:/ns_mc_gan_gi/outputs_phase10/rademacher10_full_noise001
+dataset_name: stl10
+use_augmentation: true
+batch_size: 8
+num_workers: 0
+epochs: 60
+phase10_run_scale: full
+use_amp: true
+use_ema: true
+ema_decay: 0.999
+lr_g: 0.0001
+lr_d: 0.00005
+betas: [0.5, 0.9]
+sampling_ratio: 0.10
+pattern_type: rademacher
+matrix_normalization: legacy_sqrt_m
+hadamard_include_dc: true
+backprojection_mode: ridge_pinv
+use_learned_patterns: false
+noise_std: 0.01
+lambda_solver: 0.001
+model_type: hq_two_stage
+base_channels: 64
+lambda_l1: 30.0
+lambda_charbonnier: 50.0
+lambda_ssim: 5.0
+lambda_ms_ssim: 5.0
+lambda_edge: 2.0
+lambda_gradient: 2.0
+lambda_frequency: 0.1
+lambda_dc_loss: 10.0
+lambda_tv: 0.0005
+lambda_adv: 0.0
+lambda_gp: 10.0
+n_critic: 1
+training_stage:
+  stage1_epochs: 10
+  refiner_start_epoch: 10
+  adversarial_start_epoch: 999
+save_every: 5
+eval_every: 1
+save_image_every: 1000
+limit_train_samples: 50000
+limit_val_samples: 2000
+use_null_project: true
+use_dc_project: true
+use_adversarial: false
+output_range_mode: clamp_eval_only
+num_eval_samples_to_save: 24
+num_individual_eval_samples: 24
+eval_before_training: true
+score_ssim_weight: 20.0
+score_relmeas_weight: 20.0
+checkpoint_metric_mode: hq

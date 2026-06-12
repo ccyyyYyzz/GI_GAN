@@ -1,0 +1,14 @@
+phase: 53B
+session_name: session_20_blind_critic_pretest
+mode: blind_critic_separability_pretest
+trains_generator: false
+trains_discriminator: true
+allowed_discriminator_inputs:
+  - P_N_u
+  - x_data
+forbidden_discriminator_inputs:
+  - Au_minus_y
+  - RelMeasErr
+  - delta_lambda
+  - Pi_y_u_minus_u
+outputs_are: exploratory_innovation_screening

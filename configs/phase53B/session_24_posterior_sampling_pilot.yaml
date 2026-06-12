@@ -1,0 +1,8 @@
+phase: 53B
+session_name: session_24_posterior_sampling_pilot
+mode: posterior_sampling_pilot
+trains_generator: false
+trains_discriminator: false
+analytic_audit_active: true
+purpose: check whether stochastic diversity lies mostly in null/measured-weak directions
+outputs_are: exploratory_uncertainty_diagnostic

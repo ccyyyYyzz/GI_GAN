@@ -1,0 +1,9 @@
+phase: 53B
+session_name: session_22_feasible_hallucination_dataset
+mode: feasible_hallucination_eval_and_figure
+trains_generator: false
+trains_discriminator: false
+constructs:
+  - cross_feasible_Pi_yi_xj
+purpose: show row-space certificate cannot validate null-space plausibility
+outputs_are: figure_candidate_and_diagnostic_metrics

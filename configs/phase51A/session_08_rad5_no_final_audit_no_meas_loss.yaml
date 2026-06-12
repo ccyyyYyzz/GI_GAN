@@ -1,0 +1,20 @@
+phase: 51A
+session_name: session_08_rad5_no_final_audit_no_meas_loss
+task: rad5
+base_bundle_task: rademacher5_hq_noise001_colab
+variant: no_final_audit_no_meas_loss
+dataset: stl10_hq
+measurement:
+  pattern_type: rademacher
+  sampling_ratio: 0.05
+  exact_A_required: true
+  exact_A_mode: safe_rebuild
+toggles:
+  use_null_project: true
+  use_dc_project: true
+  use_final_dc_project: false
+  measurement_loss_active: false
+notes:
+  - Training config is derived at runtime from the strict no-leak bundle.
+  - Image losses, anchors, data generation, and exact-A are kept.
+  - Measurement-domain training losses are set to zero and logged in loss_terms_log.csv.
