@@ -27,7 +27,10 @@ REQUIRED_MARKERS = {
     "completion notification": "Completion Notification",
     "copy block": "COLAB_SMOKE_COPY_TO_CHATGPT",
     "single dry-run copy block": "COLAB_SINGLE_DRYRUN_COPY_TO_CHATGPT",
+    "single preflight copy block": "COLAB_SINGLE_PREFLIGHT_COPY_TO_CHATGPT",
+    "single real copy block": "COLAB_SINGLE_REAL_COPY_TO_CHATGPT",
     "single dry-run cap": "MAX_CONFIGS = 1",
+    "real training confirmation": "CONFIRM_REAL_TRAINING = False",
 }
 
 SECRET_PATTERNS = {
@@ -42,6 +45,18 @@ SECRET_PATTERNS = {
 }
 
 E_DRIVE_RE = re.compile(r"(?i)\bE:[\\/]")
+
+KEEP_ALIVE_PATTERNS = {
+    "browser keep-alive": re.compile(r"(?i)\b(?:keep[_ -]?alive|setInterval|querySelector\(['\"].*connect)"),
+    "busy sleep loop": re.compile(r"(?is)while\s+True\s*:.*(?:sleep|click|connect)"),
+}
+
+MULTI_ACCOUNT_PATTERNS = {
+    "multi-account workaround": re.compile(
+        r"(?i)\b(?:use|open|run|switch|rotate)\b.{0,40}\b(?:multiple|second|another)\b.{0,30}\b(?:account|login|notebook)"
+    ),
+    "quota bypass": re.compile(r"(?i)\b(?:bypass|avoid|evade)\b.{0,40}\b(?:colab|quota|limit|login)"),
+}
 
 
 class ValidationError(RuntimeError):
@@ -149,6 +164,8 @@ def validate_defaults(code_text: str) -> list[str]:
         errors.append('Notebook default must include RUN_MODE = "smoke".')
     if not re.search(r"\bDRY_RUN\s*=\s*True\b", code_text):
         errors.append("Notebook default must include DRY_RUN = True.")
+    if not re.search(r"\bCONFIRM_REAL_TRAINING\s*=\s*False\b", code_text):
+        errors.append("Notebook default must include CONFIRM_REAL_TRAINING = False.")
     if not re.search(r"\bMAX_CONFIGS\s*=\s*1\b", code_text):
         errors.append("Notebook default must include MAX_CONFIGS = 1 for the next single dry-run.")
     if re.search(r"\bRUN_MODE\s*=\s*['\"]matrix['\"]", code_text):
@@ -163,6 +180,19 @@ def validate_secret_patterns(all_text: str) -> list[str]:
         if match:
             snippet = match.group(0)[:80].replace("\n", "\\n")
             errors.append(f"Potential secret detected ({label}): {snippet!r}.")
+    return errors
+
+
+def validate_no_keep_alive_or_account_workarounds(code_text: str) -> list[str]:
+    errors: list[str] = []
+    for label, pattern in KEEP_ALIVE_PATTERNS.items():
+        if pattern.search(code_text):
+            errors.append(f"Notebook executable code appears to contain a keep-alive hack ({label}).")
+    for label, pattern in MULTI_ACCOUNT_PATTERNS.items():
+        if pattern.search(code_text):
+            errors.append(
+                f"Notebook executable code appears to contain a Colab account/quota workaround ({label})."
+            )
     return errors
 
 
@@ -187,6 +217,7 @@ def main() -> int:
     errors.extend(validate_markers(all_text))
     errors.extend(validate_defaults(code_text))
     errors.extend(validate_secret_patterns(all_text))
+    errors.extend(validate_no_keep_alive_or_account_workarounds(code_text))
 
     print("Colab runner validation summary")
     print(f"- notebook: {NOTEBOOK_PATH.relative_to(REPO_ROOT)}")

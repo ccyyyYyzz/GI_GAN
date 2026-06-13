@@ -10,6 +10,8 @@ defaults to smoke mode with no training.
 ## Files
 
 - `pub_baselines_colab_runner.ipynb`: manual Colab notebook.
+- `../scripts/preflight_pub_baseline_run.py`: lightweight preflight guard used
+  before any real single training command.
 - `../scripts/validate_colab_runner.py`: local structural and safety checks for
   the notebook.
 - `../scripts/collect_colab_artifacts.py`: JSON/CSV artifact manifest writer
@@ -45,6 +47,7 @@ git archive --format=zip --output "$env:USERPROFILE\Desktop\ns_mc_gan_gi_code_pu
 ```python
 RUN_MODE = "smoke"
 DRY_RUN = True
+CONFIRM_REAL_TRAINING = False
 ```
 
 ## SOURCE_MODE Options
@@ -93,6 +96,7 @@ entrypoint, writes logs, and prints `COLAB_SMOKE_COPY_TO_CHATGPT`.
 ```python
 RUN_MODE = "single"
 DRY_RUN = True
+CONFIRM_REAL_TRAINING = False
 MAX_CONFIGS = 1
 SINGLE_CONFIG = ""
 ```
@@ -112,26 +116,62 @@ Single dry-run is not an experiment result. It is only a command-manifest check:
 `training_attempted` should remain `0`, and `dry_run_commands` should be at
 least `1`.
 
-3. Run one real baseline only after smoke and single dry-run look correct:
+3. Run single preflight after the dry-run command looks correct:
 
 ```python
 RUN_MODE = "single"
 DRY_RUN = False
+CONFIRM_REAL_TRAINING = False
 MAX_CONFIGS = 1
 ```
 
-Before changing `DRY_RUN` to `False`, inspect the exact command in
-`logs/command_log.json` and confirm the selected config, output paths, and
-device are correct.
+This runs `scripts/preflight_pub_baseline_run.py` and then stops safely before
+training because `CONFIRM_REAL_TRAINING` is still `False`. The preflight checks
+GPU availability, required imports, config readability, data and exact-A paths,
+output path writability, disk space, command logging, obvious Windows path
+mistakes in executable config fields, and obvious secrets/tokens. It writes:
 
-4. Use matrix mode only after smoke and single have succeeded:
+- `logs/preflight_report.json`
+- `logs/preflight_report.md`
+- `logs/command_log.json`
+- `logs/return_code_summary.json`
+
+It also prints `COLAB_SINGLE_PREFLIGHT_COPY_TO_CHATGPT`. Single preflight is
+not an experiment result; it is a go/no-go check for one real command.
+
+4. Run one real baseline only after smoke, dry-run, and preflight look correct.
+   Real single training requires a GPU Colab runtime.
 
 ```python
-RUN_MODE = "matrix"
+RUN_MODE = "single"
 DRY_RUN = False
+CONFIRM_REAL_TRAINING = True
+MAX_CONFIGS = 1
 ```
 
-Matrix mode can be expensive and is intentionally not the default.
+Only set these three flags together after the dry-run command and preflight
+report are correct:
+
+```python
+RUN_MODE = "single"
+DRY_RUN = False
+CONFIRM_REAL_TRAINING = True
+```
+
+The notebook runs the real training command only when all of these are true:
+
+- `RUN_MODE == "single"`
+- `DRY_RUN == False`
+- `CONFIRM_REAL_TRAINING == True`
+- preflight `ok == true`
+
+If any condition fails, the command is recorded as blocked and the artifact zip
+is still created. After a real run, download or save the artifact zip before
+closing the Colab runtime. It contains the command logs, return-code summary,
+preflight report, artifact manifest, and the copy block for ChatGPT.
+
+Matrix mode is available for planning/dry-run command inspection only in this
+guarded notebook. Do not use it for real training.
 
 ## Artifacts
 
@@ -141,12 +181,18 @@ The notebook writes a timestamped output directory under `OUTPUT_ROOT`, with:
 - `logs/config_list.json`
 - `logs/command_discovery_manifest.json`
 - `logs/planned_training_commands.json`
+- `logs/preflight_report.json` and `logs/preflight_report.md` after single
+  preflight or real single runs
 - `logs/command_log.json`
 - `logs/return_code_summary.json`
 - `artifact_manifest.json`
 - `artifact_manifest.csv`
 - a zip bundle of the run directory when possible
 - `logs/COLAB_SMOKE_COPY_TO_CHATGPT.txt`
+- `logs/COLAB_SINGLE_DRYRUN_COPY_TO_CHATGPT.txt` after a single dry-run
+- `logs/COLAB_SINGLE_PREFLIGHT_COPY_TO_CHATGPT.txt` after a blocked preflight
+- `logs/COLAB_SINGLE_REAL_COPY_TO_CHATGPT.txt` after a real single command is
+  attempted
 
 To copy artifacts back to Windows, download the zip bundle from the Colab file
 browser or copy the run directory to Drive and download it from Google Drive.
