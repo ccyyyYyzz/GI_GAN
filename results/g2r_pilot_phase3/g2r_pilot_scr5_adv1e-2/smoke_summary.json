@@ -1,0 +1,79 @@
+{
+  "run_id": "g2r_pilot_scr5_adv1e-2",
+  "steps": 20000,
+  "k_train": 4,
+  "k_eval": 8,
+  "omega_adv": 0.01,
+  "beta_sd": 1.0,
+  "seed": 1234,
+  "eval_seed": 1234,
+  "guard_fired_on_deliberate_violation": true,
+  "heldout_val": {
+    "context": "g2r_modec val loader",
+    "n_val": 512,
+    "val_splits": [
+      "train"
+    ],
+    "train_overlap": 0,
+    "heldout_val_verified": true
+  },
+  "collapse_detected": false,
+  "final_gates": {
+    "G-CAL": "PASS",
+    "G-DIV": "FAIL",
+    "G-NVR": "PASS",
+    "G-MEAN": "FAIL",
+    "G-CERT": "WARN",
+    "G-PERC": "FAIL"
+  },
+  "final_gates_passed": 3,
+  "final_metrics_row": {
+    "step": 20000,
+    "n_images": 512,
+    "k_samples": 8,
+    "psnr_mean_db": 7.56333453332514,
+    "psnr_sample_db": 5.80853834673375,
+    "psnr_baseline_db": 22.25258505414529,
+    "lpips_sample": 0.4516906832905079,
+    "lpips_baseline": 0.23191990095801884,
+    "std_median": 0.4841229182759271,
+    "nvr": 4.84849509925318,
+    "edge_spearman": -0.037883701842967715,
+    "relmeas_median_f64": 2.273324425865251e-06,
+    "relmeas_p95_f64": 3.83009806640472e-06,
+    "relmeas_max_f64": 1.0863705351820267e-05,
+    "g_cal": "PASS",
+    "g_div": "FAIL",
+    "g_nvr": "PASS",
+    "g_mean": "FAIL",
+    "g_cert": "WARN",
+    "g_perc": "FAIL",
+    "gates_passed": 3
+  },
+  "rel_meas_err_unclipped": {
+    "median": 2.273324425865251e-06,
+    "p95": 3.83009806640472e-06,
+    "max": 1.0863705351820267e-05
+  },
+  "roundtrip_max_abs_diff": 0.0,
+  "dump_path": "E:\\ns_mc_gan_gi\\outputs_g2r\\g2r_pilot_scr5_adv1e-2\\evals\\final.npz",
+  "final_log_row": {
+    "step": 20000,
+    "d_loss": 0.0,
+    "g_loss": -4.457517623901367,
+    "l_rec": 1.5090357065200806,
+    "l_sd_reward": 6.950439929962158,
+    "l_adv": 98.375,
+    "omega_adv": 0.01,
+    "beta_sd": 1.0,
+    "d_real_mean": 5.6328125,
+    "d_fake_mean": -99.875,
+    "g_grad_norm": 60.64165762655428,
+    "d_grad_norm": 0.0,
+    "r1": 0.0,
+    "rel_meas_err_unclipped_median": 2.008592446145485e-06,
+    "rel_meas_err_unclipped_max": 2.8950837531738216e-06,
+    "median_pixel_std": 5.17340087890625,
+    "sec_per_step": 0.2268991010904312
+  }
+}
