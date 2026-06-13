@@ -1,0 +1,101 @@
+{
+  "A_path": "E:\\ns_mc_gan_gi_code\\eval\\bridge_outputs\\scr5_bridge_A.npz",
+  "P0_path": "E:\\ns_mc_gan_gi\\results\\g2r_protocol\\p0\\p0_scr5.pt",
+  "dump_path": "E:\\ns_mc_gan_gi\\outputs_g2r\\g2r_pilot_scr5_adv3e-3\\evals\\final.npz",
+  "gates": {
+    "G-CAL": {
+      "message": "Average per-sample PSNR is calibrated relative to sample-mean PSNR.",
+      "passed": true,
+      "status": "PASS",
+      "values": {
+        "avg_sample_mean_psnr_db": 6.766968974879781,
+        "avg_sample_psnr_db": 5.506663423853026,
+        "required_gap_range_db": [
+          1.0,
+          3.5
+        ],
+        "required_range_db": [
+          3.2669689748797808,
+          5.766968974879781
+        ],
+        "sample_mean_minus_sample_gap_db": 1.2603055510267547
+      }
+    },
+    "G-CERT": {
+      "message": "Measurement consistency recomputed in float64 on unclipped samples.",
+      "passed": true,
+      "status": "WARN",
+      "values": {
+        "float32_floor_flag": true,
+        "float32_floor_warning_rule": "WARN only when at least half of samples exceed 1e-10 but median and p95 are <= 1e-5",
+        "fraction_above_threshold": 1.0,
+        "max_rel_measurement_error": 1.6827872882604393e-05,
+        "median_rel_measurement_error": 2.609384408392207e-06,
+        "threshold": 1e-10
+      }
+    },
+    "G-DIV": {
+      "message": "Sampler has non-trivial variance and variance concentrates on image structure.",
+      "passed": false,
+      "status": "FAIL",
+      "values": {
+        "median_pixel_std": 0.4841229182759271,
+        "median_pixel_std_threshold": 0.01,
+        "spearman_std_vs_gt_sobel": -0.0292709323963153,
+        "spearman_threshold": 0.2
+      }
+    },
+    "G-MEAN": {
+      "message": "Posterior mean is not materially worse than the deterministic baseline.",
+      "passed": false,
+      "status": "FAIL",
+      "values": {
+        "allowed_drop_db": 0.3,
+        "avg_baseline_psnr_db": 22.25258505414529,
+        "avg_sample_mean_psnr_db": 6.766968974879781,
+        "required_min_db": 21.95258505414529,
+        "sample_mean_minus_baseline_psnr_db": -15.485616079265508
+      }
+    },
+    "G-NVR": {
+      "message": "Null-space sample variance is large enough relative to reference null-space dataset variance.",
+      "passed": true,
+      "status": "PASS",
+      "values": {
+        "null_variance_ratio": 4.850565554384082,
+        "null_variance_ratio_threshold": 0.1,
+        "reference_null_dataset_variance_mean": 0.04253129790928559,
+        "sample_null_variance_mean": 0.2063008486220284
+      }
+    },
+    "G-PERC": {
+      "message": "Average sample perceptual distance is better than deterministic baseline; FID/KID are reported only.",
+      "passed": false,
+      "status": "FAIL",
+      "values": {
+        "baseline_minus_sample_lpips": -0.21823233408940723,
+        "fid_samples_vs_gt": 4.547069549560547,
+        "kid_mean_samples_vs_gt": 3.9349796772003174,
+        "kid_std_samples_vs_gt": 0.33811718225479126,
+        "mean_baseline_lpips": 0.23191990095801884,
+        "mean_sample_lpips": 0.4501522350474261,
+        "perceptual_backend": "lpips"
+      }
+    }
+  },
+  "image_shape": [
+    64,
+    64
+  ],
+  "k_samples": 8,
+  "metrics": {
+    "baseline_psnr_db_mean": 22.25258505414529,
+    "baseline_ssim_mean": 0.63349753998802,
+    "sample_mean_psnr_db_mean": 6.766968974879781,
+    "sample_mean_ssim_mean": 0.060590780040230795,
+    "sample_psnr_db_mean": 5.506663423853026
+  },
+  "n_images": 512,
+  "n_pixels": 4096,
+  "overall_passed": false
+}
