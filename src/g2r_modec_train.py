@@ -285,6 +285,28 @@ class GateEvaluator:
         return report, row, dump_path
 
 
+@torch.no_grad()
+def controller_measure(sampler, evaluator: "GateEvaluator", k: int, z_dim: int, device, n: int):
+    """Round-2 beta_SD controller measurement on a fixed seed-pinned val batch.
+
+    r_t = per-pixel mean |x - mean_K(x_hat)|  (calibration target),
+    s_t = median per-pixel sample std. z is pinned (eval_seed + 555, distinct
+    from the gate-eval z) so the controller sees a stationary measurement.
+    """
+    was_training = sampler.training
+    sampler.eval()
+    x_hat = chunked_sample_k(
+        sampler, evaluator.x_data[:n], evaluator.x_star[:n], k, z_dim,
+        device, evaluator.eval_seed + 555, evaluator.chunk,
+    )
+    if was_training:
+        sampler.train()
+    mean_k = x_hat.mean(dim=1)
+    r_t = float((evaluator.x[:n].float() - mean_k).abs().mean())
+    s_t = float(x_hat.float().std(dim=1, unbiased=False).median())
+    return r_t, s_t
+
+
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
@@ -384,6 +406,14 @@ def main() -> None:
     total_steps = int(config["total_steps"])
     omega_adv = float(config.get("omega_adv", 3e-3))
     beta_sd = float(config.get("beta_sd", 1.0))
+    # Round-2 closed-loop beta_SD controller (pre-registered amendment);
+    # default OFF — round-1 arms use the fixed beta_sd above.
+    beta_ctrl = bool(config.get("beta_sd_controller", False))
+    beta_ctrl_every = int(config.get("beta_sd_update_every", 500))
+    beta_ctrl_gain = float(config.get("beta_sd_gain", 0.1))
+    beta_lo, beta_hi = [float(v) for v in config.get("beta_sd_clamp", [0.01, 10.0])]
+    beta_ctrl_n = int(config.get("beta_ctrl_n", 32))
+    beta_log: list[dict] = []
     r1_enabled = bool(config.get("r1_enabled", False))
     r1_gamma = float(config.get("r1_gamma", 1.0))
     r1_interval = int(config.get("r1_interval", 16))
@@ -502,6 +532,14 @@ def main() -> None:
             step += 1
             ckpt.step()
 
+            if beta_ctrl and step % beta_ctrl_every == 0:
+                r_t, s_t = controller_measure(sampler, evaluator, k, z_dim, device, beta_ctrl_n)
+                beta_sd = float(
+                    np.clip(beta_sd * np.exp(beta_ctrl_gain * (r_t - s_t) / max(r_t, 1e-8)), beta_lo, beta_hi)
+                )
+                beta_log.append({"step": step, "r_t": r_t, "s_t": s_t, "beta_sd": beta_sd})
+                print(f"[beta_ctrl@{step}] r_t={r_t:.5f} s_t={s_t:.5f} -> beta_sd={beta_sd:.4f}")
+
             if step % log_every == 0 or step == 1:
                 with torch.no_grad():
                     flat_bk = x_hat.reshape(b * k, *x_hat.shape[2:])
@@ -515,6 +553,7 @@ def main() -> None:
                     "l_sd_reward": float(l_sd.detach()),
                     "l_adv": float(l_adv.detach()),
                     "omega_adv": omega,
+                    "beta_sd": beta_sd,
                     "d_real_mean": float(d_real.detach().mean()),
                     "d_fake_mean": float(d_fake.detach().mean()),
                     "g_grad_norm": g_gnorm,
@@ -567,6 +606,11 @@ def main() -> None:
                 )
 
     (out / "train_log.json").write_text(json.dumps(log_rows, indent=2), encoding="utf-8")
+    if beta_ctrl:
+        with (out / "beta_sd_log.csv").open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=["step", "r_t", "s_t", "beta_sd"])
+            writer.writeheader()
+            writer.writerows(beta_log)
 
     # ---------------- final gate eval (full val set, FID/KID included) ------
     sampler.eval()

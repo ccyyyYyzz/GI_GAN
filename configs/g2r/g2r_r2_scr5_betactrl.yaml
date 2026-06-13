@@ -1,0 +1,67 @@
+# Round 2 (pre-registered amendment, configs/g2r/ROUND2_AMENDMENT.md):
+# closed-loop beta_SD controller replaces the fixed beta_SD. Exactly ONE
+# change vs round 1; everything else identical to the pilot arms.
+#
+# omega_adv rule: smallest round-1 arm that visibly contained variance
+# growth; if none did, 1e-2. (Value below resolved from the three-arm
+# report before launch.)
+#
+# Noise/certificate semantics: as in the pilot arms — exact (lambda=0)
+# x_star audit fits the RECORDED noisy y by design (certificate semantics);
+# lambda recorded in the certificate tuple; Morozov-lambda deferred.
+run_id: g2r_r2_scr5_betactrl
+output_dir: E:\ns_mc_gan_gi\outputs_g2r\g2r_r2_scr5_betactrl
+device: cuda
+seed: 1234
+eval_seed: 1234
+
+bundle_root: E:\ns_mc_gan_gi\outputs_phase15\imported_noleak
+task: scr5
+dataset_root: E:\ns_mc_gan_gi\data
+train_split: unlabeled
+val_split: train
+limit_train_samples: null
+limit_val_samples: 512
+batch_size: 8
+num_workers: 0
+
+p0_manifest: E:\ns_mc_gan_gi\results\g2r_protocol\p0\p0_manifest.json
+bridge_A_path: E:\ns_mc_gan_gi_code\eval\bridge_outputs\scr5_bridge_A.npz
+
+k_samples: 4
+k_eval: 8
+z_dim: 64
+z_channels: 64
+per_scale_injection: false
+x_star_mode: deterministic
+exact_x_star_audit: true
+sampler_delta_mode: true
+freeze_stage1: true
+
+# closed-loop beta_SD (the ONE change)
+beta_sd: 1.0                 # initial value
+beta_sd_controller: true
+beta_sd_update_every: 500
+beta_sd_gain: 0.1
+beta_sd_clamp: [0.01, 10.0]
+beta_ctrl_n: 32
+
+omega_adv: 1.0e-2            # per rule: no round-1 arm contained variance
+adv_ramp_frac: 0.15
+pacgan: false
+
+g_lr: 2.0e-5
+d_lr: 1.0e-4
+amp: true
+r1_enabled: false
+r1_gamma: 1.0
+r1_interval: 16
+d_channels: 64
+
+total_steps: 12000
+checkpoint_every: 1000
+keep_step_checkpoints: 3
+log_every: 25
+gate_eval_every: 1000
+gate_eval_n: 128
+eval_chunk_images: 16
