@@ -26,6 +26,8 @@ REQUIRED_MARKERS = {
     "logging and artifacts": "Logging And Artifacts",
     "completion notification": "Completion Notification",
     "copy block": "COLAB_SMOKE_COPY_TO_CHATGPT",
+    "single dry-run copy block": "COLAB_SINGLE_DRYRUN_COPY_TO_CHATGPT",
+    "single dry-run cap": "MAX_CONFIGS = 1",
 }
 
 SECRET_PATTERNS = {
@@ -147,6 +149,8 @@ def validate_defaults(code_text: str) -> list[str]:
         errors.append('Notebook default must include RUN_MODE = "smoke".')
     if not re.search(r"\bDRY_RUN\s*=\s*True\b", code_text):
         errors.append("Notebook default must include DRY_RUN = True.")
+    if not re.search(r"\bMAX_CONFIGS\s*=\s*1\b", code_text):
+        errors.append("Notebook default must include MAX_CONFIGS = 1 for the next single dry-run.")
     if re.search(r"\bRUN_MODE\s*=\s*['\"]matrix['\"]", code_text):
         errors.append("Full matrix mode must not be the notebook default.")
     return errors

@@ -93,17 +93,36 @@ entrypoint, writes logs, and prints `COLAB_SMOKE_COPY_TO_CHATGPT`.
 ```python
 RUN_MODE = "single"
 DRY_RUN = True
-SINGLE_CONFIG = "configs/pub_baselines/colab/unet_scr5_pub_colab.yaml"
+MAX_CONFIGS = 1
+SINGLE_CONFIG = ""
 ```
 
-Inspect the planned command manifest before executing anything.
+With `SINGLE_CONFIG = ""`, the notebook selects the first valid config under
+`configs/pub_baselines/colab`. The dry-run writes at least one planned
+`python -m src.train --config ... --device ...` command to:
+
+- `logs/planned_training_commands.json`
+- `logs/command_log.json`
+- `logs/return_code_summary.json`
+
+It also prints `COLAB_SINGLE_DRYRUN_COPY_TO_CHATGPT`. Copy that block back into
+ChatGPT after the manual Colab run.
+
+Single dry-run is not an experiment result. It is only a command-manifest check:
+`training_attempted` should remain `0`, and `dry_run_commands` should be at
+least `1`.
 
 3. Run one real baseline only after smoke and single dry-run look correct:
 
 ```python
 RUN_MODE = "single"
 DRY_RUN = False
+MAX_CONFIGS = 1
 ```
+
+Before changing `DRY_RUN` to `False`, inspect the exact command in
+`logs/command_log.json` and confirm the selected config, output paths, and
+device are correct.
 
 4. Use matrix mode only after smoke and single have succeeded:
 
@@ -147,6 +166,6 @@ browser or copy the run directory to Drive and download it from Google Drive.
 Use a modern Python interpreter, not the system Python 3.4 install:
 
 ```powershell
-$PY = "D:\bin\python.exe"
+$PY = "D:\Anacondar\anaconda3\python.exe"
 & $PY scripts\validate_colab_runner.py
 ```
