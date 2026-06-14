@@ -1,0 +1,50 @@
+domain,source,row_label,metric,value,canonical_status,placement,note
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_rad5,PSNR,22.3160,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_rad5,RelMeasErr,0.006991,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_scr5,PSNR,22.2708,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_scr5,RelMeasErr,0.005452,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_rad10,PSNR,24.7812,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_rad10,RelMeasErr,0.006405,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_scr10,PSNR,24.7301,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/PROVENANCE.md,main_scr10,RelMeasErr,0.005994,canonical,main,First-paper anchor reproduced in cert package.
+measurement-certified GI,cert_package_20260612/tables/T1_posthoc_external.csv,posthoc_audit,rows_pass,18/18,canonical,main/supp,Post-hoc audit rows pass.
+measurement-certified GI,cert_package_20260612/tables/T1_posthoc_external.csv,posthoc_audit,relmeaserr_reduction_orders,3.0-4.3,canonical,main/supp,RelMeasErr convention is unclipped float64.
+measurement-certified GI,cert_package_20260612/tables/T1_posthoc_external.csv,posthoc_audit,max_abs_dpsnr_db,0.039,canonical,main/supp,PSNR movement remains small after audit.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 B,psnr_mean,22.26204344174215,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 B,ssim_mean,0.6265835547898294,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 B,lpips_mean,0.2348977884103078,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 B,rapsd_distance_mean,0.005386925042957899,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 B,relmeaserr_unclipped_float64_mean,0.005561496671927267,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 C_gauge,psnr_mean,22.25658032211213,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 C_gauge,ssim_mean,0.6281304470339605,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 C_gauge,lpips_mean,0.23076087010364663,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 C_gauge,rapsd_distance_mean,0.0052143194116456995,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 C_gauge,relmeaserr_unclipped_float64_mean,0.005567117915891334,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 D_standard,psnr_mean,22.257859148133274,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 D_standard,ssim_mean,0.6281001879275925,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 D_standard,lpips_mean,0.2309550932792869,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 D_standard,rapsd_distance_mean,0.005224457756023467,canonical,main/supp,Phase75 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Scr-5 D_standard,relmeaserr_unclipped_float64_mean,0.005567188304869168,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 A,psnr_mean,22.061882994400325,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 A,ssim_mean,0.6246857264270635,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 A,lpips_mean,0.22441272700962137,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 A,rapsd_distance_mean,0.0049278881746018,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 A,relmeaserr_unclipped_float64_mean,4.58638395153755e-05,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 B,psnr_mean,22.304291465698256,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 B,ssim_mean,0.6293254234590531,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 B,lpips_mean,0.23438980771364484,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 B,rapsd_distance_mean,0.005597302308268833,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 B,relmeaserr_unclipped_float64_mean,3.493286041857996e-05,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 C,psnr_mean,22.27672180148927,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 C,ssim_mean,0.631377923872302,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 C,lpips_mean,0.22833316350685587,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 C,rapsd_distance_mean,0.005085400020814733,canonical,main/supp,Phase73 aggregate in Phase77 canonical table.
+auditable GAN,outputs_phase77_auditable_gan_paper_assembly/canonical_results_table.csv,Rad-5 C,relmeaserr_unclipped_float64_mean,3.654031726462565e-05,canonical,main/supp,Do not claim GAN improves RelMeasErr.
+auditable GAN,outputs_phase75_final_high_tier_validation/regime_map_final.csv,Scr-5,gauge_auc,0.8466,canonical,main/supp,3 paired seeds positive; train/evidence positive.
+auditable GAN,outputs_phase75_final_high_tier_validation/regime_map_final.csv,Rad-5,gauge_auc,0.8771,canonical,main/supp,3 paired seeds positive; train/evidence positive.
+auditable GAN,outputs_phase75_final_high_tier_validation/regime_map_final.csv,Scr-10,gauge_auc,0.6240,canonical,main/supp,Weak gate; no cGAN; stop.
+auditable GAN,outputs_phase75_final_high_tier_validation/regime_map_final.csv,Rad-10,gauge_auc,0.6396,canonical,main/supp,Weak gate; no cGAN; stop.
+auditable GAN,outputs_phase76_high_upside_auditable_gan_exploration/reports/ALPHA_TRUST_SHARPNESS_REPORT.md,alpha RelMeasErr span rad5,span,4.367730143504272e-09,canonical,main/supp,Measurement-invariant alpha knob.
+auditable GAN,outputs_phase76_high_upside_auditable_gan_exploration/reports/ALPHA_TRUST_SHARPNESS_REPORT.md,alpha RelMeasErr span scr5,span,1.7377761219947163e-07,canonical,main/supp,Measurement-invariant alpha knob.
+negative evidence,outputs_phase79_96px_rad5_p0_error_validation/PHASE79_P0_ERROR_VALIDATION_REPORT.md,96px Rad-5 P0 error validation B,pooled_spearman,0.07326845845045213,negative/not-main,gap/supp,Does not support high-|P0| pixel-error diagnostic.
+negative evidence,outputs_phase79_96px_rad5_p0_error_validation/PHASE79_P0_ERROR_VALIDATION_REPORT.md,96px Rad-5 P0 error validation C,pooled_spearman,0.07185937144058595,negative/not-main,gap/supp,Does not support high-|P0| pixel-error diagnostic.
