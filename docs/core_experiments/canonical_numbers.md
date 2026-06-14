@@ -32,10 +32,10 @@ Generated: 2026-06-14 23:28:55
 ## Regime Gate
 
 | regime | gauge_auc | auc_ci | outcome | decision |
-| --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | Scr-5 | 0.8466 | Phase69A | 3 paired seeds positive | train/evidence positive |
 | Rad-5 | 0.8771 | 0.8446-0.9072 | 3 paired seeds positive | train/evidence positive |
 | Scr-10 | 0.6240 | 0.5791-0.6700 | weak gate; no cGAN | stop |
 | Rad-10 | 0.6396 | 0.5900-0.6774 | weak gate; no cGAN | stop |
 
-Full machine-readable table: `03_CANONICAL_NUMBERS.csv`.
+Full machine-readable table: `canonical_numbers.csv`.
