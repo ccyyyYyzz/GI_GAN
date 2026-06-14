@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated experiment data and model artifacts are intentionally kept out of Git.
+data/
+outputs/
+runs/
+logs/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.npy
