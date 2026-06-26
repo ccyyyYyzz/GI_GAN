@@ -1,0 +1,49 @@
+output_dir: E:/ns_mc_gan_gi_code_fcc_phase1/outputs/compatibility/rad5_96_pilot_seed001
+device: cuda
+seed: 1
+
+# Canonical operator regime for this phase: Rad-5, STL10, 96x96, m=461.
+train_count: 512
+val_count: 128
+test_count: 128
+max_train_samples: 512
+max_val_samples: 128
+max_test_samples: 128
+cache_batch_size: 8
+project_batch_size: 32
+num_workers: 0
+pin_memory: true
+
+# Exact projector / feasible-pair runtime checks.
+projector_check_samples: 16
+feasible_check_pairs: 128
+semihard_pool_size: 96
+save_component_cache: true
+
+# Critic.
+embed_dim: 128
+base_channels: 24
+temperature: 0.07
+learn_temperature: false
+use_joint_mlp: false
+batch_size: 32
+drop_last: true
+epochs: 4
+lr: 0.0002
+weight_decay: 0.0001
+amp: true
+grad_clip: 1.0
+stage2_start_epoch: 2
+margin_weight: 0.25
+margin: 0.1
+
+# Evaluation.
+eval_batch_size: 128
+donors_per_anchor: 32
+tiny_overfit_samples: 64
+tiny_overfit_steps: 20
+
+# E2 candidate-selection pilot, used only if E1 gate passes.
+candidate_k_values: [1, 4, 8, 16]
+candidate_max_images: 32
+candidate_generator_checkpoint:

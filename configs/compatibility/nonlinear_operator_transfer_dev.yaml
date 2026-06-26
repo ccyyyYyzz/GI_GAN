@@ -1,0 +1,55 @@
+run_name: nonlinear_operator_transfer_dev
+output_dir: outputs/compatibility/nonlinear_operator_transfer/dev_v1
+device: cuda
+seed: 20260625
+batch_size: 32
+
+splits:
+  train:
+    offset: 40000
+    count: 512
+  val:
+    offset: 40700
+    count: 64
+  dev:
+    offset: 40900
+    count: 64
+
+operator_protocol:
+  img_size: 64
+  budgets: [21, 41, 82]
+  train_budgets: [21, 82]
+  heldout_budget: 41
+  families: [random, dct, hadamard, mixed]
+  train_operator_seeds: [11]
+  val_operator_seeds: [101]
+  test_operator_seeds: [201, 202]
+
+baselines:
+  lmmse_lambda: 0.0001
+  klt_lambda: 0.0001
+  klt_rank: 128
+
+model:
+  base_channels: 24
+  blocks: 1
+
+training:
+  train_seeds: [0, 1, 2]
+  variants: [full, no_condition, shuffled_condition]
+  epochs: 6
+  lr: 0.0003
+  weight_decay: 0.0001
+  amp: true
+  clip_grad: 1.0
+
+statistics:
+  bootstrap_replicates: 500
+
+quality:
+  lpips_device: cuda
+  lpips_max_pairs_per_operator: 8
+
+gate:
+  relmeaserr_max: 0.0001
+  lpips_nonworse_margin: 0.02

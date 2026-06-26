@@ -1,0 +1,91 @@
+run_name: ga_nsgan_dev_64x64_5pct
+output_dir: outputs/compatibility/gan_high_quality_gi/ga_nsgan/dev_64_5pct
+device: cuda
+seed: 20260625
+
+protocol:
+  status: fresh_development_not_locked
+  old_locked_retired_as: INVALID_OLD_LOCKED_UNMATCHED_CONTROL
+  matched_causal_baseline_package: outputs/compatibility/gan_high_quality_gi/GAN_HQ_MATCHED_CAUSAL_VALIDATION_PACKAGE.zip
+  search_status: preregistered_single_main_setting_after_smoke
+  note: >
+    Uses a 20k STL10 train+unlabeled pool and 512-image development split
+    disjoint from prior 43000+ canary/old-locked spans. Locked test is not
+    opened unless this development gate passes.
+
+data:
+  dataset_root: E:/ns_mc_gan_gi/data
+  dataset_name: stl10
+  source_split: train+unlabeled
+  img_size: 64
+  train_offset: 0
+  train_count: 20000
+  val_offset: 21000
+  val_count: 1024
+  dev_offset: 23000
+  dev_count: 512
+  batch_size: 16
+  num_workers: 0
+
+operator:
+  sampling_ratio: 0.05
+  total_m: 205
+  dct_rows: 128
+  hadamard_rows: 56
+  random_rows: 20
+  seed: 772001
+  noise_std: 0.0
+  lambda_solver: 1.0e-4
+  lmmse_lambda: 1.0e-4
+
+model:
+  model_type: hq_unet
+  base_channels: 32
+  discriminator: gauge_aligned_residual_wavelet
+  ema_decay: 0.995
+
+matched_training:
+  train_seeds: [0, 1, 2]
+  pretrain_steps: 160
+  branch_steps: 80
+  equivalence_seed: 991
+  equivalence_steps: 2
+  pretrain_shuffle_seed_offset: 210000
+  branch_shuffle_seed_offset: 310000
+  discriminator_seed_offset: 410000
+
+training:
+  lr_g: 0.0002
+  lr_d: 0.0002
+  betas: [0.5, 0.9]
+  amp: true
+  grad_clip: 1.0
+  lambda_charb: 10.0
+  lambda_l1: 10.0
+  lambda_lpips_train: 2.0
+  lambda_grad: 2.0
+  lambda_spec: 0.5
+  lambda_fm: 0.5
+  r1_gamma: 0.0
+
+ga_nsgan:
+  disc_base_channels: 32
+  lambda_ns_spatial: 1.0
+  lambda_wavelet: 1.0
+  lambda_img: 0.15
+  lambda_fm: 0.5
+  target_grad_ratio: 0.2
+  lambda_adv_min: 0.0005
+  lambda_adv_max: 0.5
+  gradient_audit_every: 20
+
+eval:
+  lpips: true
+  kid_fid: true
+  kid_fid_max_images: 128
+  qualitative_count: 12
+  bootstrap_replicates: 1000
+  bootstrap_seed: 20260626
+  psnr_drop_tolerance_db: 0.5
+  relmeaserr_limit: 1.0e-5
+  lpips_relative_gain_gate: 0.05

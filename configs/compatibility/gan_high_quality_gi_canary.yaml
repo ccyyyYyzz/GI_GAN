@@ -1,0 +1,66 @@
+run_name: gan_hq_gi_64x64_5pct_canary
+output_dir: outputs/compatibility/gan_high_quality_gi/canary_64_5pct
+device: cuda
+seed: 20260625
+
+data:
+  dataset_root: E:/ns_mc_gan_gi/data
+  dataset_name: stl10
+  source_split: train+unlabeled
+  img_size: 64
+  train_offset: 43000
+  train_count: 1024
+  val_offset: 44200
+  val_count: 128
+  dev_offset: 44400
+  dev_count: 128
+  batch_size: 24
+  num_workers: 0
+
+operator:
+  sampling_ratio: 0.05
+  total_m: 205
+  dct_rows: 128
+  hadamard_rows: 56
+  random_rows: 20
+  seed: 772001
+  noise_std: 0.0
+  lambda_solver: 1.0e-4
+  lmmse_lambda: 1.0e-4
+
+model:
+  model_type: hq_unet
+  base_channels: 32
+  discriminator: dual_patch
+  ema_decay: 0.995
+
+training:
+  train_seeds: [0, 1, 2]
+  variants: [no_gan, gan]
+  epochs_pretrain: 3
+  epochs_gan: 3
+  lr_g: 0.0002
+  lr_d: 0.0002
+  betas: [0.5, 0.9]
+  amp: true
+  grad_clip: 1.0
+  n_critic: 1
+  lambda_charb: 20.0
+  lambda_l1: 20.0
+  lambda_grad: 2.0
+  lambda_spec: 0.5
+  lambda_adv: 0.01
+  lambda_fm: 0.0
+  r1_gamma: 1.0
+  save_every_epochs: 1
+
+eval:
+  lpips: true
+  kid_fid: true
+  kid_fid_max_images: 96
+  qualitative_count: 12
+  bootstrap_replicates: 500
+  bootstrap_seed: 20260626
+  psnr_drop_tolerance_db: 0.5
+  relmeaserr_limit: 1.0e-5
+  lpips_relative_gain_gate: 0.05

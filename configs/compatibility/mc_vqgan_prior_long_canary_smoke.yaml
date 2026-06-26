@@ -1,0 +1,50 @@
+seed: 20260626
+device: cuda
+output_dir: outputs/compatibility/measurement_conditioned_vqgan/prior_long_canary_smoke
+
+data:
+  dataset_root: E:/datasets
+  source_split: train+unlabeled
+  img_size: 64
+  train_offset: 0
+  train_count: 256
+  val_offset: 1000
+  val_count: 64
+  dev_offset: 1200
+  dev_count: 64
+  batch_size: 8
+  eval_batch_size: 8
+  matrix_batch_size: 64
+  num_workers: 0
+
+model:
+  codebook_size: 64
+  z_dim: 32
+  base_channels: 24
+  disc_base_channels: 24
+  commit_beta: 0.25
+
+training:
+  lpips_train: false
+  warmup_steps: 2
+  continuation_steps: 2
+  val_interval: 2
+  log_interval: 1
+  prior_lr_g: 2.0e-4
+  prior_lr_d: 2.0e-4
+  betas: [0.5, 0.9]
+  grad_clip: 1.0
+  lambda_l1: 1.0
+  lambda_charb: 1.0
+  lambda_grad: 0.3
+  lambda_spec: 0.1
+  lambda_lpips_train: 0.0
+  lambda_vq: 1.0
+  lambda_adv: 0.05
+  lambda_fm: 0.5
+
+eval:
+  qualitative_count: 8
+  max_val_batches: 2
+  kid: false
+  kid_max_images: 64

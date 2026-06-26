@@ -1,0 +1,59 @@
+run_name: phase2_fixed_total_same_pool_smoke_v1
+output_dir: outputs/compatibility/phase2_fixed_total_same_pool_smoke/dev_same_pool_v1
+device: cuda
+batch_size: 8
+candidate_k: 16
+candidate_seed: 940700
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+
+context_operator:
+  status: fresh_development_operator_fixed_total_same_pool_not_locked_test
+  pattern_type: rademacher
+  total_m: 205
+  img_size: 64
+  seed: 94051
+  noise_std: 0.0
+  matrix_normalization: legacy_sqrt_m
+
+split:
+  name: phase2_fixed_total_same_pool_dev_smoke
+  source: STL10 train+unlabeled
+  train_unlabeled_offset: 5120
+  sample_count: 16
+  status: development_smoke_only_not_final
+
+fixed_total:
+  experiment_family: fixed_total_same_pool_context_witness_split
+  witness_row_source: withheld_total_rows
+  witness_budgets: [8, 16, 32]
+  baseline_budget: 0
+  cross_budget_endpoint: canonical_unclipped_full_rmse_mean
+  p0_rmse_scope: within_context_operator_only
+
+witness:
+  experiment_family: fixed_total_same_pool_witness
+  operator: withheld_rows_from_same_total_operator
+  random_seed: 94101
+  fixed_witness: withheld_total_rows
+  adaptive_library_seed: 94102
+  adaptive_library_size: 256
+  primary_selector: dm_fcc_seed3
+  compatibility_prefilter_top_m: 4
+
+statistics:
+  bootstrap_replicates: 1000
+  bootstrap_seed: 94110
+  primary_unit: image
+
+quality:
+  compute_lpips: true
+  lpips_device: cuda
+
+pilot_gate:
+  scope: fixed_total_same_pool_development_smoke_only
+  primary_endpoint: canonical_unclipped_full_rmse_mean
+  decision_rule: >
+    This strict smoke uses one fresh total operator per budget and withholds
+    the final rows as witness rows. All witness variants share the same
+    withheld row pool; therefore it tests same-pool evidence value, not
+    pattern-family design superiority.

@@ -1,0 +1,74 @@
+run_name: dc_balanced_fixed_total_smoke
+output_dir: outputs/compatibility/dc_balanced_fixed_total/smoke
+device: cuda
+batch_size: 4
+candidate_k: 16
+candidate_seed: 100700
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+reuse_existing_cache: true
+
+operator:
+  status: smoke_dc_balanced_fixed_total_not_locked
+  total_m: 41
+  img_size: 64
+  noise_std: 0.0
+  matrix_normalization: orthonormal_rows
+
+split:
+  source: STL10 train+unlabeled
+  sample_count: 4
+  status: smoke_only_not_final_not_locked
+
+mixed:
+  witness_kind: dct
+  witness_budgets: [4]
+
+arms:
+  - dc_plus_40_random
+  - dc_plus_40_non_dc_dct
+  - dc_plus_40_non_dc_hadamard
+  - mixed_random_context_dct_witness_b04
+
+witness:
+  use_fcc_scores: true
+  primary_selector: dm_fcc_seed3
+  alpha_grid: [0.0, 0.5]
+  tau_grid: [0.1, 0.5]
+  conditional_audit_lambda: 1.0e-5
+  include_prior_only_on_full_context: false
+
+classical:
+  tikhonov_lambda: 1.0e-5
+
+classic_tv:
+  enabled: true
+  iters: 5
+  lr: 0.03
+  tv_weight: 1.0e-3
+  measurement_weight: 1.0
+  anchor_lambda: 1.0e-6
+  batch_size: 4
+
+statistics:
+  bootstrap_replicates: 100
+  bootstrap_seed: 20260625
+  primary_unit: image
+
+quality:
+  compute_ssim: true
+  compute_rapsd: true
+  compute_lpips: false
+  lpips_device: cuda
+
+gate:
+  scope: smoke_only_not_confirmatory
+  min_centered_rmse_gain: 1.0e-4
+  context_residual_max: 1.0e-4
+
+runs:
+  - run_id: dc_balanced_smoke_seed_100151
+    operator_seed: 100151
+    candidate_seed: 100700
+    split:
+      name: dc_balanced_smoke_100151
+      train_unlabeled_offset: 27000

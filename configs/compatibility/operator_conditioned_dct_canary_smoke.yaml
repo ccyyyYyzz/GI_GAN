@@ -1,0 +1,63 @@
+run_name: operator_conditioned_dct_canary_smoke
+output_dir: outputs/compatibility/operator_conditioned_nullspace/dct_canary_smoke
+device: cuda
+seed: 20260625
+batch_size: 16
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+
+operator:
+  family: dct
+  total_m: 41
+  img_size: 64
+  seed: 0
+  matrix_normalization: orthonormal_rows
+
+splits:
+  train:
+    offset: 30000
+    count: 128
+  val:
+    offset: 30200
+    count: 32
+  test:
+    offset: 30300
+    count: 32
+
+model:
+  base_channels: 16
+  blocks: 1
+
+training:
+  epochs: 3
+  lr: 0.0003
+  weight_decay: 0.0001
+  amp: true
+  clip_grad: 1.0
+
+classical:
+  tikhonov_lambda: 0.00001
+
+classic_tv:
+  enabled: true
+  iters: 5
+  lr: 0.03
+  tv_weight: 0.001
+  measurement_weight: 1.0
+  anchor_lambda: 0.000001
+  batch_size: 16
+
+frozen_prior:
+  enabled: false
+  candidate_k: 16
+  candidate_seed: 424242
+
+quality:
+  compute_lpips: false
+  lpips_device: cuda
+
+statistics:
+  bootstrap_replicates: 200
+
+gate:
+  min_centered_rmse_gain: 0.0001
+  relmeaserr_max: 0.0001

@@ -1,0 +1,65 @@
+run_name: operator_conditioned_budget_dev_seed1
+output_dir: outputs/compatibility/operator_conditioned_nullspace/budget_dev_seed1
+device: cuda
+seed: 20260626
+batch_size: 32
+
+operator:
+  total_m: 41
+  img_size: 64
+  seed: 1
+  matrix_normalization: orthonormal_rows
+
+arms:
+  - arm_id: dc_plus_40_random
+    family: random
+  - arm_id: dc_plus_40_non_dc_dct
+    family: dct
+  - arm_id: dc_plus_40_non_dc_hadamard
+    family: hadamard
+  - arm_id: dc_plus_8_random_32_non_dc_dct
+    family: mixed_random_dct
+    random_count: 8
+    dct_count: 32
+    seed_offset: 700
+
+splits:
+  train:
+    offset: 34000
+    count: 1024
+  val:
+    offset: 35200
+    count: 128
+  test:
+    offset: 35400
+    count: 128
+
+model:
+  base_channels: 32
+  blocks: 2
+
+training:
+  epochs: 15
+  lr: 0.0003
+  weight_decay: 0.0001
+  amp: true
+  clip_grad: 1.0
+
+classical:
+  include_tikhonov: true
+  tikhonov_lambda: 0.00001
+
+classic_tv:
+  enabled: false
+
+quality:
+  compute_lpips: false
+  lpips_device: cuda
+
+statistics:
+  bootstrap_replicates: 500
+
+gate:
+  min_centered_rmse_gain: 0.0001
+  relmeaserr_max: 0.0001
+  required_arm_passes: 3

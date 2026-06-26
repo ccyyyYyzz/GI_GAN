@@ -1,0 +1,59 @@
+run_name: phase2_fixed_total_smoke_v1
+output_dir: outputs/compatibility/phase2_fixed_total_smoke/dev_fixed_total_v1
+device: cuda
+batch_size: 8
+candidate_k: 16
+candidate_seed: 930700
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+
+context_operator:
+  status: fresh_development_operator_fixed_total_not_locked_test
+  pattern_type: rademacher
+  total_m: 205
+  img_size: 64
+  seed: 93051
+  noise_std: 0.0
+  matrix_normalization: legacy_sqrt_m
+
+split:
+  name: phase2_fixed_total_dev_smoke
+  source: STL10 train+unlabeled
+  train_unlabeled_offset: 4608
+  sample_count: 16
+  status: development_smoke_only_not_final
+
+fixed_total:
+  experiment_family: fixed_total_context_witness_split
+  witness_row_source: method_specific_rows
+  witness_budgets: [8, 16, 32]
+  baseline_budget: 0
+  cross_budget_endpoint: canonical_unclipped_full_rmse_mean
+  p0_rmse_scope: within_context_operator_only
+
+witness:
+  experiment_family: fixed_total_witness
+  operator: fresh_rows_not_seen_by_generator
+  random_seed: 93101
+  fixed_witness: dct2_low_frequency
+  adaptive_library_seed: 93102
+  adaptive_library_size: 256
+  primary_selector: dm_fcc_seed3
+  compatibility_prefilter_top_m: 4
+
+statistics:
+  bootstrap_replicates: 1000
+  bootstrap_seed: 93110
+  primary_unit: image
+
+quality:
+  compute_lpips: true
+  lpips_device: cuda
+
+pilot_gate:
+  scope: fixed_total_development_smoke_only
+  primary_endpoint: canonical_unclipped_full_rmse_mean
+  decision_rule: >
+    This smoke cannot authorize a locked test. It asks whether replacing
+    context rows with witness rows has any full-image net-benefit signal on a
+    fresh development split. Context P0-RMSE is reported within each operator
+    but not used as the cross-budget endpoint.

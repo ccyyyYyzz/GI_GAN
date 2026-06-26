@@ -1,0 +1,46 @@
+run_name: phase2_witness_dev_pilot_v1
+output_dir: outputs/compatibility/phase2_witness_pilot/dev_pilot_v1
+
+dataset:
+  split: val
+  cache_path: outputs/compatibility/phase1_2_rad5_64_candidate_transfer/candidate_cache/val_64_selector_k16.pt
+  status: development_only_not_confirmatory
+  final_v4_use: forbidden_for_method_selection
+
+witness:
+  experiment_family: add_on_witness
+  operator: fresh_rademacher_rows
+  budgets: [1, 2, 4, 8, 16, 32, 64]
+  random_seed: 26021
+  fixed_witness: dct2_low_frequency
+  adaptive_library_seed: 26022
+  adaptive_library_size: 256
+  primary_selector: dm_fcc_seed3
+  compatibility_prefilter_top_m: 4
+  note: >
+    Candidate generation uses the existing Phase1.2 Rad-5 development cache.
+    Witness rows are fresh and unseen by the generator. Fixed-total-budget
+    context/witness split is explicitly not claimed by this pilot.
+
+statistics:
+  bootstrap_replicates: 3000
+  bootstrap_seed: 271828
+  primary_unit: image
+
+quality:
+  compute_lpips: true
+  lpips_device: cuda
+  note: >
+    Compute clipped PSNR/SSIM/RAPSD/LPIPS for focus methods. If LPIPS is not
+    available in the runtime, report DATA MISSING rather than fabricating it.
+
+pilot_gate:
+  scope: development_pilot_only
+  primary_budget: 64
+  low_budget: 16
+  min_oracle_gain_fraction: 0.45
+  decision_rule: >
+    Proceed to an independent locked witness test only if adaptive witness has
+    strong signal versus random expectation and random witness, and also handles
+    the posterior-mean and compatibility-complementarity challenges. Otherwise
+    continue development or redesign without touching final-v4.

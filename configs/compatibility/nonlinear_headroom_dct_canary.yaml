@@ -1,0 +1,39 @@
+run_name: nonlinear_headroom_dct_canary
+output_dir: outputs/compatibility/nonlinear_headroom/dct_canary_v1
+device: cuda
+seed: 20260625
+batch_size: 32
+
+splits:
+  search_start: 43000
+  search_stride: 700
+  search_max_start: 49000
+  train:
+    count: 1536
+  val:
+    count: 96
+  dev:
+    count: 96
+  fit_count: 1024
+
+operator_protocol:
+  img_size: 64
+  budgets: [21, 41, 82]
+  heldout_budget: 41
+  val_operator_seeds: [301]
+  dev_operator_seeds: [401, 402]
+
+lmmse:
+  lambda_grid: [0.000001, 0.00001, 0.0001, 0.001, 0.01]
+
+local:
+  k_grid: [8, 16, 32, 64, 128]
+
+mfa:
+  component_grid: [1, 2, 4]
+
+statistics:
+  bootstrap_replicates: 500
+
+gate:
+  relmeaserr_max: 0.0001

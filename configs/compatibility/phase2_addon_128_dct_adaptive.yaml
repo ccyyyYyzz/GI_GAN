@@ -1,0 +1,55 @@
+run_name: phase2_addon_128_dct_adaptive_v1
+output_dir: outputs/compatibility/phase2_addon_128_dct_adaptive/dev_addon_128_v1
+device: cuda
+batch_size: 8
+candidate_k: 16
+candidate_seed: 950700
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+
+context_operator:
+  status: fresh_development_operator_not_locked_test
+  pattern_type: rademacher
+  sampling_ratio: 0.05
+  seed: 95051
+  noise_std: 0.0
+  matrix_normalization: legacy_sqrt_m
+
+split:
+  name: phase2_addon_128_dev
+  source: STL10 train+unlabeled
+  train_unlabeled_offset: 6144
+  sample_count: 128
+  status: development_only_not_final
+
+witness:
+  experiment_family: add_on_witness_dct_adaptive
+  operator: fresh_rows_not_seen_by_generator
+  budgets: [8, 16, 24, 32, 64]
+  random_witness: rademacher
+  random_seed: 95101
+  fixed_witness: dct2_low_frequency
+  adaptive_library: dct2_low_frequency
+  adaptive_library_seed: 95102
+  adaptive_library_size: 256
+  primary_selector: dm_fcc_seed3
+  compatibility_prefilter_top_m: 4
+
+statistics:
+  bootstrap_replicates: 2000
+  bootstrap_seed: 95110
+  primary_unit: image
+
+quality:
+  compute_lpips: true
+  lpips_device: cuda
+
+pilot_gate:
+  scope: larger_fresh_development_add_on_only
+  primary_budget: 64
+  low_budget: 16
+  min_oracle_gain_fraction: 0.45
+  decision_rule: >
+    This larger development run cannot authorize a locked test by itself.
+    It checks whether add-on witness signal persists on 128 fresh development
+    samples and whether DCT-library candidate-variance adaptive witness is
+    competitive with fixed low-frequency witness and posterior mean.

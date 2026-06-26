@@ -1,0 +1,78 @@
+run_name: phase2_addon_witness_locked_test_external_v1
+output_dir: outputs/compatibility/phase2_addon_locked_test_external/lock_v1
+device: cuda
+batch_size: 8
+candidate_k: 16
+candidate_seed: 980700
+checkpoint: E:/ns_mc_gan_gi/outputs_phase79_posterior_anti_collapse/rad5_rowspace_diversity_diagnostic/checkpoints/final.pt
+
+context_operator:
+  status: fresh_locked_test_operator_not_development
+  pattern_type: rademacher
+  sampling_ratio: 0.05
+  img_size: 64
+  seed: 98051
+  noise_std: 0.0
+  matrix_normalization: legacy_sqrt_m
+
+split:
+  name: phase2_addon_locked_test_external_v1
+  source: STL10 test
+  test_pool_count: 8000
+  exclude_indices_npy: E:/ns_mc_gan_gi_code_fcc_phase1/outputs/compatibility/phase1_4ir_incident_recovery/manifests/final_locked_test_64_v4_indices.npy
+  selection_salt: PHASE2_ADDON_WITNESS_EXTERNAL_LOCKED_TEST_V1
+  test_selection_offset: 0
+  sample_count: 512
+  status: locked_test_do_not_use_for_development_final_v4_excluded
+
+witness:
+  experiment_family: locked_add_on_witness_dct_adaptive_external
+  operator: fresh_rows_not_seen_by_generator
+  budgets: [24, 32, 64]
+  random_witness: rademacher
+  random_seed: 98101
+  fixed_witness: dct2_low_frequency
+  adaptive_library: dct2_low_frequency
+  adaptive_library_seed: 98102
+  adaptive_library_size: 256
+  primary_selector: dm_fcc_seed3
+  compatibility_prefilter_top_m: 4
+
+statistics:
+  bootstrap_replicates: 2000
+  bootstrap_seed: 98110
+  primary_unit: image
+
+quality:
+  compute_lpips: true
+  lpips_device: cuda
+
+locked_test:
+  status: preregistered_not_started
+  scope: independent_add_on_witness_locked_test_external_final_v4_excluded
+  primary_endpoint: canonical_unclipped_p0_rmse
+  primary_method: adaptive_witness_b64
+  primary_budget: 64
+  secondary_budgets: [24, 32]
+  relmeaserr_max_threshold: 1.0e-5
+  min_oracle_gain_fraction: 0.50
+  one_shot: true
+  final_v4_use: forbidden_for_method_selection
+  fixed_total_budget_claim: excluded_from_primary_claim
+  compatibility_prefilter_claim: secondary_only
+
+classification_rules:
+  success: WITNESS_ADDON_CONFIRMED
+  trend: WITNESS_ADDON_TREND_ONLY
+  no_benefit: WITNESS_ADDON_NO_BENEFIT
+  invalid: WITNESS_EVALUATION_INVALID
+
+pilot_gate:
+  scope: locked_test_support_table_only
+  primary_budget: 64
+  low_budget: 24
+  min_oracle_gain_fraction: 0.50
+  decision_rule: >
+    Support-table gate for the shared Phase 2 runner. The locked-test decision
+    is made by phase2_locked_test_score_once.py using the preregistered
+    locked_test section, not by the development-pilot complementarity gate.

@@ -1,0 +1,71 @@
+seed: 20260625
+device: cuda
+output_dir: outputs/compatibility/measurement_conditioned_vqgan/dev_64_5pct
+
+data:
+  dataset_root: E:/datasets
+  source_split: train+unlabeled
+  img_size: 64
+  train_offset: 0
+  train_count: 20000
+  val_offset: 21000
+  val_count: 512
+  dev_offset: 24000
+  dev_count: 512
+  batch_size: 16
+  eval_batch_size: 16
+  matrix_batch_size: 128
+  num_workers: 0
+
+operator:
+  total_m: 205
+  dct_rows: 128
+  hadamard_rows: 56
+  random_rows: 20
+  seed: 772001
+  lambda_solver: 1.0e-6
+  lmmse_lambda: 1.0e-3
+
+model:
+  codebook_size: 128
+  z_dim: 48
+  base_channels: 32
+  disc_base_channels: 32
+  meas_base_channels: 32
+  commit_beta: 0.25
+
+training:
+  seeds: [0, 1, 2]
+  prior_steps: 24
+  inverse_steps: 24
+  gan_start_step: 8
+  prior_lr_g: 2.0e-4
+  prior_lr_d: 2.0e-4
+  inverse_lr: 2.0e-4
+  betas: [0.5, 0.9]
+  grad_clip: 1.0
+  lpips_train: true
+  lambda_l1: 1.0
+  lambda_charb: 1.0
+  lambda_grad: 0.3
+  lambda_spec: 0.1
+  lambda_lpips_train: 0.2
+  lambda_vq: 1.0
+  lambda_adv: 0.05
+  lambda_fm: 0.25
+  lambda_token: 1.0
+  lambda_inverse_image: 1.0
+  lambda_pre_audit: 0.1
+  soft_decode_temperature: 1.0
+  run_guided: true
+  lambda_guidance: 0.02
+
+eval:
+  lpips: true
+  kid_fid: false
+  qualitative_count: 10
+  bootstrap_replicates: 500
+  bootstrap_seed: 20260625
+  lpips_relative_gain_gate: 0.05
+  psnr_drop_tolerance_db: 0.5
+  relmeaserr_limit: 1.0e-5

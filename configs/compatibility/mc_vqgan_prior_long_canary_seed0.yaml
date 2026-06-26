@@ -1,0 +1,50 @@
+seed: 20260626
+device: cuda
+output_dir: outputs/compatibility/measurement_conditioned_vqgan/prior_long_canary_seed0
+
+data:
+  dataset_root: E:/datasets
+  source_split: train+unlabeled
+  img_size: 64
+  train_offset: 0
+  train_count: 20000
+  val_offset: 21000
+  val_count: 512
+  dev_offset: 24000
+  dev_count: 512
+  batch_size: 16
+  eval_batch_size: 16
+  matrix_batch_size: 128
+  num_workers: 0
+
+model:
+  codebook_size: 256
+  z_dim: 64
+  base_channels: 48
+  disc_base_channels: 40
+  commit_beta: 0.25
+
+training:
+  lpips_train: true
+  warmup_steps: 30000
+  continuation_steps: 100000
+  val_interval: 2000
+  log_interval: 100
+  prior_lr_g: 2.0e-4
+  prior_lr_d: 2.0e-4
+  betas: [0.5, 0.9]
+  grad_clip: 1.0
+  lambda_l1: 1.0
+  lambda_charb: 1.0
+  lambda_grad: 0.3
+  lambda_spec: 0.1
+  lambda_lpips_train: 0.25
+  lambda_vq: 1.0
+  lambda_adv: 0.05
+  lambda_fm: 0.5
+
+eval:
+  qualitative_count: 12
+  max_val_batches: 0
+  kid: true
+  kid_max_images: 128
