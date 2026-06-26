@@ -65,22 +65,49 @@ def make_pareto():
     print("wrote LOCKED_FUSION_PARETO.png")
 
 
-def make_qualitative(n=6):
+def _per_image_lpips(seed):
+    out = {}
+    with open(LOCK / "locked_per_image_rows.csv", newline="") as f:
+        for r in csv.DictReader(f):
+            if int(r["train_seed"]) != seed:
+                continue
+            try:
+                out.setdefault(int(r["source_index"]), {})[r["method"]] = float(r["lpips"])
+            except (TypeError, ValueError):
+                pass
+    return out
+
+
+def make_qualitative(seed=0, n=6, mode="spread", out=None):
+    """mode: 'spread' = evenly spaced; 'top_improve' = largest balanced-vs-VQAE LPIPS gain."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    cfg = vdf.load_cfg(0)
+    cfg = vdf.load_cfg(seed)
     measurement, projector = vdf.build_meas(cfg, device)
     bal, _ = vlk.frozen_B()
-    pk = torch.load(LOCK / "cache" / "locked_seed0.pt", map_location=device)
+    pk = torch.load(LOCK / "cache" / f"locked_seed{seed}.pt", map_location=device)
     pre = vdf.prep_residuals(pk, measurement, projector)
     x0f, d_A, d_G, y, truth = pre["x0f"], pre["d_A"], pre["d_G"], pre["y"], pre["truth"]
     x0_img = pk["x0"]
+    sidx = pk["source_index"].cpu().numpy().tolist()
     vqae = vdf.fuse(("scalar", 0.0), x0f, d_A, d_G, y, measurement, projector, [])
-    fbal = vdf.fuse(("scalar", bal[0]), x0f, d_A, d_G, y, measurement, projector, [])
+    fbal = vdf.fuse(("scalar", bal[seed]), x0f, d_A, d_G, y, measurement, projector, [])
     vqgan = vdf.fuse(("scalar", 1.0), x0f, d_A, d_G, y, measurement, projector, [])
+
+    dl = {}
+    if mode in ("top_improve", "worst"):
+        pl = _per_image_lpips(seed)
+        for pos, si in enumerate(sidx):
+            row = pl.get(si, {})
+            if "fusion_balanced" in row and "vqae" in row:
+                dl[pos] = row["fusion_balanced"] - row["vqae"]
+        # most negative = most improved; most positive = fusion worst vs VQAE
+        pick = sorted(dl, key=lambda p: dl[p], reverse=(mode == "worst"))[:n]
+    else:
+        pick = np.linspace(0, truth.shape[0] - 1, n).astype(int).tolist()
+
     cols = [("truth", truth), ("LMMSE x0", x0_img), ("VQAE (B=0)", vqae),
-            (f"balanced (B={bal[0]})", fbal), ("VQGAN (B=1)", vqgan)]
-    pick = np.linspace(0, truth.shape[0] - 1, n).astype(int)
-    fig, axes = plt.subplots(n, len(cols), figsize=(len(cols) * 1.7, n * 1.7))
+            (f"balanced (B={bal[seed]})", fbal), ("VQGAN (B=1)", vqgan)]
+    fig, axes = plt.subplots(n, len(cols), figsize=(len(cols) * 1.7, n * 1.85))
     for r, i in enumerate(pick):
         for c, (title, t) in enumerate(cols):
             ax = axes[r, c]
@@ -88,11 +115,18 @@ def make_qualitative(n=6):
             ax.set_xticks([]); ax.set_yticks([])
             if r == 0:
                 ax.set_title(title, fontsize=9)
-    fig.suptitle("Locked-split reconstructions (seed0): structure (VQAE) -> fused detail -> full VQGAN", fontsize=10)
+        tag = f"img {sidx[i]}"
+        if i in dl:
+            tag += f"\nΔLPIPS={dl[i]:+.3f}"
+        axes[r, 0].set_ylabel(tag, fontsize=7, rotation=0, ha="right", va="center", labelpad=22)
+    sub = {"top_improve": "most-improved (balanced vs VQAE)",
+           "worst": "worst / least-improved (balanced vs VQAE)"}.get(mode, "spread")
+    fig.suptitle(f"Locked reconstructions seed{seed} [{sub}]: VQAE structure -> fused detail -> full VQGAN", fontsize=10)
     fig.tight_layout()
-    fig.savefig(LOCK / "LOCKED_QUALITATIVE.png", dpi=130)
+    out = out or f"LOCKED_QUALITATIVE_seed{seed}.png"
+    fig.savefig(LOCK / out, dpi=130)
     plt.close(fig)
-    print("wrote LOCKED_QUALITATIVE.png")
+    print("wrote", out)
 
 
 def make_package():
