@@ -1,0 +1,32 @@
+{
+  "seed": 0,
+  "n_rows": 5120,
+  "max_abs_diff": {
+    "full_rmse": 0.0,
+    "centered_rmse": 0.0,
+    "psnr": 0.0,
+    "ssim": 1.0010887674383184e-09,
+    "lpips": 0.0004566609859466553,
+    "rapsd": 1.087300388613599e-12,
+    "relmeaserr": 3.619892225970034e-07
+  },
+  "mean_abs_diff": {
+    "full_rmse": 0.0,
+    "centered_rmse": 0.0,
+    "psnr": 0.0,
+    "ssim": 2.0763731446021838e-13,
+    "lpips": 4.25493017246481e-05,
+    "rapsd": 7.376246660727778e-16,
+    "relmeaserr": 1.3627201439214697e-07
+  },
+  "faithful": true,
+  "tolerances": {
+    "full_rmse": 0.0005,
+    "centered_rmse": 0.0005,
+    "psnr": 0.1,
+    "ssim": 0.005,
+    "lpips": 0.005,
+    "rapsd": 0.0005,
+    "relmeaserr": 0.0001
+  }
+}
