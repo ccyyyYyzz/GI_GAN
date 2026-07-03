@@ -1,6 +1,6 @@
 # 00 — Start Here
 
-**Repo:** `E:/ns_mc_gan_gi_code_fcc_phase1` (GitHub-connected, branch `codex/vqgan-multiseed-handoff`)
+**Repo home:** `E:/GAN_FCC_WORK/active_code/ns_mc_gan_gi_code_fcc_phase1` (GitHub-connected, branch `codex/vqgan-multiseed-handoff`). Consolidated under `GAN_FCC_WORK/active_code/` on 2026-07-03 so the whole GI+GAN program lives in one folder (`E:/GAN_FCC_WORK/`); the reproduction env + data are siblings under `GAN_FCC_WORK/data_warehouse/` and `GAN_FCC_WORK/datasets/`. Run all commands from the repo root wherever it lives.
 **Role:** One working copy of a larger ghost-imaging range-null program. The VQGAN/FCC phase-1 compatibility subline lives here. The authoritative full-program Chinese handoff (00–10 docs + CSV index) is archived under `HANDOFF/archive_gan_fcc_work/`.
 
 ---
@@ -57,7 +57,7 @@ python -m src.train --config configs/default.yaml
 ## Quick Repro (3 commands)
 
 ```bash
-cd E:/ns_mc_gan_gi_code_fcc_phase1
+cd E:/GAN_FCC_WORK/active_code/ns_mc_gan_gi_code_fcc_phase1   # repo home after consolidation
 
 # The py3.11 env was relocated during an E-drive cleanup (E: is exFAT -> no junction).
 # Verified-working interpreter (py 3.11.15, torch 2.2.1+cu121, CUDA):
