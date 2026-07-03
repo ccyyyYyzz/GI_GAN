@@ -1,5 +1,31 @@
 # NS-MC-GAN Ghost Imaging
 
+> **🧭 New here? Start with [`HANDOFF/00_START_HERE.md`](HANDOFF/00_START_HERE.md).**
+>
+> This repository is one working copy of a larger **undersampled ghost-imaging range/null-space research program**. The [`HANDOFF/`](HANDOFF/) directory is the authoritative, chronological guide to the whole work — theory, code map, reproducibility, evidence, papers, and red lines — written so a fresh session or a new reader can follow the research **in order**, reuse the code, and reproduce every result.
+
+## How this repository is organized
+
+- **[`HANDOFF/`](HANDOFF/)** — the research handoff. Read in order:
+  [`00_START_HERE.md`](HANDOFF/00_START_HERE.md) →
+  [`01_RESEARCH_STORY.md`](HANDOFF/01_RESEARCH_STORY.md) (chronological spine, stages 0–8) →
+  [`02_THEORY_CORE.md`](HANDOFF/02_THEORY_CORE.md) →
+  [`03_CODE_MAP.md`](HANDOFF/03_CODE_MAP.md) →
+  [`04_REPRODUCIBILITY_GUIDE.md`](HANDOFF/04_REPRODUCIBILITY_GUIDE.md) →
+  [`05_EXPERIMENTS_AND_EVIDENCE.md`](HANDOFF/05_EXPERIMENTS_AND_EVIDENCE.md) →
+  [`06_PAPERS_AND_CLAIMS.md`](HANDOFF/06_PAPERS_AND_CLAIMS.md) →
+  [`07_RED_LINES_AND_WORKING_RULES.md`](HANDOFF/07_RED_LINES_AND_WORKING_RULES.md).
+  [`HANDOFF/archive_gan_fcc_work/`](HANDOFF/archive_gan_fcc_work/) holds the full-program Chinese handoff copied from the master work root (`E:/GAN_FCC_WORK`).
+- **[`research_lines/`](research_lines/)** — one folder per research line (`00_program_overview` … `08_vqgan_fcc`) with an `INDEX.md` that **points to** the relevant code. The code is **not** moved: it stays flat at the repository root so that `cwd = repo-root` imports keep working.
+- **Importable core stays flat at root**: `src/`, `eval/`, `configs/`, the root `*.py` modules, `paper/`, `colab/`, `scripts/`, `tests/`. Always run commands from the repository root.
+- **`_unrelated_fresnel_zone_plate/`** — an unrelated Fresnel-zone-plate student manuscript, quarantined out of the root during organization (it is **not** ghost-imaging science; see [`HANDOFF/08_NON_GI_CONTENT_QUARANTINE.md`](HANDOFF/08_NON_GI_CONTENT_QUARANTINE.md)).
+
+The rest of this file is the original **per-phase reproduction manual (Phases 1–10)**, kept as-is for the early-phase details.
+
+---
+
+## About this project
+
 `ns_mc_gan_gi` is a compact PyTorch research project for low-sampling-rate
 computational ghost imaging / single-pixel imaging reconstruction. The input is
 bucket measurements

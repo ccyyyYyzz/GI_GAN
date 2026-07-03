@@ -1,0 +1,12 @@
+file,role
+00_START_HERE_FOR_NEW_AGENT.md,canonical entry and reading order
+01_RESEARCH_STORY.md,research route reconstructed by scientific question
+02_THEORY_CORE.md,range-null audit and boundary theory spine
+03_CODE_MAP.md,code and data location map
+04_REPRODUCIBILITY_GUIDE.md,safe reproduction and run order
+05_EXPERIMENTS_AND_EVIDENCE.md,experiment classes and evidence paths
+06_PAPERS_AND_CLAIMS.md,paper status and claim boundaries
+07_RED_LINES_AND_WORKING_RULES.md,hard constraints and working rules
+08_NEXT_AGENT_CHECKLIST.md,new-session checklist
+09_PAPERS_INDEX.md,complete paper and manuscript location index
+10_FILE_BY_FILE_CURATION.md,file-by-file curation inventory and cleanup map
