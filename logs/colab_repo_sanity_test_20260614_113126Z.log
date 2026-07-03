@@ -1,0 +1,35 @@
+timestamp_utc=20260614_113126Z
+repo_root=/mnt/e/ns_mc_gan_gi_code
+colab_bin=/var/tmp/codex-colab-tools/colab-cli-venv/bin/colab
+colab_auth=oauth2
+colab_gpu=T4
+session=repo-sanity-20260614_113126Z
+Version: 0.5.12.dev1+ga0d9671b0
+-rw-r--r-- 1 cyzcomputer cyzcomputer 13K Jun 14 13:31 /tmp/ghost_repo_sanity_20260614_113126Z.tgz
+[colab] Creating session 'repo-sanity-20260614_113126Z'...
+[colab] Session READY.
+[colab] Uploaded '/tmp/ghost_repo_sanity_20260614_113126Z.tgz' to '/content/ghost_repo_sanity.tgz'
+python_version: 3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]
+platform: Linux-6.6.122+-x86_64-with-glibc2.35
+cwd: /content
+sys_path_0: /
+torch_version: 2.11.0+cu128
+cuda_available: True
+device: cuda
+cuda_device_name: Tesla T4
+measurement_shape: {'n': 64, 'm': 16}
+measurement_y_shape: [1, 16]
+x_data_shape: [1, 1, 8, 8]
+null_forward_rel_norm: 3.099554e-04
+dc_forward_rel_error: 4.580004e-04
+model: PlainUNetGenerator
+model_output_shape: [1, 1, 8, 8]
+model_output_mean: -3.344793e-02
+repo_sanity_ok: true
+An exception has occurred, use %tb to see the full traceback.
+[0;31mSystemExit[0m[0;31m:[0m 0
+
+/usr/local/lib/python3.12/dist-packages/IPython/core/interactiveshell.py:3561: UserWarning: To exit: use 'exit', 'quit', or Ctrl-D.
+  warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
+[colab] Stopping session 'repo-sanity-20260614_113126Z'...
+[colab] Session terminated.

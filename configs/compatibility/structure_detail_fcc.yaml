@@ -1,0 +1,32 @@
+# Structure-Detail FCC diagnostic on VQAE/VQGAN fusion data.
+# output_dir is set per fusion-seed by structure_detail_fcc.py.
+output_dir: E:/ns_mc_gan_gi_code_fcc_phase1/outputs/compatibility/structure_detail_fcc
+device: cuda
+seed: 20260627
+img_size: 64
+
+# Critic
+embed_dim: 128
+base_channels: 24
+temperature: 0.07
+learn_temperature: false
+batch_size: 128
+epochs: 30
+lr: 2.0e-4
+weight_decay: 1.0e-4
+grad_clip: 1.0
+amp: true
+tiny_overfit_samples: 64
+tiny_overfit_steps: 80
+
+# Eval
+donors_per_anchor: 32
+recheck_feasibility: false   # build already verified exact null-space feasibility with the structured operator
+
+classification_thresholds:
+  random_recall_mult: 4.0
+  structural_auc_min: 0.70
+  deployable_neutered_max: 0.60
+  fcc_minus_deployable_min: 0.05
+  balance_smd_max: 0.25
+  label_perm_max_mult: 4.0

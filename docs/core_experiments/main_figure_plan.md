@@ -1,0 +1,10 @@
+# Main Figure Plan
+
+| fig | role | assets | status | caption |
+| --- | --- | --- | --- | --- |
+| Fig1 | Integrated method overview | E:\ns_mc_gan_gi\outputs_phase70_gauge_gan_paper_expansion\fig1_method_gauge.png | draft asset; redraw recommended for one-paper story | Learned GI reconstruction, measurement audit Pi_y^lambda, certificate boundary, and GAN/prior case-study branch. |
+| Fig2 | Separation + range-share law | E:\ns_mc_gan_gi\results\cert_package_20260612\figs\T2_frontier_rad5.pdf; E:\ns_mc_gan_gi\results\cert_package_20260612\figs\T2_frontier_scr5.pdf | ready but may combine panels | Audit drives measurement residual down with negligible PSNR movement; range/share and lambda frontier explain the behavior. |
+| Fig3 | Post-hoc audit across reconstructors and modal contraction | E:\ns_mc_gan_gi\results\cert_package_20260612\figs\T3_contraction_rad5.pdf; table T1 | ready; design consolidation needed | Pi_y^lambda works post-hoc across learned and analytic outputs and follows singular-mode contraction. |
+| Fig4 | Certificate boundary / feasible cross-class image | E:\ns_mc_gan_gi\results\cert_package_20260612\figs\T4_hallucination.pdf | ready with caption caveat | A visually wrong image can be measurement-consistent; certificate is not semantics. |
+| Fig5 | GAN case study: unmeasured-content map + alpha knob | E:\ns_mc_gan_gi\outputs_phase77_auditable_gan_paper_assembly\fig_unmeasured_content_maps.png; E:\ns_mc_gan_gi\outputs_phase77_auditable_gan_paper_assembly\fig_alpha_trust_sharpness.png | ready with Phase79 negative guardrail | P0 xhat maps prior-supplied content; alpha changes prior detail while RelMeasErr remains invariant. |
+| Fig6 optional | Shortcut safety / regime gate | E:\ns_mc_gan_gi\outputs_phase77_auditable_gan_paper_assembly\fig_shortcut_stress_final.png; E:\ns_mc_gan_gi\outputs_phase77_auditable_gan_paper_assembly\fig_regime_gate_final.png | ready optional | Gauge equalization removes measured-row shortcut and explains 5% vs 10% run/stop regimes. |

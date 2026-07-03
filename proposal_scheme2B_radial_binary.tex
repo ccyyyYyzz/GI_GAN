@@ -1,0 +1,99 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1.6cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage[font=small,labelfont=bf,skip=3pt]{caption}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{5pt}{2pt}
+\titlespacing*{\paragraph}{0pt}{3pt}{0.7em}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.22em}
+
+\title{\vspace{-1.4cm}\large\textbf{Project Proposal: Encoding a Target Axial Response in Binary-Amplitude Fresnel Zone Plates via Radial Binary Optimization}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.2cm}
+
+\section{Background and Motivation}
+
+A standard Fresnel zone plate (FZP) is a set of concentric transparent/opaque half-wave zones: at the focus the open zones add in phase, and the flat plate behaves as a focusing element. The zone boundaries are fixed by a single design rule, $r_n=\sqrt{n\lambda f + n^2\lambda^2/4}$ (paraxial $r_n\approx\sqrt{n\lambda f}$), so a conventional FZP is committed to one focus from the outset.
+
+This project asks a narrower question: since the binary open/opaque pattern is what produces the field, can we choose that pattern to realize a \emph{specified} axial intensity rather than a single textbook focus? We treat the FZP as a binary optical-field encoder. The radius is discretized into $M$ rings with binary states $a_m\in\{0,1\}$, and we optimize the vector $\mathbf{a}$ so that the on-axis intensity $\hat I_a(z)$ approximates a target profile $I_{\text{target}}(z)$. This reframes the FZP from a fixed diffractive lens into a small, transparent design problem while staying entirely within binary-amplitude fabrication. The scope is deliberately modest: a clean forward model, a light-weight discrete optimizer, and the same optical bench and standard-FZP control already established in our baseline (Scheme~1).
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\textwidth]{mfig_scheme2b_mechanism.pdf}
+\caption{Radial binary optimization as a target-encoding mechanism.
+\textbf{(a)} A target axial intensity (here a dual focus at $135$ and
+$165$~mm) and the response of an optimized pattern. \textbf{(b)} The aperture
+is encoded as a vector of binary ring states $a_m\in\{0,1\}$, which
+\textbf{(c)} generates a concentric binary mask. \textbf{(d)} The ring states
+are optimized against the target by binary local search / simulated annealing,
+minimizing the objective $J(a)$.}
+\label{fig:s2b-mechanism}
+\end{figure}
+
+\section{Proposed Approach}
+
+\paragraph{Design.} We keep the verified baseline parameters: wavelength $\lambda=532$\,nm, outer radius $R=2$\,mm, nominal focus $f_0=150$\,mm, giving outermost zone width $\Delta r_N\approx 20\,\mu$m and $N\approx 50$ Fresnel zones. The radius $[0,R]$ is divided into $M$ rings, each at least the minimum manufacturable width $\Delta r_{\min}\sim 20\,\mu$m, set by the same constraint $\Delta r_N\approx \lambda f/(2R)$. Each ring carries a binary aperture variable $a_m$ ($1=$ open, $0=$ opaque), and the transmittance is $T_B(\rho)=\sum_m a_m\,\Pi_m(\rho)$. We study three targets: (i) single focus, a Gaussian centered at $f_0=150$\,mm (a sanity check against the standard FZP); (ii) \emph{dual focus}, two Gaussians at $f_1=135$\,mm and $f_2=165$\,mm; (iii) \emph{extended depth of focus}, a super-Gaussian (order $p=4$) of half-range $\Delta f=15$\,mm about $150$\,mm.
+
+\paragraph{Simulation.} Each ring is modeled as a phasor source. We precompute its complex contribution at axial plane $z_j$,
+\[
+C_{mj}=\frac{2\pi\, e^{ik z_j}}{i\lambda z_j}\int_{r_{m-1}}^{r_m}\exp\!\Big(\frac{ik\rho^2}{2z_j}\Big)\,\rho\,d\rho,
+\]
+so the field is $U_a(z_j)=\sum_m a_m C_{mj}$ and $I_a(z_j)=|U_a(z_j)|^2$; optimization simply chooses which phasors add. Because $C_{mj}$ is precomputed, evaluating a pattern is a fast matrix product and a single ring flip updates $U_a$ incrementally. We minimize
+\[
+J(\mathbf{a})=\sum_j w_j\big[\hat I_a(z_j)-I_{\text{target}}(z_j)\big]^2
++\alpha\,S_{\text{sidelobe}}+\beta\,C_{\text{edge}}+\gamma\,C_{\min},
+\]
+where $S_{\text{sidelobe}}$ penalizes out-of-band axial intensity, $C_{\text{edge}}=\sum_m|a_m-a_{m-1}|$ penalizes pattern fragmentation, and $C_{\min}$ penalizes ring runs shorter than $\Delta r_{\min}$. No heavy machine learning is needed: we use binary local search / simulated annealing (flip one ring; accept if $\Delta J<0$, else with probability $e^{-\Delta J/T}$; cool $T$ to convergence), initialized from a standard FZP or at random. Full Fresnel/angular-spectrum propagation, $U(x,y,z)=P_z\{U_0 T(x,y)\}$, then validates the final patterns in 2-D before fabrication.
+
+\paragraph{Fabrication.} The optimized binary patterns and a standard FZP control are written as chrome-on-glass (or high-resolution film) masks at the same $20\,\mu$m linewidth, so every design is manufacturable and directly comparable.
+
+\paragraph{Testing.} We reuse the Scheme-1 bench unchanged: a 532\,nm laser, beam expander/collimator, the zone plate, and a CMOS camera translated along the axis over $z=120$--$180$\,mm (coarse $1$--$2$\,mm, fine $0.2$--$0.5$\,mm). For each design we record the axial peak $I_{\max}(z)=\max_{xy}I$ and spot FWHM$(z)$, and report: the target-match error $E_{\text{exp}}=\sum_j[\hat I_{\max}(z_j)-I_{\text{target}}(z_j)]^2$; the effective depth of focus $\mathrm{DOF}_\eta=\text{length}\{z:I_{\max}(z)\ge\eta\,I_{\max,\text{peak}}\}$ ($\eta=0.5,0.7$); and defocus tolerance in imaging via contrast $C=(I_{\max}-I_{\min})/(I_{\max}+I_{\min})$ and mean edge gradient $G=\langle|\nabla I|\rangle$. Repeating each scan $K$ times gives $u_I(z_j)$, and the focal uncertainty follows $u(f_{\text{exp}})=\sqrt{u_z^2+u_{\text{fit}}^2+u_{\text{align}}^2}$ with $\delta f/f\approx 2\,\delta r/r-\delta\lambda/\lambda$ (a $1\%$ pattern scaling gives $\sim2\%$ focal error). The standard FZP serves throughout as the control.
+
+\section{Expected Outcomes}
+
+We expect to show, on the same bench, that a binary ring vector can be encoded for a chosen axial response: a single focus matching the control, a measurable dual-focus split at $135$ and $165$\,mm, and an extended-DOF design with a flatter $I_{\max}(z)$ plateau. The central, honest result is an energy-conservation tradeoff: a finite aperture has finite energy, so distributing light to two foci or across a focal range \emph{lowers} the single-point peak. We therefore aim to quantify the relationship high peak $\leftrightarrow$ short DOF versus extended DOF / multi-focus $\leftrightarrow$ lower peak and higher sidelobes, using $E_{\text{exp}}$, $\mathrm{DOF}_\eta$, and sidelobe levels as evidence, and to report it with full uncertainty budgets rather than as a single ``best'' design.
+
+\emph{Honest caveats.} Optimized patterns are irregular and less interpretable than a textbook FZP, more sensitive to fabrication error, and the discrete search can settle in local optima; the regularizers ($C_{\text{edge}}$, $C_{\min}$) and annealing mitigate but do not remove these. As with any FZP, zero-order light, multiple foci, and chromatic aberration remain present.
+
+\section{Tentative Timeline}
+
+Both schemes share one optical bench, and the standard FZP is the common control.
+
+\begin{center}
+\small
+\small\begin{tabular}{ll}
+\toprule
+Week & Activity \\
+\midrule
+1 & Build forward model; precompute ring contributions $C_{mj}$; validate vs.\ standard FZP \\
+2 & Implement objective $J(\mathbf{a})$ and annealing/local search; tune regularizers \\
+3 & Optimize single-, dual-, and extended-DOF targets; 2-D propagation check \\
+4 & Finalize patterns; prepare and order masks (optimized designs $+$ control) \\
+5 & Receive masks; align bench; calibrate axial scan and camera \\
+6 & Axial-scan measurements: $I_{\max}(z)$, FWHM, $E_{\text{exp}}$, $\mathrm{DOF}_\eta$ \\
+7 & Imaging / defocus-tolerance tests ($C$, $G$); repeat runs for $u_I(z_j)$ \\
+8 & Uncertainty budget; compare to control; write-up and figures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

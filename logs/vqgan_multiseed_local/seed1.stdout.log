@@ -1,0 +1,80 @@
+[cmd] E:\ns_mc_gan_gi\conda_envs\ns_mc_gan_gi_py311\python.exe -m py_compile mc_vqgan_prior_long_canary.py anchor_initialized_vqgan_inversion.py
+[cmd] E:\ns_mc_gan_gi\conda_envs\ns_mc_gan_gi_py311\python.exe -m pytest -q tests/test_anchor_initialized_vqgan_inversion.py tests/test_measurement_conditioned_vqgan.py
+......                                                                   [100%]
+6 passed in 33.09s
+[cmd] E:\ns_mc_gan_gi\conda_envs\ns_mc_gan_gi_py311\python.exe mc_vqgan_prior_long_canary.py --config E:\ns_mc_gan_gi_code_fcc_phase1\configs\compatibility\mc_vqgan_prior_multiseed_hashclean_seed1_local.yaml
+Files already downloaded and verified
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: C:\Users\CYZµÄcomputer\AppData\Roaming\Python\Python311\site-packages\lpips\weights\v0.1\alex.pth
+{
+  "output_dir": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1",
+  "manifests": [
+    {
+      "phase": "warmup_vqae",
+      "steps": 30000,
+      "batch_order_hash": "45f04c5087204644dfb1e05ad5ce2c1e06ddc2889f4ddffcd11db8756154ca87",
+      "best_lpips": 0.34372400419670157,
+      "best_step": 30000.0,
+      "latest_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\warmup_vqae\\checkpoints\\warmup_vqae_latest.pt",
+      "best_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\warmup_vqae\\checkpoints\\warmup_vqae_best_by_lpips.pt",
+      "start_model_hash": "2ceb96f9f707edc2dd2c60a298319d69a39ab4468e2e7fbbc378d38983bd152e",
+      "end_model_hash": "29dd3ab6c603712f3acc1e86a84357d99107f6a16b4ebb4828011f63f9415b7a"
+    },
+    {
+      "phase": "vqae_continuation",
+      "steps": 100000,
+      "batch_order_hash": "05a629ba95c25927b041f81f1889ca8265f58df1e131ba647365317cdf26cb34",
+      "best_lpips": 0.32436767969920766,
+      "best_step": 128000.0,
+      "latest_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\vqae_continuation\\checkpoints\\vqae_continuation_latest.pt",
+      "best_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\vqae_continuation\\checkpoints\\vqae_continuation_best_by_lpips.pt",
+      "branch_start_model_hash": "5f24b77f99e838b6298cd455b57b731ee60e077d0f2a1b2bee94d07289739a37",
+      "end_model_hash": "fec39b50f2a2155a1047a2b9570c9a8afdce5f29f7fac06a30dcc712892f786d"
+    },
+    {
+      "phase": "vqgan_continuation",
+      "steps": 100000,
+      "batch_order_hash": "05a629ba95c25927b041f81f1889ca8265f58df1e131ba647365317cdf26cb34",
+      "best_lpips": 0.14857908016711008,
+      "best_step": 126000.0,
+      "latest_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\vqgan_continuation\\checkpoints\\vqgan_continuation_latest.pt",
+      "best_checkpoint": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\prior_multiseed_hashclean_seed1\\vqgan_continuation\\checkpoints\\vqgan_continuation_best_by_lpips.pt",
+      "branch_start_model_hash": "5f24b77f99e838b6298cd455b57b731ee60e077d0f2a1b2bee94d07289739a37",
+      "end_model_hash": "ff6e793f6b7386a3743fa0467f0db65a4ff94de5cfea65ac32030d10cbd15b5b"
+    }
+  ],
+  "runtime": {
+    "seconds": 17854.868216753006,
+    "device": "cuda",
+    "config": "E:\\ns_mc_gan_gi_code_fcc_phase1\\configs\\compatibility\\mc_vqgan_prior_multiseed_hashclean_seed1_local.yaml",
+    "config_sha256": "fad33c99f9060fc8857bee543265ee2f0df984f75fc45e9582948d1d23ae3a52",
+    "script_sha256": "a207b1e4795f5b6cecfe766f7755bd302be0d0e7537438b44cfd7f01a253b626"
+  }
+}
+[cmd] E:\ns_mc_gan_gi\conda_envs\ns_mc_gan_gi_py311\python.exe anchor_initialized_vqgan_inversion.py --config E:\ns_mc_gan_gi_code_fcc_phase1\configs\compatibility\anchor_vqgan_inversion_multiseed_hashclean_seed1_local.yaml
+Files already downloaded and verified
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: C:\Users\CYZµÄcomputer\AppData\Roaming\Python\Python311\site-packages\lpips\weights\v0.1\alex.pth
+{
+  "classification": "VQGAN_PRIOR_TRANSFER_CONFIRMED",
+  "development_gate_passed": true,
+  "output_dir": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\anchor_multiseed_hashclean_seed1",
+  "package": {
+    "zip_path": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\ANCHOR_INITIALIZED_VQGAN_INVERSION_SEED1_PACKAGE.zip",
+    "zip_sha256": "e7d73b27b80ef7840273e396ecd3965ee1508e74da315180f8707c4eb07f2f1e",
+    "zip_bytes": 4531176
+  },
+  "runtime": {
+    "seconds": 6435.764048099518,
+    "device": "cuda",
+    "config": "E:\\ns_mc_gan_gi_code_fcc_phase1\\configs\\compatibility\\anchor_vqgan_inversion_multiseed_hashclean_seed1_local.yaml",
+    "config_sha256": "dc62bec0e787f3b9c207e04db4c41c6a08e24fe2eaa2f8f27fecb80dc15cfaf0",
+    "script_sha256": "7b129707070481a850a405cacd72b2c74ab28127ac936baa173a0d9d904c6ec2"
+  }
+}
+{
+  "seed_id": 1,
+  "artifact": "E:\\ns_mc_gan_gi_code_fcc_phase1\\outputs\\compatibility\\measurement_conditioned_vqgan\\VQGAN_MULTI_SEED_LOCAL_SEED1_ARTIFACT.zip",
+  "artifact_bytes": 110560455,
+  "seconds": 24409.033321619034
+}

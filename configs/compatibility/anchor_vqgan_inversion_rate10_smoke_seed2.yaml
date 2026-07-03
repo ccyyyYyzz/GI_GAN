@@ -1,0 +1,77 @@
+seed: 20260628
+experiment_seed: 2
+device: cuda
+output_dir: outputs/compatibility/measurement_conditioned_vqgan/anchor_rate10_smoke_seed2
+priors:
+  vqae_checkpoint: outputs/compatibility/measurement_conditioned_vqgan/prior_multiseed_hashclean_seed2/vqae_continuation/checkpoints/vqae_continuation_best_by_lpips.pt
+  vqgan_checkpoint: outputs/compatibility/measurement_conditioned_vqgan/prior_multiseed_hashclean_seed2/vqgan_continuation/checkpoints/vqgan_continuation_best_by_lpips.pt
+data:
+  dataset_root: /content/datasets
+  source_split: train+unlabeled
+  hash_clean: true
+  img_size: 64
+  train_offset: 0
+  train_count: 20000
+  val_offset: 21000
+  val_count: 512
+  dev_offset: 24000
+  dev_count: 512
+  batch_size: 16
+  eval_batch_size: 16
+  matrix_batch_size: 128
+  num_workers: 0
+operator:
+  total_m: 410
+  dct_rows: 257
+  hadamard_rows: 112
+  random_rows: 40
+  seed: 772011
+  lambda_solver: 1.0e-06
+  lmmse_lambda: 0.001
+model:
+  codebook_size: 256
+  z_dim: 64
+  base_channels: 48
+  disc_base_channels: 40
+  refiner_base_channels: 64
+  commit_beta: 0.25
+training:
+  refiner_steps: 300
+  val_interval: 150
+  log_interval: 100
+  refiner_lr: 0.0002
+  betas:
+  - 0.5
+  - 0.9
+  grad_clip: 1.0
+  beta_train: 1.0
+  distance_temperature: 1.0
+  soft_temperature: 1.0
+  delta_scale: 0.25
+  logit_scale: 1.0
+  lambda_image: 1.0
+  lambda_latent: 0.2
+  lambda_token: 0.25
+  lambda_pre_audit: 0.05
+  lambda_guidance: 0.02
+  lambda_l1: 1.0
+  lambda_charb: 1.0
+  lambda_grad: 0.3
+  lambda_spec: 0.1
+  lambda_lpips: 0.25
+eval:
+  lpips: true
+  beta_grid:
+  - 0.0
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1.0
+  qualitative_count: 10
+  kid_max_images: 128
+  bootstrap_reps: 50
+  lpips_relative_gain_gate: 0.05
+  psnr_drop_tolerance_db: 2.5
+  balanced_psnr_drop_tolerance_db: 0.5
+  balanced_rmse_increase_tolerance: 0.005
+  relmeaserr_limit: 1.0e-05

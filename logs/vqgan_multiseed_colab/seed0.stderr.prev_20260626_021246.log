@@ -1,0 +1,23 @@
+[0;31m---------------------------------------------------------------------------[0m[0;31mCalledProcessError[0m                        Traceback (most recent call last)[0;32m/tmp/ipykernel_3992/4050571612.py[0m in [0;36m<cell line: 0>[0;34m()[0m
+[1;32m      1[0m [0;32mfrom[0m [0mvqgan_multiseed_colab_job_common[0m [0;32mimport[0m [0mmain[0m[0;34m[0m[0;34m[0m[0m
+[1;32m      2[0m [0;34m[0m[0m
+[0;32m----> 3[0;31m [0mmain[0m[0;34m([0m[0mseed_id[0m[0;34m=[0m[0;36m0[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[0;32m/content/vqgan_multiseed_colab_job_common.py[0m in [0;36mmain[0;34m(seed_id)[0m
+[1;32m     68[0m     [0mos[0m[0;34m.[0m[0mchdir[0m[0;34m([0m[0mREPO[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     69[0m     [0mrun[0m[0;34m([0m[0;34m[[0m[0msys[0m[0;34m.[0m[0mexecutable[0m[0;34m,[0m [0;34m"-m"[0m[0;34m,[0m [0;34m"py_compile"[0m[0;34m,[0m [0;34m"mc_vqgan_prior_long_canary.py"[0m[0;34m,[0m [0;34m"anchor_initialized_vqgan_inversion.py"[0m[0;34m][0m[0;34m,[0m [0mcwd[0m[0;34m=[0m[0mREPO[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 70[0;31m     [0mrun[0m[0;34m([0m[0;34m[[0m[0msys[0m[0;34m.[0m[0mexecutable[0m[0;34m,[0m [0;34m"-m"[0m[0;34m,[0m [0;34m"pytest"[0m[0;34m,[0m [0;34m"-q"[0m[0;34m,[0m [0;34m"tests/test_anchor_initialized_vqgan_inversion.py"[0m[0;34m,[0m [0;34m"tests/test_measurement_conditioned_vqgan.py"[0m[0;34m][0m[0;34m,[0m [0mcwd[0m[0;34m=[0m[0mREPO[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     71[0m     [0mprior_cfg[0m [0;34m=[0m [0mREPO[0m [0;34m/[0m [0;34m"configs"[0m [0;34m/[0m [0;34m"compatibility"[0m [0;34m/[0m [0;34mf"mc_vqgan_prior_multiseed_hashclean_seed{seed_id}.yaml"[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     72[0m     [0manchor_cfg[0m [0;34m=[0m [0mREPO[0m [0;34m/[0m [0;34m"configs"[0m [0;34m/[0m [0;34m"compatibility"[0m [0;34m/[0m [0;34mf"anchor_vqgan_inversion_multiseed_hashclean_seed{seed_id}.yaml"[0m[0;34m[0m[0;34m[0m[0m
+[0;32m/content/vqgan_multiseed_colab_job_common.py[0m in [0;36mrun[0;34m(cmd, cwd)[0m
+[1;32m     18[0m [0;32mdef[0m [0mrun[0m[0;34m([0m[0mcmd[0m[0;34m:[0m [0mlist[0m[0;34m[[0m[0mstr[0m[0;34m][0m[0;34m,[0m [0;34m*[0m[0;34m,[0m [0mcwd[0m[0;34m:[0m [0mPath[0m [0;34m|[0m [0;32mNone[0m [0;34m=[0m [0;32mNone[0m[0;34m)[0m [0;34m->[0m [0;32mNone[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[1;32m     19[0m     [0mprint[0m[0;34m([0m[0;34m"[cmd]"[0m[0;34m,[0m [0;34m" "[0m[0;34m.[0m[0mjoin[0m[0;34m([0m[0mcmd[0m[0;34m)[0m[0;34m,[0m [0mflush[0m[0;34m=[0m[0;32mTrue[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 20[0;31m     [0msubprocess[0m[0;34m.[0m[0mrun[0m[0;34m([0m[0mcmd[0m[0;34m,[0m [0mcwd[0m[0;34m=[0m[0mstr[0m[0;34m([0m[0mcwd[0m[0;34m)[0m [0;32mif[0m [0mcwd[0m [0;32melse[0m [0;32mNone[0m[0;34m,[0m [0mcheck[0m[0;34m=[0m[0;32mTrue[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0m[1;32m     21[0m [0;34m[0m[0m
+[1;32m     22[0m [0;34m[0m[0m
+[0;32m/usr/lib/python3.12/subprocess.py[0m in [0;36mrun[0;34m(input, capture_output, timeout, check, *popenargs, **kwargs)[0m
+[1;32m    569[0m         [0mretcode[0m [0;34m=[0m [0mprocess[0m[0;34m.[0m[0mpoll[0m[0;34m([0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[1;32m    570[0m         [0;32mif[0m [0mcheck[0m [0;32mand[0m [0mretcode[0m[0;34m:[0m[0;34m[0m[0;34m[0m[0m
+[0;32m--> 571[0;31m             raise CalledProcessError(retcode, process.args,
+[0m[1;32m    572[0m                                      output=stdout, stderr=stderr)
+[1;32m    573[0m     [0;32mreturn[0m [0mCompletedProcess[0m[0;34m([0m[0mprocess[0m[0;34m.[0m[0margs[0m[0;34m,[0m [0mretcode[0m[0;34m,[0m [0mstdout[0m[0;34m,[0m [0mstderr[0m[0;34m)[0m[0;34m[0m[0;34m[0m[0m
+[0;31mCalledProcessError[0m: Command '['/usr/bin/python3', '-m', 'pytest', '-q', 'tests/test_anchor_initialized_vqgan_inversion.py', 'tests/test_measurement_conditioned_vqgan.py']' returned non-zero exit status 2.

@@ -1,0 +1,107 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1.6cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage[font=small,labelfont=bf,skip=3pt]{caption}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{5pt}{2pt}
+\titlespacing*{\paragraph}{0pt}{3pt}{0.7em}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.22em}
+
+\title{\vspace{-1.4cm}\large\textbf{Project Proposal: Design, Fabrication, and Characterization of Binary-Amplitude Fresnel Zone Plates (Baseline Study)}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.2cm}
+
+\section{Background and Motivation}
+
+A binary-amplitude Fresnel zone plate (FZP) is a flat diffractive optic made of concentric transparent and opaque half-wave zones. Light passing through the transparent zones arrives in phase at the focus and adds constructively, so a planar wafer focuses light without any curved surface. The zone-boundary radii follow from the half-wave condition,
+\[
+r_n = \sqrt{n\lambda f + \tfrac{1}{4}n^2\lambda^2}\;\approx\;\sqrt{n\lambda f},
+\]
+and a continuous transmittance pattern follows from the local half-wave index $q_f(\rho)=\lfloor 2(\sqrt{\rho^2+f^2}-f)/\lambda\rfloor$, with the zone open ($T=1$) when $q_f$ is even and opaque ($T=0$) when odd.
+
+An FZP can be viewed as a \emph{binary encoder} of an optical field: the choice of which radial regions are open determines the diffracted pattern. A later phase of our work explores optimizing that binary pattern for tailored axial responses. This proposal covers the necessary \textbf{baseline study}: we will design, simulate, fabricate, and fully characterize a standard circular binary-amplitude FZP. This standard plate serves as the \textbf{control} against which any encoding scheme must be compared, and the project lets us build the simulation, alignment, and uncertainty tools that the later work depends on. We deliberately keep the scope modest and the methods verifiable, and we would welcome guidance on the fabrication and metrology steps in particular.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{mfig_scheme1_mechanism.pdf}
+\caption{Working principle of the binary-amplitude Fresnel zone plate.
+\textbf{(a)} Focusing principle: a collimated wave is transmitted only by the
+open half-wave zones, whose contributions arrive in phase at a common focus a
+distance $f$ away; the finest outer zone sets the manufacturing limit
+$\Delta r_N\approx\lambda f/(2R)\approx20~\mu$m. \textbf{(b)} Top-view zone
+structure generated from the half-wave index $q_f(\rho)$, with zone radii
+$r_n=\sqrt{n\lambda f}$ and outer radius $R=2$~mm.}
+\label{fig:s1-mechanism}
+\end{figure}
+
+\section{Proposed Approach}
+
+We adopt baseline parameters $\lambda=532~\mathrm{nm}$ (green), outer radius $R=2~\mathrm{mm}$, and nominal focal length $f_0=150~\mathrm{mm}$.
+
+\paragraph{Design.} The central design choice is \textbf{fabrication-constraint-driven}, not arbitrary. The outermost (finest) zone has width $\Delta r_N \approx \lambda f/(2R)$, so the achievable minimum linewidth of the chosen process \emph{determines} the focal length through
+\[
+f \approx \frac{2R\,\Delta r_N}{\lambda}.
+\]
+For our parameters $\Delta r_N \approx 20~\mu\mathrm{m}$, zone count $N \approx R^2/(\lambda f)\approx 50$, and numerical aperture $\mathrm{NA}\approx R/f$. We pick $f$ and $R$ from what the process can actually resolve, rather than picking them first and discovering the outer zones are unmanufacturable. We then generate the circular pattern from $q_f(\rho)$ and, holding $\lambda$, similar $f$, and outer size fixed, derive two further aperture \textbf{shapes}: a linear/1-D pattern (focuses in one direction, acting like a cylindrical lens to form a focal line) and a square/orthogonal pattern (right-angle symmetry, producing cross-shaped directional sidelobes). The aim is to show \emph{how aperture symmetry shapes the diffracted field}, not to declare a winner.
+
+\paragraph{Simulation.} We propagate the field numerically with the angular-spectrum/Fresnel operator,
+\[
+U(x,y,z)=\mathcal{P}_z\{U_0\,T(x,y)\},\qquad I=|U|^2,\qquad \hat I(z)=I(z)/\max_z I(z),
+\]
+from a collimated input $U_0$ and the binary transmittance $T(x,y)$. From the simulated stacks we extract the axial peak intensity $I_{\max}(z)=\max_{x,y} I$, the spot FWHM$(z)$, the predicted focal length, and the effective depth of focus $\mathrm{DOF}_\eta=\mathrm{length}\{z: I_{\max}(z)\ge \eta\,I_{\max}^{\mathrm{peak}}\}$ with $\eta=0.5,0.7$. Simulation also predicts the chromatic shift and provides reference curves for the uncertainty analysis.
+
+\paragraph{Fabrication.} The patterns are written as chrome-on-glass (or equivalent high-contrast amplitude) masks using a process whose minimum linewidth comfortably resolves the $\sim 20~\mu\mathrm{m}$ outer zones; the linewidth budget is what fixed $f$ in the Design step. We fabricate the circular plate plus the linear and square variants on the same substrate type and inspect the finest zones under a microscope before optical testing.
+
+\paragraph{Testing.} All schemes share one optical bench: a $532~\mathrm{nm}$ laser, a beam expander/collimator, the zone plate, and a CMOS camera translated along the axis over $z=120$--$180~\mathrm{mm}$ (coarse step $1$--$2~\mathrm{mm}$, fine step $0.2$--$0.5~\mathrm{mm}$). Four measurements:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt,topsep=2pt]
+  \item \textbf{Focusing:} axial scan of $I_{\max}(z)$ and FWHM$(z)$; experimental focal length $f_{\exp}=(f_1+f_2)/2$ with $f_1=\arg\max_z I_{\max}$, $f_2=\arg\min_z \mathrm{FWHM}$; report $\mathrm{DOF}_\eta$.
+  \item \textbf{Imaging:} thin-lens relay ($1/u+1/v=1/f$); at $u=2f$ we expect $v=2f$ and magnification $M=1$. We image a resolution target and document that zero-order light, multiple foci, and chromatic aberration make FZP imaging worse than a refractive lens---a known limitation, not a failure.
+  \item \textbf{Chromatic:} since $f\propto 1/\lambda$, a plate designed for $150~\mathrm{mm}$ at $532~\mathrm{nm}$ focuses red ($633~\mathrm{nm}$) near $126~\mathrm{mm}$ and blue ($450~\mathrm{nm}$) near $177~\mathrm{mm}$; we measure the R/G/B focal shifts.
+  \item \textbf{Uncertainty:} a full budget, $u(f_{\exp})=\sqrt{u_z^2+u_{\mathrm{fit}}^2+u_{\mathrm{align}}^2}$. From $f\approx r_n^2/(n\lambda)$, $\delta f/f \approx 2\,\delta r/r - \delta\lambda/\lambda$; a uniform scaling $r_n'=s\,r_n$ gives $f'=s^2 f$, so a $1\%$ scaling error implies a $\sim$$2\%$ focal-length error.
+\end{itemize}
+
+\section{Expected Outcomes}
+
+We expect: (i) a fabricated circular FZP whose measured $f_{\exp}$ agrees with the $150~\mathrm{mm}$ design within the stated uncertainty budget; (ii) a quantitative comparison of how circular, linear, and square apertures reshape the focal field (round spot vs.\ focal line vs.\ cross-shaped sidelobes); (iii) measured R/G/B focal shifts consistent with $f\propto 1/\lambda$; and (iv) a documented, reusable uncertainty framework. The study also delivers a validated simulation-and-measurement pipeline and a trustworthy \emph{control} plate for the subsequent binary field-encoding work. We treat the imaging limitations of FZPs as an instructive result to characterize, not to overcome.
+
+\section{Tentative Timeline}
+
+\begin{center}
+\small\begin{tabular}{@{}cl@{}}
+\toprule
+\textbf{Week} & \textbf{Activity} \\
+\midrule
+1 & Literature review; fix fabrication linewidth budget; set $f,R,N$ via $f\approx 2R\,\Delta r_N/\lambda$ \\
+2 & Implement Fresnel/angular-spectrum simulator; generate circular zone pattern \\
+3 & Simulate focusing, imaging, and chromatic response; generate linear and square patterns \\
+4 & Finalize mask layouts; submit/perform fabrication; microscope inspection of outer zones \\
+5 & Build and align optical bench; verify collimation and camera translation stage \\
+6 & Axial-scan and imaging measurements for the circular plate (control) \\
+7 & Shape-comparison and R/G/B chromatic measurements; repeat runs \\
+8 & Uncertainty budget, data analysis, and write-up \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\emph{Note:} this baseline and the planned encoding study share a single optical bench, and the standard circular FZP characterized here is the control for that later work.
+
+\end{document}

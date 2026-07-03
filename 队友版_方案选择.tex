@@ -1,0 +1,129 @@
+\documentclass[UTF8,a4paper,11pt]{ctexart}
+
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\geometry{left=1.9cm,right=1.9cm,top=1.5cm,bottom=1.4cm}
+\setlist{itemsep=1pt,topsep=2pt}
+\titlespacing*{\section}{0pt}{6pt}{3pt}
+
+\definecolor{boxblue}{HTML}{eef4ff}
+\definecolor{boxgreen}{HTML}{e9f7ef}
+\definecolor{boxred}{HTML}{ffeef0}
+
+\newtcolorbox{keybox}[1]{colback=#1,colframe=#1!70!black,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+\title{\heiti 波带片项目 · 方案怎么选（队友版）}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-2.2em}
+
+\begin{keybox}{boxblue}
+\textbf{一句话项目是什么：} 我们要做一个“菲涅耳波带片”（一圈圈透明/不透明的环），
+让激光通过后聚成焦点。普通做法只是“验证它能聚焦”；我们的创新点是——
+\textbf{把这一圈圈环当成一串 0/1 编码，主动设计出我们想要的光强分布}（比如双焦点、长焦段）。
+\end{keybox}
+
+\section*{一、先把道理讲清楚（30 秒理解）}
+
+\textbf{波带片为什么能聚焦？} 它就是一片透明和不透明交替的同心环。光从每个透明环穿过后，
+在焦点处“步调一致”地叠加（相位对齐），于是焦点变得很亮——这就是聚焦。
+环的半径按下面这个简单公式排：
+\[
+r_n \approx \sqrt{n\,\lambda\, f}\qquad(\lambda=\text{波长},\ f=\text{焦距},\ n=1,2,3,\dots)
+\]
+
+\textbf{关键的“反过来想”：} 每个环“透光还是不透光”，本质就是一个 \textbf{0 / 1}。
+传统是“先定焦距 $\rightarrow$ 算出该让哪些环透光”；
+我们反着来：\textbf{“先定我们想要的光强分布 $\rightarrow$ 再去找该让哪些环透光”}。
+这样波带片就从“一个固定焦距的镜片”变成了“一个可以编程的光场编码器”。
+
+\medskip
+\noindent 我们能“点单”的三种光场（这正是要做出来的东西）：
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/fig3_targets.pdf}
+\\[-2pt]
+{\small 单焦点（普通）\quad / \quad 双焦点（两个亮点）\quad / \quad 扩展焦深（亮点拉成一段）}
+\end{figure}
+
+\section*{二、你们要在这几样里选}
+
+\begin{keybox}{boxgreen}
+\textbf{方案一 · 稳妥保底版（建议必做）}\\[2pt]
+就老老实实做标准圆形波带片，外加线型、方形几种不同形状，测聚焦、成像、色差、误差。\\
+\textbf{原理：} 最经典的波带片，照公式做。\quad
+\textbf{难度：} 低。\quad \textbf{几乎一定出结果。}\\
+\textbf{作用：} 保证项目完整、拿到基本分，还能当创新方案的“对照组”。新意一般，但是地基。
+\end{keybox}
+
+\begin{keybox}{boxred}
+\textbf{方案二 · 创新编码版（出彩靠它）}——让波带片做出双焦点或长焦段。内部两条路：\\[4pt]
+\textbf{【二-A】扇区编码（好懂好讲）：}
+把圆饼切成几块“扇形”，不同扇形按不同焦距设计。
+两组扇形各管一个焦点，自然就出现\textbf{双焦点}；把焦距铺开一段就得到\textbf{扩展焦深}。\\
+\hspace*{1em}$\rightarrow$ 物理图像清楚、图案规则好加工、答辩好讲；缺点是扇形拼接处会有方向性旁瓣。\\[4pt]
+\textbf{【二-B】径向二值优化（最灵活最酷）：}
+把每个环当成一个开关（0/1），写一个“目标函数”，
+让电脑（模拟退火 / 局部搜索）自己挑该开哪些环，去逼近\textbf{任意}我们想要的光强曲线。\\
+\hspace*{1em}$\rightarrow$ 最灵活、最有“算法味”；缺点是要写优化代码、图案不规则、对加工误差更敏感。
+\end{keybox}
+
+\medskip
+\noindent\textbf{一句话权衡（很重要）：} 把光分给两个焦点、或拉长焦段，单个亮点就没那么亮了——
+\textbf{峰值强度 $\leftrightarrow$ 焦深/旁瓣，鱼和熊掌不可兼得}。这正是我们要用实验讲清楚的物理。
+
+\section*{三、对照着选（看这张表就够）}
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{2.4cm}p{4.3cm}cccp{2.6cm}}
+\toprule
+\textbf{选项} & \textbf{大白话原理} & \textbf{难度} & \textbf{创新} & \textbf{风险} & \textbf{适合谁} \\
+\midrule
+方案一\newline 稳妥基准 & 照公式做标准/不同形状波带片，测性能 & 低 & 低 & 低 & 全队（必做地基） \\
+二-A\newline 扇区编码 & 圆饼切扇形，不同扇形配不同焦距 & 中 & 中 & 中 & 想稳、想好讲的人 \\
+二-B\newline 径向优化 & 每个环当 0/1 开关，电脑搜出最优图案 & 高 & 高 & 高 & 会写 Python、想冲创新的人 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{四、我的建议（怎么搭最好）}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \textbf{方案一一定要做}——它保底、提供对照组，工作量也不大。
+\item 创新部分二选一（或先后做）：\textbf{求稳、好答辩 $\rightarrow$ 选二-A}；\textbf{队里有人能写优化代码、想冲奖 $\rightarrow$ 上二-B}。
+\item \textbf{最优组合：}\ 方案一 + 二-A 先跑通（稳拿创新分），再把 二-B 作为进阶加分项。
+\end{enumerate}
+
+\section*{五、三个问题帮你们 1 分钟拍板}
+
+\begin{enumerate}[label=(\arabic*)]
+\item 队里有没有人愿意写一点 Python 优化代码（模拟退火/局部搜索）？\\
+\hspace*{1em}\textbf{有 $\rightarrow$ 可以上二-B；没有 $\rightarrow$ 走二-A 更稳。}
+\item 更看重“答辩讲得清楚、稳拿分”，还是“图案够炫、冲高分”？\\
+\hspace*{1em}\textbf{前者 $\rightarrow$ 二-A；后者 $\rightarrow$ 二-B。}
+\item 加工只能做到比较粗的线宽（约 $20\,\mu$m）吗？\\
+\hspace*{1em}\textbf{是 $\rightarrow$ 二-A 更耐造；二-B 对加工误差更敏感，要加“可制备性”约束。}
+\end{enumerate}
+
+\vspace{0.8em}
+\begin{center}
+\small\itshape 完整理论、公式、实验方案和不确定度分析见正式开题报告 main.pdf。
+\end{center}
+
+\end{document}

@@ -1,0 +1,39 @@
+# Fast smoke variant of the FCC diagnostic canary -- validates the full
+# build->train->eval->classify pipeline on tiny splits. NOT a scientific result.
+output_dir: E:/ns_mc_gan_gi_code_fcc_phase1/outputs/compatibility/fcc_diagnostic_canary64_smoke
+device: cuda
+seed: 7
+
+dataset_root: E:/datasets
+img_size: 64
+train_count: 192
+val_count: 64
+dev_count: 64
+scan_start: 90000
+download: true
+project_batch_size: 64
+projector_check_samples: 16
+feasible_check_pairs: 64
+
+operator:
+  pattern_type: rademacher
+  sampling_ratio: 0.05
+  matrix_normalization: legacy_sqrt_m
+  noise_std: 0.0
+  lambda_dc: 1.0e-3
+  seed: 7
+
+embed_dim: 64
+base_channels: 16
+temperature: 0.07
+batch_size: 64
+epochs: 2
+lr: 2.0e-4
+weight_decay: 1.0e-4
+grad_clip: 1.0
+amp: true
+tiny_overfit_samples: 32
+tiny_overfit_steps: 20
+
+donors_per_anchor: 32
+recheck_feasibility: true

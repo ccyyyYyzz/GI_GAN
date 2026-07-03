@@ -1,0 +1,22 @@
+timestamp_utc=20260614_114549Z
+repo_root=/mnt/e/ns_mc_gan_gi_code
+colab_bin=/var/tmp/codex-colab-tools/colab-cli-venv/bin/colab
+colab_auth=oauth2
+colab_gpu=T4
+colab_account_label=pro2
+colab_home=/var/tmp/codex-colab-accounts/pro2
+Version: 0.5.12.dev1+ga0d9671b0
+[colab] Creating session 'run-17f475'...
+[colab] Session READY (run-17f475). Executing scripts/colab_smoke_test.py...
+python_version: 3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]
+platform: Linux-6.6.122+-x86_64-with-glibc2.35
+cwd: /content
+torch_import_ok: true
+torch_version: 2.11.0+cu128
+cuda_available: True
+cuda_device_count: 1
+cuda_device_name: Tesla T4
+tensor_device: cuda
+tensor_result: [[14.0, 38.0], [38.0, 126.0]]
+[colab] Stopping session 'run-17f475'...
+[colab] Session terminated.
