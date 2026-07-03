@@ -57,19 +57,23 @@ python -m src.train --config configs/default.yaml
 ## Quick Repro (3 commands)
 
 ```bash
-# 1. Activate environment
-conda activate ns_mc_gan_gi_py311
-# (env prefix: E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311)
-
-# 2. VQGAN detail-fusion repro (stage 8 — runs all seeds, locked + dev splits)
 cd E:/ns_mc_gan_gi_code_fcc_phase1
-python vqgan_detail_fusion.py all
 
-# 3. FCC row-null canary (stage 8 diagnostic)
-python fcc_diagnostic_canary.py all --config configs/compatibility/fcc_diagnostic_canary64.yaml
+# The py3.11 env was relocated during an E-drive cleanup (E: is exFAT -> no junction).
+# Verified-working interpreter (py 3.11.15, torch 2.2.1+cu121, CUDA):
+PY="E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311/python.exe"
+
+# 1. Reproduce the core range/null-space theory (pure torch, no data):
+"$PY" -m pytest tests/test_exact_projections.py -q          # -> 3 passed
+
+# 2. Reproduce the VQGAN detail-fusion headline, bit-faithful vs committed CSV
+#    (reads cached recons; no dataset, no retraining):
+"$PY" vqgan_detail_fusion.py validate --seeds 0 --device cuda   # -> FAITHFUL=True
 ```
 
-No retraining is needed. The locked test split is raw-hash-disjoint from all consumed data; run the locked evaluation exactly once.
+**Both commands were run and passed on 2026-07-03** (see `HANDOFF/04_REPRODUCIBILITY_GUIDE.md` §0 for
+the full verified table and the relocated data/env paths). No retraining is needed; the locked test
+split is raw-hash-disjoint from all consumed data and is evaluated exactly once.
 
 ---
 

@@ -6,16 +6,50 @@ Cross-reference: `HANDOFF/00_START_HERE.md` (program map), `research_lines/*/IND
 
 ---
 
+## 0. ⚠️ Verified working setup — 2026-07-03 (env & data were relocated)
+
+During an E-drive cleanup the **entire `E:/ns_mc_gan_gi/` working tree was moved** into
+`E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi/` (the conda env, STL10 data, checkpoints, `outputs_*`,
+and `results/cert_package_20260612`). `E:` is an **exFAT** volume, so a junction/symlink back to the
+old path is **not possible** (`mklink` → *"Local NTFS volumes are required"*). Use the relocated paths
+directly, move the trees back (a same-volume move is instant), or recreate the env from `requirements.txt`.
+
+**Environment verified working (this exact interpreter):**
+
+```
+E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311/python.exe
+# py 3.11.15 | torch 2.2.1+cu121 | CUDA available | numpy 1.26.4 | lpips / skimage / yaml present
+```
+
+Python **≥ 3.10 is required** — the code uses `X | None` union annotations. (The D: `pytorch` conda
+env is Python 3.9 and fails to import `src.measurement`; do not use it.)
+
+**Relocated data** (only needed for commands that read STL10, e.g. `regen`/training): `dataset_root`
+was `E:/datasets`, now at `E:/GAN_FCC_WORK/datasets/` (also mirrored under
+`.../data_warehouse/ns_mc_gan_gi/data/`). Point `dataset_root` there.
+
+**Reproductions actually run and PASSING on this setup (2026-07-03), from the repo root:**
+
+| Check | Command (`PY` = the interpreter above) | Result |
+|---|---|---|
+| Core range/null projector theory | `"$PY" -m pytest tests/test_exact_projections.py -q` | **3 passed** |
+| VQGAN detail-fusion headline (bit-faithful) | `"$PY" vqgan_detail_fusion.py validate --seeds 0 --device cuda` | **FAITHFUL=True** — 5120 (method,beta,image) rows vs committed CSV; `full_rmse`/`psnr`/`rapsd` max\|Δ\| = 0, `lpips` 4.6e-4 (GPU AlexNet nondeterminism), `relmeaserr` 3.6e-7 |
+
+`validate` reads cached reconstructions + the committed reference CSV, so it needs **no dataset and no
+retraining** — it is the fastest end-to-end proof that the headline result reproduces.
+
+---
+
 ## 1. Environment
 
 ### 1.1 Canonical Python 3.11 conda env
 
 | Field | Value |
 |---|---|
-| Env path | `E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311` |
-| Python version | 3.11 |
-| Activation | `conda activate ns_mc_gan_gi_py311` |
-| Direct invocation | `conda run -p E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311 python -s <script>` |
+| Env path (original) | `E:/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311` — **moved** (see Section 0) |
+| Env path (current, verified) | `E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311/python.exe` |
+| Python version | 3.11.15 (≥ 3.10 required) |
+| Direct invocation | `"E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi/conda_envs/ns_mc_gan_gi_py311/python.exe" <script>` |
 
 The `-s` flag prevents `.pth` injection from interfering with cwd-relative imports (see Section 2).
 
