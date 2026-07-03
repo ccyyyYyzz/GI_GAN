@@ -1,0 +1,398 @@
+[
+ {
+  "file": "R001_GAN_Prior_Based_Null_Space_Learning",
+  "spark": "Their 145.7 dB consistency-PSNR number is a concrete empirical anchor for our P1 claim that feasible-wrong images satisfy the same measurement to ~2e-15 -- we can cite it as independent confirmation that null-space edits are measurement-invisible, then flip their framing: they celebrate it as 'consistency', we expose it as the verifiability barrier. Their adversarial-only PDN (no pixel loss, better real-world generalization) also motivates our B-dial argument that null-space content is a governance choice, not a fidelity target."
+ },
+ {
+  "file": "R002_HalluGen_Synthesizing_Realistic_and",
+  "spark": "Their key admission -- 'for general (nonlinear) operators such regions, analogous to a null space, cannot be computed explicitly' -- is the exact gap our paper fills for LINEAR undersampled A, where P_0 = I - A^dagger A is exact and closed-form. That sentence is a direct motivation hook for our Certificate(ACT1): we don't need a diffusion generator to APPROXIMATE the extrinsic subspace; we can audit it analytically. Their finding that LPIPS rewards hallucination also directly supports P2's separation of QUALITY (LPIPS) from ACCOUNTABILITY (per-mode contraction). Consider a one-line contrast: HalluGen builds a benchmark to detect what our certificate makes structurally impossible to hide."
+ },
+ {
+  "file": "R003_GSNR_Graph_Smooth_Null_Space_Repres",
+  "spark": "Their PREDICTABILITY bound rho_j^2 <= c_j/(c_j+mu_j) -- how well a null-space coefficient can be estimated from y -- is a beautiful quantitative counterpart to our certificate's per-mode contraction lambda/(lambda+sigma_i^2). Both are per-mode 'accountability' fractions. We could explicitly connect: their predictability measures how much of the null a prior can *guess*, while our contraction measures how much a measured mode is *audited*; together they draw a clean line between guessed-null (unverifiable) and measured-range (certifiable). Their Theorem 1 flat-spectrum result (bare P_n gives only linear coverage) is also a nice technical hook for why unstructured null-space is genuinely high-dimensional and thus unverifiable."
+ },
+ {
+  "file": "R004_A_Range_Null_Space_Decomposition_Ap",
+  "spark": "RND-SCI extends the exact same range-null construction to coded-aperture spectral CS, which is operationally close to single-pixel/ghost imaging (structured sensing matrix, m<<n). It lets us claim modality-generality for our framework in one citation cluster (with R001 for faces, R004 for spectral CS): the certificate and the B-dial are not face-SR tricks but apply wherever x_hat = A^dagger y + P_0 q is used. Also a good 'speed is free, accountability is not' talking point: they optimize fps and accuracy but never audit whether the 91-fps null content is verifiable."
+ },
+ {
+  "file": "R005_NPN_Non_Linear_Projections_of_the_N",
+  "spark": "NPN's framing sentence -- data fidelity 'leaves the null-space of H uncontrolled: any component in the null-space of H may be arbitrarily modified by the denoiser' -- is essentially a plain-language statement of our converse (P1) written by null-space-prior advocates, which we can quote to show even proponents concede consistency does not pin down the null. Their claim that G(y) can PREDICT Sx* from y is the strongest opposing view to our unverifiability thesis; our rebuttal is the geometry: prediction is a learned prior, not a measurement certificate -- A P_0 = 0 means no amount of y ever verifies the predicted Sx*. This is a sharp Related-Work/Discussion contrast that sharpens our novelty against the closest competing paradigm."
+ },
+ {
+  "file": "R007_Optical_imaging_by_means_of_two_pho",
+  "spark": "Frame ghost imaging historically as a modality where 'what you can measure' (the correlation) was always physically separated from 'what any single arm sees' — a physical antecedent to our range/null split. Cite it in the Intro to ground A x = y in a real optical measurement chain, then note our contribution is making the unmeasured-content boundary explicit and certifiable rather than merely reconstructing it."
+ },
+ {
+  "file": "R008_Ghost_Imaging_with_Thermal_Light_Co",
+  "spark": "Their explicit parallel derivation (same G-functional, different physical source) is a template for our Separation section: we can present the certificate contraction lambda/(lambda+sigma_i^2) as source-agnostic, holding across BP/Tikhonov/CS-TV/learned reconstructors just as G holds across thermal/entangled sources. Reinforces the framing that a physical/algorithmic resource can be swapped without changing what the measurement can and cannot certify."
+ },
+ {
+  "file": "R009_High_Resolution_Ghost_Image_and_Gho",
+  "spark": "The clean 'object arm fixed, processing arm swappable' structure is a real-optics metaphor for our governed dial: measurement accountability stays invariant while the presentation (image vs diffraction, here; VQAE/VQGAN null content, in ours) changes. Consider citing in the HINGE section to argue that varying downstream presentation cannot add measurement-certified information — the object arm never moved."
+ },
+ {
+  "file": "R010_Computational_ghost_imaging.pdf",
+  "spark": "Computational GI makes the operator A fully known and deterministic (SLM patterns), which is exactly the regime where our range/null decomposition P_R=A-dagger A is computable at test time. Cite it as the bridge from physical GI to our linear-algebraic setup, and note that once the reference is computed rather than measured, the null space becomes a precisely characterizable object — motivating our certificate that audits per-mode contraction lambda/(lambda+sigma_i^2)."
+ },
+ {
+  "file": "R011_Single_pixel_imaging_via_compressiv",
+  "spark": "Duarte et al. state our converse almost verbatim ('infinitely many x' with Phi x'=y') but resolve it by ASSUMING sparsity; our paper's move is to refuse that resolution and instead CERTIFY which measured modes are accountable, leaving the null content governed rather than silently filled by a prior. Cite this as the foil in P1/Separation: CS chooses a prior to pick one x among infinitely many; we quantify per-mode measurement accountability first, then govern the remaining null-space freedom explicitly (our B dial), so no invented sparse detail is ever mistaken for measured content."
+ },
+ {
+  "file": "R012_Compressive_ghost_imaging.pdf",
+  "spark": "The paper improves image QUALITY under a fixed measurement operator but never distinguishes the DCT-sparse prior's invented null-space content from the measured content -- a clean concrete hook for our P1/P2: run our exact-lambda/(lambda+sigma_i^2) certificate on this very CS-GI reconstructor to show that the sparsity prior is a null-space guess the measurement cannot certify."
+ },
+ {
+  "file": "R013_Ghost_imaging_with_a_single_detecto",
+  "spark": "Their forward model B_r = integral I_r T is exactly our y=Ax with programmable rows -- the fact that the SAME bucket data can be reconstructed at any z-plane (many self-consistent 3D solutions) is a physical illustration of our P1 converse: measurement consistency does not pin the unmeasured (null-space) structure, which we can make rigorous as a GI-native example of feasible-but-wrong reconstructions."
+ },
+ {
+  "file": "R016_Computational_ghost_imaging_using_d",
+  "spark": "This paper is the perfect 'uncontrolled learned detail' baseline for our P3 gate: it adds CNN-invented texture with no null-space constraint, so directly contrasting its output (A x_hat != y in general) against our B-scalar null-space fusion (A x_hat_B = y exactly) makes the case that our dial is the accountable version of exactly this deep-learning-GI move."
+ },
+ {
+  "file": "R018_Single_pixel_imaging_12_years_on_a_",
+  "spark": "The review's own cost function C = chi^2/M + lambda R(O) with the note that reconstructions are tuned so chi^2/M ~ 1 is a field-standard statement of measurement consistency -- our P1 lever is precisely that MANY priors R(O) hit chi^2/M ~ 1 while disagreeing in the null space, so we can cite this survey to show that consistency-tuning is the community norm and then position our certificate as the missing accountability layer."
+ },
+ {
+  "file": "R021_Deep_null_space_learning_for_invers",
+  "spark": "This is the theoretical backbone we must both cite and differentiate from: they use the null-space projector to learn ONE data-consistent solution as a regularizer; we should sharpen our novelty by framing P3's B-scalar VQAE/VQGAN null-space injection as making the ker(A) degree of freedom an EXPLICIT, tunable, pre-registered, ground-truth-free GOVERNED dial (their Id + P_ker(A) N is our fusion with an accountability certificate on top), and by invoking their ALx=Ax identity as independent proof that our P1 converse (null content is unverifiable) is a mathematical fact, not an artifact of our reconstructor."
+ },
+ {
+  "file": "R022_Deep_Decomposition_Learning_for_Inv",
+  "spark": "Their gated form A = T F(z) + (I-T) G(z) + z with T = H^dagger H is structurally identical to our governed dial but with a LEARNED, ground-truth-supervised null gate; we can frame our scalar-B fusion as the same gate operated at test time WITHOUT supervision and WITHOUT a quality claim -- a clean 'same geometry, opposite epistemic stance' contrast. Also: their phi_1 range-residual loss quantifies range-space error, adjacent to our per-mode certificate contraction lambda/(lambda+sigma_i^2)."
+ },
+ {
+  "file": "R023_Equivariant_Imaging_Learning_Beyond",
+  "spark": "Their Theorem-1 rank condition m|G| >= n gives a crisp quantitative handle on exactly how much prior symmetry is needed to make the null space identifiable -- we can invoke it in the HINGE section to argue that ABSENT such a spanning-operator assumption (the single-operator ghost-imaging regime), the null space is provably unverifiable, motivating governance over recovery. A single-operator-vs-invariance contrast table would sharpen our impossibility-first narrative."
+ },
+ {
+  "file": "R024_Robust_Equivariant_Imaging_a_fully_",
+  "spark": "SURE gives a ground-truth-free ESTIMATOR of clean measurement-consistency error -- conceptually a cousin of our ground-truth-free test-time certificate. Worth contrasting explicitly: SURE estimates a QUALITY proxy (MSE) without ground truth, whereas our certificate audits ACCOUNTABILITY (per-mode measurement contraction) without ground truth. Framing both as 'GT-free audits, different targets' could strengthen our P2 novelty positioning against the denoising-loss literature."
+ },
+ {
+  "file": "R025_Unsupervised_Learning_From_Incomple",
+  "spark": "Their m > k + n/G boundary is a ready-made quantitative statement of exactly when the null space becomes identifiable -- we can cite it to formalize the HINGE: in single-operator ghost imaging (G=1, m<<n) the sufficient condition is unreachable, so null content is provably non-identifiable, which is the precise formal trigger for switching from 'certify recovery' to 'govern the invented content'. Their box-counting/secant-set framing of intrinsic dimension could also sharpen how we describe what CS-TV vs learned priors implicitly assume about the null space."
+ },
+ {
+  "file": "R026_Zero_Shot_Image_Restoration_Using_D",
+  "spark": "DDNM is the strongest 'they invent null-space texture and call it restoration' target for our P4 stance: it demonstrates high-realism, exactly-consistent null-space synthesis but makes NO claim about whether the invented content is trustworthy/certified -- precisely the gap our certificate + governed dial fill. We can run our test-time certificate ON a DDNM reconstruction to show its measured modes are perfectly accounted for while its diffusion-hallucinated null content is provably unverifiable, turning DDNM into a live demonstration of 'consistency != correctness' (P1) and of governed-vs-ungoverned null-space supply (ACT2)."
+ },
+ {
+  "file": "R029_On_instabilities_of_deep_learning_i",
+  "spark": "Their instability search maximizes ||f(y+Ar)-f(y)|| over small r; our converse construction is the noiseless, exact-consistency dual: instead of small perturbations we build feasible-wrong images x+P_0 v with A(P_0 v)=0 that satisfy the SAME y to ~2e-15. A concrete idea: run their gradient-ascent attack but constrain r to the null space (Ar=0) to show a 'zero-measurement-change adversary' — an attack that changes the image arbitrarily while leaving y bit-identical, which our certificate would score identically. This dramatizes that their instability is a special (range-space) case of our broader null-space unverifiability."
+ },
+ {
+  "file": "R031_On_Hallucinations_in_Tomographic_Im",
+  "spark": "Their measurement-space hallucination map theta_meas_hat - theta_tp is essentially an un-normalized, method-specific version of our certificate. Concrete idea for our Certificate section: recast their map as a special case of our per-mode contraction — show that our lambda/(lambda+sigma_i^2) test reduces to their measurement-space check in the sharp-truncation limit (lambda->0 keeps modes with sigma_i>0, mimicking H_P^+), giving us a clean 'we generalize the Anastasio hallucination map into a reconstructor-agnostic, exactly-quantified certificate' claim. Their explicit statement that theta_tp is hallucination-free is a direct citable anchor for our claim that only the range component is accountable."
+ },
+ {
+  "file": "R032_fastMRI_An_Open_Dataset_and_Benchma",
+  "spark": "fastMRI explicitly warns that pixelwise metrics 'evaluate pixels independently, ignoring overall image structure' — a hook for our two-ledgers thesis: image-quality metrics (SSIM/LPIPS) and measurement-accountability (our certificate) are orthogonal axes. Concrete idea: run our certificate + governed dial on a fastMRI subsampled-Fourier operator to show, on the field's canonical benchmark, that two reconstructions with identical SSIM can have very different (yet exactly quantified) null-space content — making our point in the community's own currency."
+ },
+ {
+  "file": "R033_Solving_Inverse_Problems_With_Deep_",
+  "spark": "They frame worst-case error via ||e|| in the measurement domain and note that perturbations aligned with the operator's kernel are the dangerous ones — but stop short of a test-time, ground-truth-free certificate. Concrete idea: their adversarial-vs-statistical 'gap' is exactly the axis our certificate should collapse — position our contraction lambda/(lambda+sigma_i^2) as the analytic quantity that predicts, per mode, how much a measurement perturbation can move the reconstruction, turning their empirical noise-to-error curves into a closed-form accountability bound. Also, their kernel-awareness result invites a certificate variant that reports per-mode robustness (small sigma_i modes = both low accountability AND high perturbation sensitivity), unifying our robustness and certificate ledgers."
+ },
+ {
+  "file": "R035_Tackling_Hallucination_from_Conditi",
+  "spark": "Their intrinsic/extrinsic dichotomy is our range/null geometry under different names — a strong citable bridge for our Related-Work. Concrete differentiator to sharpen our Dial section: DynamicDPS enforces data consistency via a soft gradient term (never exactly zero residual) and treats the diffusion output as if it recovers the TRUE null content; our governed dial injects VQAE+VQGAN content strictly in P_0 so residual is exactly zero (~2e-15) for every B AND explicitly refuses the correctness claim. Their use of FastSurfer volumetry because 'PSNR/SSIM under-penalize hallucinations' is direct ammunition for our quality-vs-accountability two-ledger separation — we can cite it to argue that neither their volumetry nor SSIM is a measurement-accountability certificate, which is the gap our test fills."
+ },
+ {
+  "file": "R036_Triggering_hallucinations_in_model_",
+  "spark": "Their negative result (metrics can't detect hallucinations) is exactly the gap our test-time certificate fills: we could run our lambda/(lambda+sigma_i^2) mode-contraction audit on their attacked reconstructions and show it separates measurement-accountable modes from injected null-space content EVEN when PSNR/SSIM are blind. A concrete robustness experiment: apply their masked-FGSM to a range-space vs null-space target and demonstrate the certificate flags the range-space corruption (an accountable error) while correctly declining to certify null-space texture. This turns their 'no detector exists' into 'a detector exists once you audit the operator, not the pixels.'"
+ },
+ {
+  "file": "R037_A_Deep_Cascade_of_Convolutional_Neu",
+  "spark": "Their DC-layer weight (s_cnn + lambda s0)/(1 + lambda) is algebraically parallel to our certificate's per-mode contraction lambda/(lambda+sigma_i^2): both blend a prediction with a measurement in the range space. We can make this connection explicit in the Certificate section, showing that popular DC layers already IMPLEMENT a range-space projection but never audit the null space they leave the CNN free to invent. This positions our governed-dial P3 as the missing null-space companion to the range-space DC layer everyone already trusts."
+ },
+ {
+  "file": "R038_MoDL_Model_Based_Deep_Learning_Arch",
+  "spark": "Because MoDL's DC block is exactly (A^H A + lambda I)^{-1}, our certificate's exact lambda/(lambda+sigma_i^2) contraction should predict, mode-by-mode, how MoDL treats each singular direction, independent of the CNN prior. This gives us a clean analytic demonstration in the Separation section: the certificate value is invariant to swapping the learned prior D_w, proving the audit measures the OPERATOR's accountability, not the reconstructor's quality. It also motivates injecting our governed null-space content into MoDL's residual to show A x_hat = b is preserved exactly for any B."
+ },
+ {
+  "file": "R039_Learning_a_variational_network_for_",
+  "spark": "Their reassuring 'untrained pathologies are preserved' claim is precisely where our converse adds necessary caution: we can take a VN reconstruction, decompose it into range and null components, and show that whether a fine pathological detail is measurement-supported (certifiable) or prior-supplied (uncertifiable) is invisible to the eye and to SSIM. A Separation-section figure running our certificate on VN outputs would quantify how much of the 'preserved pathology' is actually accountable to the k-space data versus the learned FoE prior."
+ },
+ {
+  "file": "R040_Learned_Primal_Dual_Reconstruction.",
+  "spark": "Adler & Oktem argue Learned Primal-Dual can, in principle, recover structures 'not present in the FBP' because it works from full data with more information content than a post-processing input. This is a perfect foil for our converse: 'more information content' is exactly range-space information, and their own Fig. 4 concedes true/false features can be indistinguishable. We can cite them to sharpen the claim that no reconstructor, however good, can certify null-space content, and use their primal-dual structure as a clean audit target where the certificate's per-mode contraction cleanly separates data-supported recovery from learned-prior invention."
+ },
+ {
+  "file": "R041_Deep_ADMM_Net_for_Compressive_Sensi",
+  "spark": "Because every ADMM-Net stage alternates an exact A-fidelity solve with a learned shrinkage, it is a clean testbed to show our certificate SEPARATES the two: the fidelity solve contracts each measured mode by exactly lambda/(lambda+sigma_i^2) regardless of how much invented structure the learned shrinkage adds in the null space. Could run our contraction audit across ADMM-Net stages to visualize measured-mode accountability staying flat while null content grows."
+ },
+ {
+  "file": "R042_ISTA_Net_Interpretable_Optimization",
+  "spark": "ISTA-Net's fixed gradient step rho*Phi^T(Phi x - y) touches only the range of Phi, while the learned prox ~F(soft(F(.))) is free to invent null-space content -- an explicit worked instance of our thesis. We could point out that its 'interpretability' claim covers the OPTIMIZATION structure but not the VERIFIABILITY of the texture the learned prox synthesizes, sharpening our hinge that consistency (small ||Phi x - y||) is decoupled from correctness."
+ },
+ {
+  "file": "R043_Plug_and_Play_priors_for_model_base",
+  "spark": "P3 embodies exactly the accountability gap we target: an implicit prior with no explicit functional and no guarantee it preserves the measured modes. Our certificate could be pitched as the missing audit layer for P3 -- reporting the per-mode contraction of whatever denoiser is plugged in, so users see which of their reconstruction's structure is measurement-backed versus denoiser-invented. Strong 'we govern what P3 left ungoverned' framing."
+ },
+ {
+  "file": "R044_The_Little_Engine_That_Could_Regula",
+  "spark": "RED's strong-passivity condition (denoiser Jacobian spectral radius <=1) is a per-mode contraction statement -- conceptually adjacent to our exact lambda/(lambda+sigma_i^2) measured-mode contraction. We could contrast: RED contracts globally to guarantee CONVERGENCE, whereas our certificate contracts each measured mode by a KNOWN factor to guarantee ACCOUNTABILITY. Framing our certificate as the 'measurement-side analogue' of RED's Jacobian condition could sharpen the Two-Ledgers synthesis."
+ },
+ {
+  "file": "R045_Image_Restoration_by_Iterative_Deno",
+  "spark": "IDBP already PROVES (Thm 2) that consistency with y fixes the range and leaves the null space as the only degree of freedom -- this is essentially our P1 converse stated operationally. We can cite it to argue the null-space-only-freedom fact is established, then contribute what IDBP lacks: (i) a ground-truth-free certificate quantifying the untouched range contraction, and (ii) a GOVERNED, pre-registered dial B over the null content rather than an arbitrary denoiser output. Positions our paper as 'IDBP's geometry + accountability + governance.'"
+ },
+ {
+  "file": "R046_Compressed_Sensing_using_Generative",
+  "spark": "CSGM's recovery bound contains an unaudited min_z||G(z)-x*|| representation-error term that lives partly in the null space; our certificate could be framed as a test-time decomposition that exposes exactly how much of that floor is measurement-accountable vs. prior-invented — turning their theoretical residual into a measurable ledger entry."
+ },
+ {
+  "file": "R047_Solving_Linear_Inverse_Problems_Usi",
+  "spark": "PGD-GAN's projection operator P_G is a concrete instance of the reconstructors our certificate must audit uniformly (BP/Tikhonov/CS-TV/learned); the projection step silently commits null-space content each iteration — a natural test case to show our lambda/(lambda+sigma_i^2) contraction separating measured modes from projection-invented ones across an iterative solver."
+ },
+ {
+  "file": "R048_Adversarial_Regularizers_in_Inverse",
+  "spark": "Because their learned regularizer equals the distance-to-manifold d_M, its gradient injects content orthogonal to the data-fit term — i.e., into directions A cannot constrain; our certificate could quantify how much of an adversarial-regularizer reconstruction's improvement is manifold-supplied null content, giving a principled 'accountability' companion to their Wasserstein-alignment guarantee."
+ },
+ {
+  "file": "R049_Photo_Realistic_Single_Image_Super_",
+  "spark": "SRGAN dumps invented texture into both range and null components indiscriminately (it can violate the low-res measurement); our dial's discipline — confine generated detail to P_0 so measurements stay satisfied to ~2e-15 — is precisely the missing 'governed' version of SRGAN, and we can frame our LPIPS -32.6% gain as SRGAN-style perceptual uplift WITHOUT the fidelity violation."
+ },
+ {
+  "file": "R050_Invertible_generative_models_for_in",
+  "spark": "Their singular-value tail bound is the achievability mirror of our converse: it says error concentrates in the least-measured directions and can be driven to zero only by adding measurements — perfect quantitative scaffolding to state our impossibility as 'no reconstructor can certify the sigma_i->0 tail', and their glasses/beard dataset-bias failure is a vivid figure candidate for our Verifiability-Barrier section showing bias-driven null-space fabrication."
+ },
+ {
+  "file": "R052_Deep_Image_Prior.pdf",
+  "spark": "DIP's early-stopping is an implicit, uncontrolled dial over how much null-space content is injected; our contribution can be framed as replacing that opaque, iteration-indexed knob with an EXPLICIT scalar B acting strictly in P_0, so consistency (A x=y) is preserved exactly at every setting -- turning DIP's 'stop before it overfits' folklore into a measurement-accountable operation."
+ },
+ {
+  "file": "R053_Deep_Decoder_Concise_Image_Represen",
+  "spark": "Their proof that an underparameterized decoder provably cannot fit most of the noise is the flip side of our converse: they bound the range space to EXCLUDE unwanted content, we bound content to the null space to keep the range EXACT. A unifying framing for our paper: every reconstructor implicitly picks a reachable set; a certificate should audit content against A's null space rather than trust the reconstructor's architectural range."
+ },
+ {
+  "file": "R054_Neural_Discrete_Representation_Lear",
+  "spark": "VQ-VAE's own observation that its MSE reconstructions are systematically blurry -- missing high-frequency detail -- is precisely the null-space content that no measurement constrains. This motivates why our supply must inject that missing detail explicitly and label it as invented, rather than let a decoder silently procedurally generate it (as their PixelCNN does in Fig 5)."
+ },
+ {
+  "file": "R055_Generating_Diverse_High_Fidelity_Im",
+  "spark": "Their explicit factorization of structure (top) vs detail (bottom) suggests our null-space dial could itself be TWO knobs -- one governing injected structure, one governing injected detail -- letting a certificate report separately how much of each was invented, sharpening the Two-Ledgers synthesis beyond a single scalar B."
+ },
+ {
+  "file": "R056_Taming_Transformers_for_High_Resolu",
+  "spark": "VQGAN's adaptive lambda balances a reconstruction (fidelity) term against an adversarial (realism) term at the last decoder layer -- a per-image tradeoff knob. This parallels our scalar B and suggests framing our dial as the null-space-restricted analogue of VQGAN's fidelity-vs-realism weighting, but with a HARD guarantee (A x=y exact) that VQGAN's soft, whole-image tradeoff cannot provide -- a sharp Related-Work contrast for the Dial section."
+ },
+ {
+  "file": "R049_Photo_Realistic_Single_Image_Super_",
+  "spark": "SRGAN hallucinates texture but has NO way to tell a downstream user which pixels are measurement-supported vs invented. Our contribution can be framed as 'SRGAN with an accountability ledger': run our exact-contraction certificate on an SRGAN output to show its added texture lives almost entirely in the null space of A, making SRGAN a concrete adversarial-detail baseline for our P2 separation table across BP/Tikhonov/CS-TV/learned reconstructors."
+ },
+ {
+  "file": "R050_Invertible_generative_models_for_in",
+  "spark": "Their bound is stated for a linear prior over the FULL image; our converse is prior-free and operator-geometric (P_0 = I - A^dagger A). A sharp differentiator paragraph: their theorem says a good prior lower-bounds error by the tail-singular energy; our P1 says worse -- for a fixed operator there exist feasible-wrong images matching y to ~2e-15 regardless of prior quality. Frame ours as the 'no prior can certify' complement to their 'no prior can recover', and use z0=0 minimum-norm latent as a conceptual analogue of our A^dagger y range-space anchor."
+ },
+ {
+  "file": "R051_Semantic_Image_Inpainting_with_Deep",
+  "spark": "Their mask is a hard spatial partition; our operator null space P_0 = I - A^dagger A is the continuous, single-pixel-imaging generalization (the 'holes' are spread across all pixels via A). Idea: present P3's B-dial as 'inpainting in measurement space' and note that unlike their Poisson blending (which can perturb boundary pixels), our null-space construction keeps consistency EXACT to ~2e-15 for every B, and their many-plausible-completions observation becomes our converse-driven honesty requirement -- never label the completion as certified."
+ },
+ {
+  "file": "R052_Deep_Image_Prior.pdf",
+  "spark": "DIP has no measurement-consistency guarantee and needs delicate early stopping to avoid fitting noise. Sharpen our P3 contribution against it: our B-dial injects DIP/VQAE-style structure ONLY in the null space so that consistency A x_hat_B = y is EXACT and regularization-free (no early-stopping knob to mis-tune). A concrete experiment: run DIP, then decompose its output via P_R/P_0 and show how much of DIP's 'restoration' is unverifiable null content -- a clean case study for the P2 certificate on a learning-free reconstructor."
+ },
+ {
+  "file": "R053_Deep_Decoder_Concise_Image_Represen",
+  "spark": "Deep Decoder controls degrees of freedom by parameter count; our certificate controls them by the operator's measured modes (contraction lambda/(lambda+sigma_i^2)). Bridge idea: use the Deep Decoder as the structure generator in P3's null-space injection and show its provable low-dimensionality means its added content lands almost entirely in P_0 -- then our P2 certificate quantifies exactly how little of it is measurement-accountable, turning its capacity theorem into a concrete entry in our two-ledgers synthesis."
+ },
+ {
+  "file": "R061_The_Perception_Distortion_Tradeoff.",
+  "spark": "Their tradeoff is soft and probabilistic (you pay distortion to move along P(D)); OUR dial is qualitatively different because null-space injection keeps A*x_hat_B = y EXACT for every B, so we can dial perceptual content WITHOUT moving along their distortion axis in the measured subspace at all. Frame our contribution as 'decoupling' the tradeoff into a certified-measured ledger (fixed) plus a governed-null ledger (dialable) — a decomposition their whole-image formulation cannot express. Their Theorem 3 (posterior sampling = 2*Dmin) is a nice anchor for why we do NOT claim distortion optimality."
+ },
+ {
+  "file": "R062_Rethinking_Lossy_Compression_The_Ra",
+  "spark": "Their MNIST result — good perceptual quality but wrong digit identity at low rate — is a perfect real-world illustration of OUR converse: the decoder invents a plausible-but-wrong 'natural' sample. We can borrow their framing to argue our certificate is exactly the missing accountability layer their theory lacks: R-D-P tells you a price exists but not WHICH bits are measurement-backed. Consider citing Theorem 2's 2x-MSE bound alongside R061's identical bound to note both live in the *measured/statistical* regime, whereas our null-space dial sidesteps it by construction."
+ },
+ {
+  "file": "R063_The_Unreasonable_Effectiveness_of_D",
+  "spark": "LPIPS is precisely a QUALITY metric with no accountability content — it cannot tell measured from invented structure — which is a clean motivating contrast for our Separation pillar: we can show a null-space injection that IMPROVES LPIPS by 32.6% while the certificate's measured-mode contraction is unchanged, dramatizing that a perceptual metric moving does NOT mean the measurement certifies anything. Idea: add a figure where LPIPS improves monotonically with B while the per-mode certificate stays flat, visually separating the two ledgers using their metric."
+ },
+ {
+  "file": "R064_ESRGAN_Enhanced_Super_Resolution_Ge",
+  "spark": "Their alpha dial interpolates in WEIGHT space and moves the reconstruction everywhere (including the measured subspace), so measurement consistency is not preserved — directly contrast with our B dial that injects only into the null space so A*x_hat_B=y EXACTLY for every B. This is a crisp one-sentence differentiation for the Dial section: 'unlike ESRGAN's network interpolation, our scalar leaves every measured mode invariant.' Their explicit use of the word 'hallucinated details' is a citable hook for our Verifiability-Barrier framing."
+ },
+ {
+  "file": "R065_The_2018_PIRM_Challenge_on_Perceptu",
+  "spark": "Their honest caveat — the perceptual index tracks humans only coarsely (Spearman 0.83, unreliable within-region) — is ammunition for our Separation/Discussion: it shows that even a validated QUALITY metric is an unstable stand-in for what matters, motivating a metric-independent, ground-truth-free ACCOUNTABILITY certificate. Framing idea: position the PIRM plane as the 'quality axis' and our per-mode certificate as an orthogonal 'accountability axis' the challenge never had, turning our Two-Ledgers synthesis into a natural extension of the community's own benchmark."
+ },
+ {
+  "file": "R056_Taming_Transformers_for_High_Resolu",
+  "spark": "VQGAN's adaptive lambda balances a data-fidelity (reconstruction) gradient against a realism (GAN) gradient at the decoder's last layer -- structurally the SAME tension our scalar dial B negotiates, except VQGAN balances them in an entangled way whereas our fusion makes the balance geometrically exact by routing all invented detail into the null space (A P_0 = 0), so realism can be dialed up with zero measurement cost. This contrast (their heuristic lambda vs. our provably consistency-preserving B) is a sharp framing for the Dial/Related-Work sections."
+ },
+ {
+  "file": "R057_Vector_quantized_Image_Modeling_wit",
+  "spark": "Their factorized codebook -- lookup happens in a low-dim proxy space, then the matched code is projected back to a high-dim embedding -- is a decoupling of 'where the code lives' from 'what it decodes to.' This mirrors our range/null split: our null-space content also lives in a subspace decoupled from the measured (range) coordinates. It suggests framing our governed-dial content as a codebook whose entries are constrained to project (via P_0) entirely into the unmeasured subspace, a clean way to describe the geometry to a generative-modeling audience."
+ },
+ {
+  "file": "R058_VQFR_Blind_Face_Restoration_with_Ve",
+  "spark": "VQFR's whole parallel-decoder design exists to stop input-fidelity features from 'contaminating' generated detail -- but it enforces this only heuristically via a compression-patch-size knob and a warping module. Our null-space construction is the principled version of exactly this goal: generated detail lives in P_0 and input-consistency lives in P_R, so by CONSTRUCTION they cannot contaminate each other in the measured coordinates. Framing our method as 'the exact-decoupling answer to VQFR's contamination problem' would be a compelling motivation hook, and their compression-patch-size quality/fidelity curve is a nice empirical precedent for a monotone dial."
+ },
+ {
+  "file": "R059_Towards_Robust_Blind_Face_Restorati",
+  "spark": "CodeFormer is the paper to directly contrast our dial against: a one-scalar fidelity-quality knob already exists and is well known, so our novelty is NOT 'a dial' but 'a dial that costs nothing on the measurement.' We should state that where CodeFormer's w=1 vs w=0 moves the reconstruction OFF the measurement (fidelity is a soft, learned trade), our B sweeps invented detail while holding A x_hat_B = y to ~2e-15 -- a categorical, not gradual, difference. This directly sharpens the P3 contribution claim and gives an obvious head-to-head figure (w-sweep residual drift vs. B-sweep flat residual)."
+ },
+ {
+  "file": "R060_RestoreFormer_High_Quality_Blind_Fa",
+  "spark": "RestoreFormer explicitly frames restoration as fusing 'two sources of information: the degraded face with identity information and the priors with high-quality details' -- essentially a two-ledger view already, but fused via attention with no boundary between them. This is a ready-made motivation for our Two-Ledgers synthesis: the field already conceptualizes input-fidelity and prior-detail as distinct ledgers, yet fuses them into one image where they become inseparable; our range/null decomposition is the missing operator that keeps the two ledgers auditable (measured vs. invented) after fusion."
+ },
+ {
+  "file": "R061_The_Perception_Distortion_Tradeoff.",
+  "spark": "Frame our null-space dial as a DEGENERATE / cost-free slice of their tradeoff: because B only edits null content, distortion-in-range is fixed at 0 while perception varies, so the P(D) curve collapses onto a vertical segment. This is a clean way to argue our governance is not a new point on their curve but a re-axis-ing of it: measurement accountability is decoupled from the perception-distortion plane entirely."
+ },
+ {
+  "file": "R062_Rethinking_Lossy_Compression_The_Ra",
+  "spark": "Borrow their R(D,P) surface geometry to build OUR 'three-ledger' schematic: rate/distortion/perception on their axes versus our orthogonal measurement-accountability axis (fixed by A x_hat = y). This lets us argue our null-space dial is the missing fourth coordinate their theory does not price, because it lives entirely in ker(A) where none of R, D, or their P is constrained by the measurement."
+ },
+ {
+  "file": "R063_The_Unreasonable_Effectiveness_of_D",
+  "spark": "Since LPIPS is calibrated on distortions/real-algorithm outputs, note it is measured entirely in image space and is blind to the range/null split. This sharpens our P2/P3 message: LPIPS can improve (-32.6%) while the measurement residual stays at 2e-15 — a concrete demonstration that a perceptual metric certifies nothing about measurement fidelity, motivating our separate ground-truth-free certificate."
+ },
+ {
+  "file": "R064_ESRGAN_Enhanced_Super_Resolution_Ge",
+  "spark": "Contrast our B-dial against ESRGAN's alpha-dial explicitly: both are single-scalar continuous controls, but alpha moves the reconstruction off the measurement-consistent set while B is constrained to the affine solution set {x : Ax=y}. A side-by-side figure (alpha changes residual; B holds residual at ~2e-15) would make our 'governed dial' contribution vivid and concrete."
+ },
+ {
+  "file": "R065_The_2018_PIRM_Challenge_on_Perceptu",
+  "spark": "Adopt their plane as a template but ADD a third, ground-truth-free measurement-accountability axis (the residual ||A x_hat - y||): our dial sweeps the perceptual axis while pinned at residual ~2e-15, whereas ESRGAN/GAN-SR methods drift on both. Re-plotting PIRM-style results with our certificate axis would visually establish that existing perceptual SR conflates the two ledgers our paper separates."
+ },
+ {
+  "file": "R066_PULSE_Self_Supervised_Photo_Upsampl",
+  "spark": "PULSE's 'downscaling loss' is our A x_hat = y constraint restricted to a downsampling A; our null-space dial generalizes PULSE's manifold-walk to ANY undersampled operator and, unlike PULSE, keeps the measured (range) component fixed to machine precision while moving only in null space. Sharpens our HINGE: run PULSE-style multi-init sampling under our certificate to show each sample's measured modes are certified identically while the disagreement lives entirely in the provably-unverifiable null space — turning PULSE's 'variety' into a quantitative accountability statement."
+ },
+ {
+  "file": "R067_Deep_Network_Interpolation_for_Cont",
+  "spark": "Frame our B as a 'DNI done in the right coordinates': DNI mixes in parameter space (uncontrolled effect on range/null); we mix in the null space of A so the slider provably cannot touch the certified measured modes. A one-figure ablation — DNI-α vs our-B, plotting ‖A x_hat - y‖ across the dial — would make P3's exactness (2e-15 vs DNI's drifting residual) visually undeniable."
+ },
+ {
+  "file": "R068_Score_Based_Generative_Modeling_thr",
+  "spark": "Score-SDE conditioning imposes measurement consistency only softly/approximately during sampling; our exact range/null decomposition (P_R = A†A) gives a hard-consistency alternative. Idea: apply our test-time certificate to a score-SDE reconstruction and show its measured modes contract by exactly λ/(λ+σ_i^2) regardless of the sampler's stochasticity — i.e., the certificate is invariant to which diffusion trajectory produced the image, making it a sampler-agnostic accountability layer over this whole family."
+ },
+ {
+  "file": "R069_Solving_Inverse_Problems_in_Medical",
+  "spark": "Their P(Λ)T decomposition is a special (orthonormal-transform, binary-mask) case of our general P_R = A†A / P_0 = I - A†A geometry — we can present our certificate as the operator-agnostic generalization that works when A has no clean transform-diagonalization (e.g., generic ghost-imaging patterns). Direct experiment: run our per-mode contraction λ/(λ+σ_i^2) audit on their CT/MRI outputs to separate their genuine measured recovery from prior-hallucinated null content — turning their λ knob into an accountability-labeled dial."
+ },
+ {
+  "file": "R070_Denoising_Diffusion_Restoration_Mod",
+  "spark": "DDRM already thinks per-singular-value — our certificate can be dropped on top essentially for free: report, for each measured mode i, the exact contraction λ/(λ+σ_i^2) it achieved, exposing that DDRM's η_b blending slightly relaxes measured-mode fidelity (a hidden accountability cost). Conversely, replacing DDRM's null-space generation with our B-fused VQAE+VQGAN injection yields a variant that is exactly measurement-consistent by construction while retaining diffusion detail — a concrete 'two-ledgers' demo unifying P2 (audit) and P3 (governed supply) against the strongest diffusion baseline."
+ },
+ {
+  "file": "R071_Diffusion_Posterior_Sampling_for_Ge",
+  "spark": "DPS's soft gradient does not guarantee exact measurement consistency, so its reconstructions carry uncontrolled, unaudited null-space content -- a clean motivating example for our certificate: run our exact-lambda/(lambda+sigma_i^2) contraction audit on DPS outputs to quantify how much of its 'quality' is invented, unverifiable null content vs measured range content."
+ },
+ {
+  "file": "R073_A_Survey_on_Diffusion_Models_for_In",
+  "spark": "The survey's four-way Grad/Proj/Samp/Opt axis is entirely about HOW consistency is achieved, never about WHETHER the resulting null content is verifiable -- our paper adds an orthogonal axis (accountability/certification) that the whole taxonomy is silent on; framing our certificate as 'the missing column in this table' is a sharp related-work hook."
+ },
+ {
+  "file": "R074_Improving_Diffusion_Models_for_Inve",
+  "spark": "MCG already isolates the null space (I - P^T P) as the only place the prior acts -- our contribution is not the isolation but the GOVERNANCE of it: replace MCG's uncontrolled diffusion fill with a pre-registered single-scalar B dial that keeps A x_hat_B = y exact for every B, turning an implicit unaudited fill into a locked, certifiable one. Direct A/B contrast experiment: MCG null-fill vs our governed VQAE+VQGAN null-fill under the same P_0."
+ },
+ {
+  "file": "R075_Denoising_Diffusion_Models_for_Plug",
+  "spark": "DiffPIR's explicit data/prior HQS split is structurally parallel to our range/null split -- but it fuses them by a per-timestep proximal balance (rho_t) tuned for perceptual quality, whereas we fuse by ONE global scalar B constrained so A x_hat_B = y exactly. Reframing DiffPIR's rho_t schedule as an ungoverned analogue of our locked B dial sharpens why a single, pre-registered, consistency-exact scalar is the responsible-supply alternative."
+ },
+ {
+  "file": "R076_Image_to_Image_Regression_with_Dist",
+  "spark": "RCPS buys its guarantee with i.i.d. calibration data and only in a distributional/probabilistic sense -- exactly the assumptions our impossibility-first converse says cannot certify individual null-space content. Positioning our certificate as the 'no-ground-truth, no-distribution, per-instance' dual of RCPS creates a crisp two-axis figure: statistical coverage (needs labels) vs measurement accountability (needs none) -- and motivates a hybrid ledger combining both."
+ },
+ {
+  "file": "R076_Image_to_Image_Regression_with_Dist",
+  "spark": "Their size-stratified-risk diagnostic (sets must not systematically fail on the hardest pixels) is a direct analogue we can invoke for our dial: an audit that is well-calibrated on-average can still hide null-space invention on the hardest (high-frequency) modes. We can contrast their per-pixel coverage ledger against our per-MODE contraction ledger to sharpen the 'certify what you measure' framing and argue the two ledgers are complementary, not competing."
+ },
+ {
+  "file": "R077_Task_Driven_Uncertainty_Quantificat",
+  "spark": "Their multi-round 'collect measurements until uncertainty < eta' protocol maps cleanly onto our operator geometry: as you add rows to A, dim(null(A)) shrinks and modes migrate from null to range. We could frame an ACHIEVABILITY companion to our converse — a measurement-acquisition dial where our per-mode contraction factor lambda/(lambda+sigma_i^2) predicts exactly which task-relevant content becomes certifiable at each round, unifying their task-UQ stopping rule with our null-space accountability."
+ },
+ {
+  "file": "R078_Improving_Trustworthiness_of_AI_Dis",
+  "spark": "The finding that high-uncertainty (large-set) cases concentrate real confounders suggests a validation experiment for OUR dial: check whether images where our certificate reports the most aggressive null-space contraction (largest sigma_i-weighted correction) are precisely those with the most out-of-range structure. If the two 'audit-flags-the-hard-cases' phenomena align, it strengthens the claim that our per-mode certificate carries clinically meaningful triage signal beyond aesthetic quality."
+ },
+ {
+  "file": "R079_Bayesian_Uncertainty_Estimation_of_",
+  "spark": "Because their uncertainty arises purely from variation in the LEARNED regularizer (the prior), while our null-space content is exactly where the prior — not the measurement — determines the image, their epistemic-std map should, in principle, correlate with our null-space energy. A cheap diagnostic for our paper: overlay their model-variance map onto the null-space projector P_0=I-A†A energy per pixel and test whether Bayesian epistemic uncertainty is essentially a proxy for null-space content — which would let us reinterpret existing Bayesian MRI UQ as an implicit (but unguaranteed) null-space audit."
+ },
+ {
+  "file": "R080_What_Uncertainties_Do_We_Need_in_Ba",
+  "spark": "Their sharp dichotomy exposes a gap our paper fills: unverifiable null-space content is a fourth-quadrant object — it does NOT shrink with more data (unlike epistemic) yet is NOT observation noise (unlike aleatoric); it is fixed by the operator's range/null geometry. We can open the Certificate section with a crisp 'aleatoric / epistemic / and the missing accountability axis' triad, using Kendall-Gal as the anchor, to argue that existing UQ taxonomies structurally cannot express what our certificate measures — turning a citation into a novelty-sharpening device."
+ },
+ {
+  "file": "R081_Conformal_Risk_Control.pdf",
+  "spark": "The monotone-knob-plus-calibration structure is structurally parallel to our scalar dial B: both trade a single tunable parameter against a guaranteed quantity. This suggests a concrete addition — wrap our governed B-dial in a conformal risk-control layer so that, given a labeled calibration set, we can additionally certify a distribution-free upper bound on a downstream task loss (e.g. detection FNR) as B injects null-space detail — cleanly separating our EXACT measurement-consistency guarantee (holds for every B, no data) from a STATISTICAL task-risk guarantee (needs labels). That is a crisp 'two-ledgers' instantiation: measurement accountability (ours, ground-truth-free) vs task risk (conformal, label-based)."
+ },
+ {
+  "file": "R082_Imaging_with_Equivariant_Deep_Learn",
+  "spark": "The paper's insight that transforming the signal turns one operator A into a family {G_g A} probing different range spaces is a sharp lens for our converse: it clarifies that ANY 'beyond-the-range' recovery — equivariance included — smuggles in an assumption (here symmetry) that the SINGLE measurement cannot verify. Concrete idea for our Verifiability-Barrier section: construct a feasible-wrong pair that is measurement-consistent AND respects the assumed symmetry group, demonstrating that even equivariance-regularized reconstructions have unverifiable null content — strengthening P1 against the strongest self-supervised competitor rather than only against naive baselines."
+ },
+ {
+  "file": "E001_The_Identification_of_Structural_Ch",
+  "spark": "Reframing our range/null geometry in identification language is a rhetorical upgrade: P_R A^dagger A recovers the 'identified' component and P_0 = I - A^dagger A spans the 'observationally equivalent' directions — letting us state our converse as 'the null space is the identification deficiency of A' and cite a 1950 pedigree. Sparks a clean framing sentence for the HINGE: our certificate audits the identified part (accountability) while the governed dial operates entirely within the observationally-equivalent set (quality without accountability) — a modern, geometric instantiation of Koopmans-Reiersol identifiability."
+ },
+ {
+  "file": "E004_The_Identification_Zoo_Meanings_of_",
+  "spark": "The free-normalization test — 'is a meaningful output invariant to this restriction?' — is a ready-made rigor bar for our dial. Concrete move for the Dial/Two-Ledgers sections: define the LEDGER SPLIT explicitly as (a) identified quantities = the range-space projection A^dagger y, invariant across all B (our 'measurement ledger'), and (b) the choice of B = a normalization within the identified set (our 'aesthetic/detail ledger'), and prove B is a FREE normalization w.r.t. the measurement (never w.r.t. perceptual outputs). This gives econometric legitimacy to why the dial cannot be certified by data, and lets us borrow 'non-robust identification' to characterize learned reconstructors that silently hard-code a null-space choice."
+ },
+ {
+  "file": "E010_Robust_uncertainty_principles_exact",
+  "spark": "Their min-energy-vs-TV contrast (Fig 1c/1d) is a perfect visual for our certificate: zero-fill A^dagger y lives purely in the range space and leaves the null space at zero, while TV/L1 injects a SPARSITY-chosen null-space completion — different priors pick different null content, yet all match Omega exactly. Concrete idea: reuse the Shepp-Logan/star-sampling setup as a canonical demo where we (i) show our converse producing two feasible-wrong phantoms, (ii) apply the certificate to CS-TV to expose that its null content is prior-selected not measured, and (iii) run our governed B-dial to add detail with A x_B = y exactly — unifying the founding CS example under our range/null accountability framing."
+ },
+ {
+  "file": "Iagaru_2026_On_Hallucinations_in_Inverse",
+  "spark": "Their worst-case kernel size / feasible-set diameter is a scalar summary of null-space ambiguity that our certificate refines PER MODE: we could add a 'two-ledgers' figure contrasting their single diam(F_y) bound with our mode-wise lambda/(lambda+sigma_i^2) spectrum, showing our certificate localizes WHICH measured modes are accountable rather than one global unverifiability number. Also: adopt their consistency-falsifiability framing to make our P1 converse a testable statement, and cite their 'jittering does not protect' result to preempt a reviewer suggesting noise-training as an alternative to governance."
+ },
+ {
+  "file": "Landau_1967_Necessary_density_conditions",
+  "spark": "Landau's sharp eigenvalue plateau of the concentration operator (near-1 then near-0) is the continuous ancestor of our discrete range/null split via the SVD of A: the near-1 eigenmodes ARE our range P_R and the near-0 tail IS our null space P_0. We could open the Geometry section with a one-line historical bridge -- 'the range/null dichotomy is the finite-dimensional shadow of Landau's concentration-operator spectrum' -- and note that our certificate's mode-wise contraction lambda/(lambda+sigma_i^2) is precisely a soft, per-mode version of Landau's hard 1/0 concentration threshold, unifying the classical sampling limit with our accountability audit."
+ },
+ {
+  "file": "Lyu_2017_Deep_learning_based_ghost_imagi",
+  "spark": "GIDL is an ideal running GI testbed for our certificate: their pipeline is literally reconstruct-then-refine (correlation O -> DNN), so we could drop our test-time certificate between the two steps and show that the DNN's improvements at beta=0.1 live almost entirely in the operator null space (uncertified), while the certified range content is fixed. A figure re-running GIDL and CSGI on the SAME measurements through our audit would concretely demonstrate 'certify what you measure' in the GI setting the paper's readers know, and lets us cite an established GI baseline rather than only MRI."
+ },
+ {
+  "file": "Manski_2003_Partial_Identification_of_Pr",
+  "spark": "Import Manski's 'Law of Decreasing Credibility' as an explicit organizing principle for our Two-Ledgers synthesis: Ledger 1 (measured/range) = point-identified and certified; Ledger 2 (null) = only partially identified, governed by the dial B. We can literally cast our certificate as reporting the identified component and our governed dial as a transparent, pre-registered choice within the identification region -- turning an abstract geometry paper into a decision-theoretic 'what can you honestly claim' framework. Citing an econometrics monograph in an imaging paper is also a novelty/differentiation signal against pure-CS related work."
+ },
+ {
+  "file": "Rothenberg_1971_Identification_in_Parame",
+  "spark": "Rothenberg lets us give the null space a SEMANTICS beyond linear algebra: P_0 is the 'observational-equivalence manifold' of the imaging inverse problem. In the Geometry section we can present a small unifying table -- Rothenberg's singular-information null direction, Manski's non-identified region, Landau's below-density lost modes, and our A P_0 = 0 -- as four names for one object, strengthening the paper's claim to a genuine cross-field UNIFICATION rather than a CS trick. It also arms us against a reviewer asking 'why should imaging people care about identifiability?': because certifying a reconstruction is exactly deciding which directions are identified."
+ },
+ {
+  "file": "He_2018_Ghost_Imaging_Based_on_Deep_Lear",
+  "spark": "Run our test-time certificate on a GICNN-style reconstructor: it likely contracts measured modes correctly but injects unaudited null content, giving a clean concrete demonstration that PSNR gains and measurement accountability are orthogonal - a strong 'learned reconstructor' column in our Separation table."
+ },
+ {
+  "file": "Huang_2024_Deep_learning_classical_xray_",
+  "spark": "Their explicit dose/sampling decoupling and 'digit 2 reconstructed as 3' failure is a physically grounded instance of our P1 converse in a real modality - cite it in the HINGE to argue that the same measurement supports multiple feasible-consistent images, and that only null-space accounting (not accuracy metrics) can flag the fabricated stripes."
+ },
+ {
+  "file": "Iagaru_2026_On_Hallucinations_in_Inverse",
+  "spark": "This paper is the strongest novelty threat AND the strongest scaffold: sharpen our contribution statement to (a) closed-form exact per-mode certificate vs their worst-case-diameter bound, and (b) the constructive governed dial they lack - we don't just certify what can't be verified, we supply it null-only so consistency is preserved exactly for every B. Consider a direct Related-Work paragraph contrasting worst-case-kernel-size with our lambda/(lambda+sigma_i^2) contraction."
+ },
+ {
+  "file": "Landau_1967_Necessary_density_conditions",
+  "spark": "Frame our finite-dimensional range/null split (P_R, P_0) as the discrete, operator-specific instance of Landau's continuous degrees-of-freedom limit; a one-line lineage from Landau (1967) -> prolate/Slepian -> our SVD certificate lends gravitas to the Geometry section and preempts a reviewer asking why the null space is unavoidable rather than an artifact of a particular reconstructor."
+ },
+ {
+  "file": "Lyu_2017_Deep_learning_based_ghost_imagi",
+  "spark": "GIDL + CS-GI on identical GI measurements is a ready-made two-reconstructor testbed for our Separation section: apply the exact per-mode certificate to both and show the measured-mode contraction is identical while their null-space content (and error) differs wildly - concretely demonstrating that 'certify what you measure' is reconstructor-agnostic while 'invented texture' is not."
+ },
+ {
+  "file": "Manski_2003_Partial_Identification_of_Pr",
+  "spark": "Adopt Manski's refutable vs non-refutable dichotomy as a crisp organizing axis for our paper: measurement-consistency constraints (range space) are refutable/testable, whereas any prior injected into the null space is non-refutable by construction -- this is a ready-made, citable framing for the HINGE section and directly names why our governed dial can never be 'certified' by y. Consider borrowing 'Law of Decreasing Credibility' as an epigraph."
+ },
+ {
+  "file": "Rothenberg_1971_Identification_in_Parame",
+  "spark": "Frame our converse as the degenerate small-noise / rank-deficient limit of Rothenberg: when A has m<<n, the corresponding information matrix A^T A is singular by construction, so unidentifiability is not a statistical accident but a geometric certainty -- a clean one-sentence bridge from classical identification theory to the null-space picture, strengthening the HINGE. The eigenvector-traces-a-curve argument mirrors our 'sweep B and stay exactly on Ax=y' dial."
+ },
+ {
+  "file": "Song_2025_Advances_Challenges_Single_Pix",
+  "spark": "This review shows the SPI/GI community frames its open problem as 'better quality/speed and generalization' and never as 'which recovered content is certifiable by the measurement' -- exactly the vocabulary gap our two-ledgers framing fills. Cite it to argue our certificate reframes an unsolved DL-SPI challenge (interpretability/trust) as a geometric accountability question rather than a training problem, and to ground the claim that H at low sampling rate is our undersampled A."
+ },
+ {
+  "file": "Stuart_2010_Inverse_problems_Bayesian_pe",
+  "spark": "Stuart's small-noise/under-determined result is the exact probabilistic derivation of our per-mode contraction lambda/(lambda+sigma_i^2): treat sigma_i as the singular value and lambda as the prior/noise ratio, and the Gaussian posterior variance along mode i contracts by precisely that factor. Cite Stuart to give the certificate a first-principles Bayesian pedigree and to argue our governed dial B is a controlled choice of prior in the unmeasured subspace -- turning 'inject content only in the null space' into 'act only where the posterior is prior-dominated', a much stronger, citable justification for the ACT2/Dial sections."
+ }
+]
