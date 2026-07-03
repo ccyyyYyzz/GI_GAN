@@ -30,10 +30,12 @@ was `E:/datasets`, now at `E:/GAN_FCC_WORK/datasets/` (also mirrored under
 
 **Reproductions actually run and PASSING on this setup (2026-07-03), from the repo root:**
 
-| Check | Command (`PY` = the interpreter above) | Result |
-|---|---|---|
-| Core range/null projector theory | `"$PY" -m pytest tests/test_exact_projections.py -q` | **3 passed** |
-| VQGAN detail-fusion headline (bit-faithful) | `"$PY" vqgan_detail_fusion.py validate --seeds 0 --device cuda` | **FAITHFUL=True** — 5120 (method,beta,image) rows vs committed CSV; `full_rmse`/`psnr`/`rapsd` max\|Δ\| = 0, `lpips` 4.6e-4 (GPU AlexNet nondeterminism), `relmeaserr` 3.6e-7 |
+| Stage | Check | Command (`PY` = the interpreter above) | Result |
+|---|---|---|---|
+| core | range/null projector + checkpoint-wiring theory | `"$PY" -m pytest tests/test_exact_projections.py tests/test_train_checkpoint_wiring.py -q` | **9 passed** |
+| 8 (VQGAN) | detail-fusion headline, bit-faithful, **all 3 seeds** | `"$PY" vqgan_detail_fusion.py validate --seeds 0 1 2 --device cuda` | **FAITHFUL=True × 3/3** — 5120 (method,beta,image) rows/seed vs committed CSV; `full_rmse`/`psnr`/`rapsd` max\|Δ\| = 0, `lpips` 4.6e-4 (GPU AlexNet nondeterminism), `relmeaserr` 3.6e-7 |
+| 6 (gauge-GAN) | Rad-5 gate report | `"$PY" inspect_gate.py` | all arms **status: PASS** (from committed canonical table; no retrain) |
+| 5 (range-null) | feasible-wrong-image evidence | inspect `results/cert_package_20260612/tables/T4_pairs.csv` (relocated tree) | **16/16** cross-class pairs, `RelMeasErr_u_vs_yi` ≈ 2e-15, `hallucination_residual_smaller_than_truth = True` |
 
 `validate` reads cached reconstructions + the committed reference CSV, so it needs **no dataset and no
 retraining** — it is the fastest end-to-end proof that the headline result reproduces.
