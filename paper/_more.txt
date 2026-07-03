@@ -1,0 +1,16 @@
+=== #3 RND-SCI: A Range-Null Space Decomposition Approach for Fast and Flexib
+For the CASSI forward model y = Phi x with sensing matrix Phi (diagonal shifted coded-aperture structure), uses the general solution x_hat = Phi^dagger y + (I - Phi^dagger Phi) q, where Phi Phi^dagger Phi = Phi (range projector) and Phi(I - Phi^dagger Phi) = 0 (null projector). The data-fidelity/range term is a pure linear projection needing no learning; a conditional generative network produces q from (Y, Phi) and i
+
+=== #32 Plug-and-Play Priors for Model Based Reconstruction
+For the MAP problem argmin_x l(y;x)+beta*s(x), split x=v and apply ADMM. The x-update becomes a simplified reconstruction operator F(y,x~;lambda)=argmin_x l(y;x)+(lambda/2)||x-x~||^2 (proximal map of the forward model), and the v-update becomes a denoising operator H(v~; beta/lambda). Swapping in any denoiser (K-SVD, BM3D, PLOW, TV, q-GGMRF, discrete recon) for H realizes an implicit prior. No convergence proof for a
+
+=== #33 The Little Engine that Could: Regularization by Denoising (RED)
+Defines the image-adaptive Laplacian regularizer rho(x)=(1/2)x^T(x-f(x)). Under two conditions on the denoiser f -- local homogeneity f(cx)=cf(x) (giving f(x)=grad f(x)*x) and strong passivity (spectral radius of Jacobian <=1) -- the gradient simplifies to grad rho(x)=x-f(x). Any inverse problem min_x l(y,x)+lambda*rho(x) can then be solved by gradient descent, fixed-point iteration, or ADMM, calling the denoiser ite
+
+=== #73 Denoising Diffusion Models for Plug-and-Play Image Restoration (DiffPI
+Starts from the PnP objective x_hat = argmin (1/2 sigma_n^2)||y - H(x)||^2 + lambda P(x) and decouples data and prior terms via HQS: a prior subproblem solved by one diffusion denoising step (generative denoiser giving z_0 on the image manifold) and a data subproblem (12b) that is a proximal operator with an analytic closed-form solution for deblurring/inpainting/SR (with rho_t = lambda(sigma_n/sigma_bar_t)^2). Alter
+
+=== #68 Solving Inverse Problems in Medical Imaging with Score-Based Generativ
+Traceback (most recent call last):
+  File "<string>", line 7, in <module>
+UnicodeEncodeError: 'gbk' codec can't encode character '\u0177' in position 388: illegal multibyte sequence
