@@ -81,8 +81,40 @@ Artifacts: `forensics_pedl_stl10.json` (stages 1+2), `forensics_pedl_trajectory.
 trajectory for the figure). Reproduction: their repo untouched at `external_audit/physics-driven-fine-tuning/`
 (TF1 env `D:/tf1_audit_env`), audit script `forensics_pedl_stl10.py` (stage 1) / `stage2`.
 
-### Targets 2–3 (queued)
-- `FeiWang0824/GIDC` — real measured patterns+buckets in `data.mat` (exact own operator); only sim numbers
-  GT-auditable; experimental claims listed as not-auditable.
+## Target 2 — GIDC: far-field super-resolution GI (Wang et al., Light Sci Appl 11, 1 (2022))
+Repo: `FeiWang0824/GIDC`. **Real experimental data**: 1200 physically measured speckle patterns + integer
+photon-count buckets (`data.mat`). Their demo (SR=0.1, m=410, 201 steps) run **untouched** in the TF1 env;
+outputs are their released 8-bit BMPs (quantization ~0.002, disclosed). No GT for the scene → reported
+gains NOT MSE-decomposable (pre-registered exclusion); everything below is **GT-free**.
+Script: `forensics_gidc.py` → `forensics_gidc.json`.
+
+**The real operator, characterized (first time on this released data):**
+| property | value |
+|---|---|
+| m, sampling | 410 physical patterns, 10.0% |
+| rank / condition | 410 (full) / 52 |
+| row sums (nonnegative speckle) | 82929 ± 8.7% — **DGI's proper regime** (closes our C6 signed-operator caveat with real data) |
+| photon counts → shot noise | ~1.8e7 → rel σ = 2.4e-4 |
+| certificate | **410/410 modes gain ≥ 0.9**; null dim 3686 |
+
+**GT-free ledgers (their record, their convention — affine-fit consistency, orientation-resolved):**
+| reconstruction | consistency rel-err | null fraction (centered) |
+|---|:---:|:---:|
+| DGI (recomputed, float) | 0.948 | 0.525 |
+| GIDC step 0 | 0.715 | 0.743 |
+| GIDC step 200 (their result) | **0.134** | **0.438** |
+
+**Findings:**
+1. **The super-resolution claim, metered.** "Resolution beyond the diffraction limit" content lives, by
+   definition, in null(A) of the patterns actually measured. **43.8% of the published reconstruction's
+   (centered) structure is in that null space** — unverifiable from their own record. Not an accusation of
+   error: a precise statement of *which ledger* the headline claim is paid from.
+2. GIDC improves record-faithfulness 7× over DGI (0.948 → 0.134) but remains far from exact — the
+   TV+DIP-style optimization stops at loss ≈ measurement noise, and no exact projection is applied.
+3. The audit closes our own C6 caveat with hardware data: real speckle row-sums are large and uniform
+   (+8.7% spread), exactly the regime where DGI's reference subtraction is meaningful.
+
+## Target 3 (queued)
 - `Noise2Ghost` (arXiv 2504.10288) — pip-installable PyTorch; its natively noisy regime is where the
-  range-saturation claim is non-tautological.
+  range-saturation claim is non-tautological. Also queued: GIDC Part B (their code, our known-GT scene on
+  their real patterns + Poisson — labeled extension).
