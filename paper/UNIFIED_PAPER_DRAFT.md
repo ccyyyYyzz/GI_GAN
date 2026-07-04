@@ -367,6 +367,24 @@ We are deliberate about what $B$ is not. It is a fixed, validation-selected oper
 
 **A no-adaptation lemma.** The failure of the learned per-image gate is not a tuning artifact; it is forced by the same geometry as the converse. Any ground-truth-free rule — a map $g$ that chooses the fusion weight, a gate, or any null-space content from the record alone — is by construction a function of $y$, so the reconstruction is $\hat{x} = x_0(y) + P_0\,g(y)$. Two scenes on the same fiber, $Ax = Ax' = y$, therefore receive the *identical* reconstruction and the identical weight; no rule that sees only $y$ can distinguish them or adapt to which is the true scene. The per-image *oracle* weight $B^\star(x)$ depends on the true null component $P_0 x$, which $y$ does not observe, so the oracle gap is unclosable by any admissible rule to exactly the extent that $B^\star$ depends on the unmeasured content. This is a corollary of the converse (§3): the feasible-but-wrong twins that defeat verification are the same twins that defeat ground-truth-free adaptation. It is empirically sharp. A feature-based per-image selector — null energies $\|d_A\|,\|d_G\|$, the chord and cosine between the two residuals, anchor texture statistics, and cross-arm perceptual distances $\mathrm{LPIPS}(x_0,x_G)$ etc. — trained on validation and tested on development, recovers the oracle only through a *global* shift of $B$: against a global scalar matched to its own mean PSNR, its per-image excess is $\le 0.002$ LPIPS, and a deliberately constant predictor reproduces it exactly. The features barely rank-correlate with the oracle weight ($|\rho| \le 0.24$). The dial is a scalar not because we declined to adapt it, but because no honest rule can — per-image adaptation from $y$ alone is a global prior in disguise.
 
+**The audit tax: the priced escape from the lemma.** The no-adaptation lemma closes every ground-truth-free
+route *within* the fiber; the only honest escape is to change the fiber — pay for new measurements. The price
+is remarkably favorable, and it is set by classical theory we import rather than reinvent: hold out $q$
+additional bucket rows $s_j$ (never used for reconstruction), and the holdout residual
+$\frac{1}{q}\sum_j (s_j^\top \hat{x} - d_j)^2$ estimates the *entire* $(n-m)$-dimensional null error
+$\|P_0(\hat{x}-x)\|^2$ of any measurement-consistent candidate, unbiased up to a candidate-independent noise
+offset, with $q = O(\varepsilon^{-2}\log|\mathcal{K}|)$ rows for a uniform ranking over $|\mathcal{K}|$
+candidates — this is compressed-sensing cross-validation (Ward, 2009; Boufounos et al., 2007), verbatim: for
+exactly-consistent candidates the row-space residual is zero, so the holdout statistic *is* the null-error
+estimate, and the ranking it induces is Ward's. The comparison that matters is allocational: spent on
+reconstruction, $q$ extra rows shrink the null space by $q/(n-m)$ (${\sim}0.8\%$ here for $q=32$); spent on
+auditing, the same rows buy an estimate of the whole null ledger — testing is cheaper than sensing. We claim
+no novelty for the estimator; we state it because it prices the boundary the lemma draws: null content is
+unverifiable *from the record you have*, and verifiable at $O(\log)$ cost from a record you decline to spend
+on resolution. (Its selection value is bounded by the same oracle ceiling as §11.6 — on this operator a
+per-image dial choice is worth $\le 0.002$ LPIPS even with ground truth — so the tax buys *falsification*,
+not quality.)
+
 The scalar $B$ is the closest interface in this literature to CodeFormer's fidelity–quality knob $w$ (Zhou et al. 2022) and ESRGAN's network-interpolation weight $\alpha$ (Wang et al. 2018); the difference is that those knobs act on entangled features, so higher quality genuinely moves the reconstruction off the measurement manifold, whereas $B$ acts only within $P_0$ and holds $A\hat{x}_B = y$ exact at every setting. The honesty dial is thus a perception–distortion control (Blau and Michaeli 2018) whose distortion is paid entirely in null-space coordinates the measurement never certified.
 
 ---
