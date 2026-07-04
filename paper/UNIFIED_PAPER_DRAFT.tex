@@ -17,7 +17,7 @@
 
 \section*{Abstract}
 
-In undersampled ghost imaging, the recorded buckets $y = Ax + \varepsilon$ with $m \ll n$ fix only the row-space component of the scene: since $A P_0 = 0$ for the null-space projector $P_0 = I - A^\dagger A$, the content carrying most perceptual detail is exactly invisible to the measurement. We take this identity seriously in three steps. First, a constructive converse: for any target we build a feasible-but-wrong witness --- a semantically different scene matching the target's record to $\sim\!2\times10^{-15}$, tighter than the noisy truth's own residual ($\sim\!10^{-3}$ at bucket noise $\sigma_\varepsilon = 0.01$) --- so measurement consistency can never certify null-space content. Second, an achievability: a ground-truth-free test-time audit that contracts each measured mode by exactly $\lambda/(\lambda+\sigma_i^2)$, driving measurement residuals down by orders of magnitude at negligible quality cost and separating accountability from quality. Third, governed use: a pre-registered scalar dial fuses the null-space contributions of a reconstruction prior and an adversarial prior with $A\hat{x}_B = y$ exact at every setting, improving locked LPIPS by 32.6\textbackslash\{\}\% within a bounded distortion budget. A no-adaptation lemma shows ground-truth-free per-image adaptation is impossible on a fixed record, and projector forensics of three published pipelines, on their own operators, find the same two-ledger structure: certifiable gains saturate, and headlines are paid from the null space. Measurement consistency certifies reproduction of the record --- never the truth of invented detail.
+In undersampled ghost imaging, the recorded buckets $y = Ax + \varepsilon$ with $m \ll n$ fix only the row-space component of the scene: since $A P_0 = 0$ for the null-space projector $P_0 = I - A^\dagger A$, the content carrying most perceptual detail is exactly invisible to the measurement. We take this identity seriously in three steps. First, a constructive converse: for any target we build a feasible-but-wrong witness --- a semantically different scene matching the target's record to $\sim\!2\times10^{-15}$, tighter than the noisy truth's own residual ($\sim\!10^{-3}$ at bucket noise $\sigma_\varepsilon = 0.01$) --- so measurement consistency can never certify null-space content. Second, an achievability: a ground-truth-free test-time audit that contracts each measured mode by exactly $\lambda/(\lambda+\sigma_i^2)$, driving measurement residuals down by orders of magnitude at negligible quality cost and separating accountability from quality. Third, governed use: a pre-registered scalar dial fuses the null-space contributions of a reconstruction prior and an adversarial prior with $A\hat{x}_B = y$ exact at every setting, improving locked LPIPS by 32.6\% within a bounded distortion budget. A no-adaptation lemma shows ground-truth-free per-image adaptation is impossible on a fixed record, and projector forensics of three published pipelines, on their own operators, find the same two-ledger structure: certifiable gains saturate, and headlines are paid from the null space. Measurement consistency certifies reproduction of the record --- never the truth of invented detail.
 
 \medskip\hrule\medskip
 
@@ -49,9 +49,16 @@ $$\hat{x}_B = x_0 + P_0\big(d_A + B(d_G - d_A)\big),$$
 
 gives $A \hat{x}_B = y$ \textit{exactly} for every $B$. At the balanced operating point this improves locked LPIPS by 32.6\% at a bounded PSNR cost, passing an 8/8 pre-registered acceptance gate on a raw-hash-disjoint locked split (§7).
 
+\textbf{How to read this paper.} Figure 1 is the map. One identity ($A P_0 = 0$, §2) forks into a \textit{cannot} (the constructive converse, §3) and a \textit{can} (the exact certificate, §4--5); together they license the \textit{therefore} (the governed dial, §6--7); and the two closing branches test the frame against its own limits (§7.4) and against the published field (§8.4). Every section opens by naming its place on this map, and a reader who keeps Figure 1 in view will never be more than one arrow away from the main line.
+
+\begin{figure}[t]\centering
+\includegraphics[width=1.0\linewidth]{ROADMAP.pdf}
+\caption{\textbf{The map of the argument.} One identity forks into a converse and an achievability; together they license governed injection; the frame is then tested against its own limits and against three published pipelines. Section numbers give the route.}
+\end{figure}
+
 \subsection*{1.3 Overview figure}
 
-Figure 1 renders this chain as three panels --- \textit{cannot / can / therefore}. The left panel (\textbf{cannot}) shows a feasible-but-wrong pair: a true target and its spliced counterpart, sharing the measured row space and differing only in the null space, whose bucket residual ($2.93\times10^{-15}$) is smaller than the truth's own noisy residual ($5.36\times10^{-3}$) --- a measurement-consistent, semantically wrong, non-natural image. The middle panel (\textbf{can}) shows the exact per-mode certificate: the audit contracting each measured singular mode by $\lambda/(\lambda+\sigma_i^2)$, driving residuals to the noise floor while PSNR barely moves. The right panel (\textbf{therefore}) shows metered injection at $B = 0.55$, with the fused reconstruction stamped $A\hat{x} = y$ --- invented detail placed only where the bucket is blind, without ever breaking the measurement.
+Figure 2 renders this chain as three panels --- \textit{cannot / can / therefore}. The left panel (\textbf{cannot}) shows a feasible-but-wrong pair: a true target and its spliced counterpart, sharing the measured row space and differing only in the null space, whose bucket residual ($2.93\times10^{-15}$) is smaller than the truth's own noisy residual ($5.36\times10^{-3}$) --- a measurement-consistent, semantically wrong, non-natural image. The middle panel (\textbf{can}) shows the exact per-mode certificate: the audit contracting each measured singular mode by $\lambda/(\lambda+\sigma_i^2)$, driving residuals to the noise floor while PSNR barely moves. The right panel (\textbf{therefore}) shows metered injection at $B = 0.55$, with the fused reconstruction stamped $A\hat{x} = y$ --- invented detail placed only where the bucket is blind, without ever breaking the measurement.
 
 \begin{figure}[t]\centering
 \includegraphics[width=1.0\linewidth]{METHOD_FIG1.pdf}
@@ -81,37 +88,21 @@ Everything that follows --- the converse of §3, the certificate of §4, and the
 \subsection*{2.1 Forward model and compact SVD}
 
 We consider the standard linear ghost-imaging model
-$$
-y = A x + \textbackslash\{\}varepsilon,
-$$
+$$y = A x + \varepsilon,$$
 where $x \in \mathbb{R}^n$ is the vectorized image, $y \in \mathbb{R}^m$ is the bucket-measurement vector, $A \in \mathbb{R}^{m \times n}$ is the sensing operator with $m \ll n$, and $\varepsilon$ is measurement noise. Throughout, the relative measurement error of a candidate $v$ against a record $y$ is $\mathrm{RelMeasErr}(v; y) = \lVert A v - y \rVert_2 / \lVert y \rVert_2$. Write the compact singular value decomposition of $A$ as
-$$
-A = U\_r \textbackslash\{\}Sigma\_r V\_r\textasciicircum{}\textbackslash\{\}top, \textbackslash\{\}qquad r = \textbackslash\{\}operatorname\{rank\}(A),
-$$
+$$A = U_r \Sigma_r V_r^\top, \qquad r = \operatorname{rank}(A),$$
 where $U_r \in \mathbb{R}^{m \times r}$ and $V_r \in \mathbb{R}^{n \times r}$ have orthonormal columns ($U_r^\top U_r = V_r^\top V_r = I_r$) and $\Sigma_r = \operatorname{diag}(\sigma_1, \dots, \sigma_r)$ with every $\sigma_i > 0$. The Moore--Penrose pseudo-inverse is then $A^\dagger = V_r \Sigma_r^{-1} U_r^\top$.
 
 \subsection*{2.2 The two projectors}
 
 Define the row-space projector $P_R = A^\dagger A$ and the null-space projector $P_0 = I - A^\dagger A$. Substituting the SVD collapses $P_R$ to a form that involves only the right singular vectors,
-$$
-P\_R = A\textasciicircum{}\textbackslash\{\}dagger A = V\_r \textbackslash\{\}Sigma\_r\textasciicircum{}\{-1\} U\_r\textasciicircum{}\textbackslash\{\}top U\_r \textbackslash\{\}Sigma\_r V\_r\textasciicircum{}\textbackslash\{\}top = V\_r V\_r\textasciicircum{}\textbackslash\{\}top,
-\textbackslash\{\}qquad
-P\_0 = I - V\_r V\_r\textasciicircum{}\textbackslash\{\}top.
-$$
+$$P_R = A^\dagger A = V_r \Sigma_r^{-1} U_r^\top U_r \Sigma_r V_r^\top = V_r V_r^\top, \qquad P_0 = I - V_r V_r^\top.$$
 Because $V_r^\top V_r = I_r$, each is symmetric and idempotent, and the two are complementary and mutually annihilating:
-$$
-P\_R\textasciicircum{}\textbackslash\{\}top = P\_R, \textbackslash\{\}quad P\_R\textasciicircum{}2 = P\_R, \textbackslash\{\}qquad
-P\_0\textasciicircum{}\textbackslash\{\}top = P\_0, \textbackslash\{\}quad P\_0\textasciicircum{}2 = P\_0, \textbackslash\{\}qquad
-P\_R + P\_0 = I, \textbackslash\{\}quad P\_R P\_0 = 0 .
-$$
+$$P_R^\top = P_R, \quad P_R^2 = P_R, \qquad P_0^\top = P_0, \quad P_0^2 = P_0, \qquad P_R + P_0 = I, \quad P_R P_0 = 0 .$$
 They are therefore the pair of orthogonal projectors onto the two orthogonal subspaces
-$$
-\textbackslash\{\}mathbb\{R\}\textasciicircum{}n = \textbackslash\{\}mathcal\{R\}(A\textasciicircum{}\textbackslash\{\}top) \textbackslash\{\}oplus \textbackslash\{\}mathcal\{N\}(A), \textbackslash\{\}qquad \textbackslash\{\}mathcal\{R\}(A\textasciicircum{}\textbackslash\{\}top) \textbackslash\{\}perp \textbackslash\{\}mathcal\{N\}(A),
-$$
+$$\mathbb{R}^n = \mathcal{R}(A^\top) \oplus \mathcal{N}(A), \qquad \mathcal{R}(A^\top) \perp \mathcal{N}(A),$$
 the row space (range of $A^\top$) and the null space (kernel of $A$). Every image splits uniquely and orthogonally,
-$$
-x = P\_R x + P\_0 x, \textbackslash\{\}qquad \textbackslash\{\}langle P\_R x, \textbackslash\{\}, P\_0 x \textbackslash\{\}rangle = x\textasciicircum{}\textbackslash\{\}top P\_R P\_0\textbackslash\{\}, x = 0,
-$$
+$$x = P_R x + P_0 x, \qquad \langle P_R x, \, P_0 x \rangle = x^\top P_R P_0\, x = 0,$$
 so the measured and unmeasured parts share no energy.
 
 \subsection*{2.3 The Lemma: measurements constrain only the row space}
@@ -119,26 +110,18 @@ so the measured and unmeasured parts share no energy.
 The single fact that arms every later section is that $A$ annihilates its own null-space projector.
 
 \textbf{Lemma (measurement geometry).} For any $A \in \mathbb{R}^{m \times n}$,
-$$
-A P\_0 = 0 \textbackslash\{\}qquad\textbackslash\{\}text\{and\}\textbackslash\{\}qquad A P\_R = A .
-$$
+$$A P_0 = 0 \qquad\text{and}\qquad A P_R = A .$$
 
 \textit{Proof.} Using the Moore--Penrose identity $A A^\dagger A = A$,
-$$
-A P\_0 = A\textbackslash\{\},(I - A\textasciicircum{}\textbackslash\{\}dagger A) = A - A A\textasciicircum{}\textbackslash\{\}dagger A = A - A = 0,
-$$
+$$A P_0 = A\,(I - A^\dagger A) = A - A A^\dagger A = A - A = 0,$$
 and correspondingly $A P_R = A(A^\dagger A) = A A^\dagger A = A$. $\quad\blacksquare$
 
 The consequence is sharp. Decomposing any candidate image and applying $A$,
-$$
-A x = A P\_R x + A P\_0 x = A P\_R x ,
-$$
+$$A x = A P_R x + A P_0 x = A P_R x ,$$
 so the record $y$ is a function of $P_R x$ alone; the null-space component $P_0 x$ is exactly invisible to the bucket. Two images that agree in the row space but differ arbitrarily in the null space produce identical measurements.
 
 In the noiseless case $A x = y$ this pins the measured component exactly: $P_R x = A^\dagger A x = A^\dagger y$. Every feasible image with the same $y$ shares this row-space component, while any $z_0 \in \mathcal{N}(A)$ can be added freely, since $A(A^\dagger y + z_0) = A A^\dagger y + A z_0 = y$ whenever $y \in \mathcal{R}(A)$. The noiseless feasible set is therefore the null-space-translated affine flat
-$$
-\textbackslash\{\}\{\textbackslash\{\}, x : A x = y \textbackslash\{\},\textbackslash\{\}\} = A\textasciicircum{}\textbackslash\{\}dagger y + \textbackslash\{\}mathcal\{N\}(A) .
-$$
+$$\{\, x : A x = y \,\} = A^\dagger y + \mathcal{N}(A) .$$
 With noise, $A^\dagger y$ is the least-squares row-space estimate induced by the record, and the null component remains unobserved.
 
 \subsection*{2.4 What can and cannot be certified}
@@ -155,14 +138,14 @@ Concretely, in the locked setting of this paper --- $64 \times 64$ grayscale ima
 \subsection*{2.5 The rows-orthonormal fusion case}
 
 The fusion construction (§6) uses an operator whose rows are orthonormalized, giving $A A^\top = I_m$. This does not alter the geometry above; it only simplifies the algebra. When $A A^\top = I_m$ the singular values are all unity, so the pseudo-inverse reduces to the transpose,
-$$
-A\textasciicircum{}\textbackslash\{\}dagger = A\textasciicircum{}\textbackslash\{\}top, \textbackslash\{\}qquad P\_R = A\textasciicircum{}\textbackslash\{\}top A, \textbackslash\{\}qquad P\_0 = I - A\textasciicircum{}\textbackslash\{\}top A,
-$$
+$$A^\dagger = A^\top, \qquad P_R = A^\top A, \qquad P_0 = I - A^\top A,$$
 and the Lemma reads directly as $A P_0 = A(I - A^\top A) = A - (A A^\top) A = A - A = 0$. This is the identity the exact-consistency guarantee $A \hat{x}_B = y$ rests on: any update routed through $P_0$ is invisible to $A$, so it can carry injected detail without perturbing the record. The general SVD form of §2.2 is what the test-time audit of §4 uses, where the per-mode singular values $\sigma_i$ reappear explicitly in the contraction factor $\lambda / (\lambda + \sigma_i^2)$; the two settings are the same geometry viewed at two levels of operator conditioning.
 
 \medskip\hrule\medskip
 
 \section*{3. The Verifiability Barrier (Converse)}
+
+\textit{On the map (Fig. 1): the} cannot \textit{branch.}
 
 The geometry of §2 is deductive but silent about severity: the lemma $A P_0 = 0$ shows that $y$ fixes exactly $P_R x$ and constrains nothing in the null space, but it does not by itself say how badly a null-space error can hide behind a clean measurement. This section supplies the converse. We construct, for any pair of images, an explicit reconstruction that reproduces a target's bucket record to machine precision while carrying an entirely different scene's unmeasured content. The construction is per-instance and exact, not asymptotic or distributional: it exhibits a concrete feasible-but-wrong witness for every cross-class pair we test. Its consequence is the load-bearing claim of the paper --- measurement consistency is certifiable but the correctness of null-space content is not, so \textbf{consistency is not correctness} --- and it is placed first, before any certificate or injection dial, because everything downstream is subordinate to it.
 
@@ -186,11 +169,16 @@ while the null-space component is inherited \textit{whole} from the donor,
 
 $$P_0\, u_{ij} = P_0\, x_j - P_0\, A^\dagger\big(A x_j - y_i\big) = P_0\, x_j,$$
 
-where the second term vanishes because $A^\dagger$ maps into the row space and $P_0$ annihilates it ($P_0 A^\dagger = 0$). In words, $u_{ij}$ splices the measured part of $x_i$ onto the unmeasured part of $x_j$ and passes the measurement audit of $x_i$ exactly. It is the constructive imaging analogue of observational equivalence in identification theory (Koopmans and Reiersøl 1950): two structures generate the identical record, so no amount of that record can tell them apart.
+where the second term vanishes because $A^\dagger$ maps into the row space and $P_0$ annihilates it ($P_0 A^\dagger = 0$). In words, $u_{ij}$ splices the measured part of $x_i$ onto the unmeasured part of $x_j$ and passes the measurement audit of $x_i$ exactly. Figure 3 draws the construction: the feasible set is a line (an affine flat), the truth sits on it only up to its own noise, and the witness is simply the donor dropped orthogonally onto that line --- which is why no test computed from the record can prefer the truth to the splice.
+
+[FIG: WITNESS\_GEOMETRY.pdf | 0.8 | \textbf{The converse in one picture.} Every point on the blue line (the fiber $\{x: Ax = y_i\}$) reproduces the record $y_i$; moving off the line is the only thing the measurement can see. The witness $u_{ij}$ is the donor $x_j$ projected onto the fiber: it matches the record to $10^{-15}$ --- more tightly than the noisy truth (dashed circle, radius $\sim\sigma_\varepsilon$) matches its own record --- while carrying the donor's null-space content.] It is the constructive imaging analogue of observational equivalence in identification theory (Koopmans and Reiersøl 1950): two structures generate the identical record, so no amount of that record can tell them apart.
 
 \subsection*{3.2 The record is matched more tightly than the truth}
 
-The witness is not merely feasible in principle; numerically it satisfies the record more tightly than the true scene does. On the Rad-5 operator ($m = 205$, $64\times 64$), across a set of $8$ cross-class feasible pairs, the relative measurement error of the witness against the target record lies in the range $\mathrm{RelMeasErr}(u_{ij}, y_i) \in [2.16\times10^{-15},\, 4.00\times10^{-15}]$, i.e. at floating-point round-off. Over the paired families the construction holds for $16/16$ cross-class pairs at the same $\sim\!2\times10^{-15}$ scale. The \textit{true} image, by contrast, only satisfies the (noisy) record to $[3.45\times10^{-3},\, 7.46\times10^{-3}]$. The gap is roughly twelve orders of magnitude: \textbf{the wrong image reproduces the buckets more exactly than the ground truth.} The two numbers measure different things, and saying so is the point: the witness's $10^{-15}$ is pure geometry (it is \textit{constructed} on the record), while the truth's $10^{-3}$ is exactly its own bucket noise ($\sigma_\varepsilon = 0.01$) --- so the twelve orders quantify how far \textit{any} residual test is from adjudicating truth: every threshold loose enough to admit the noisy truth admits the exact-fitting impostor a fortiori. A featured car-versus-horse pair makes the point concretely --- the target car has $\mathrm{RelMeasErr}(x_i, y_i) = 5.36\times10^{-3}$, while the constructed witness follows the horse donor visually and yet attains $\mathrm{RelMeasErr}(u_{ij}, y_i) = 2.93\times10^{-15}$. The witnesses remain semantically wrong with respect to the target, with $\mathrm{PSNR}(u_{ij}, x_i)$ in the range $7.70$--$11.38$ dB. Crucially, the construction is not tied to that operator: on the \textit{same} $64\times64$ STL10 operator at $5\%$ sampling ($m=205$) used for the governed dial of §7, 40 feasible-wrong witnesses reproduce their target records at $\mathrm{RelMeasErr}(u_{ij}, y_i)$ between $1.7\times10^{-14}$ and $5.6\times10^{-13}$ (median $9.9\times10^{-14}$) while remaining semantically wrong (median $\mathrm{PSNR}(u_{ij}, x_i) = 19.5$ dB). The converse of this section and the constructive dial of §7 are therefore exhibited on one and the same operator; the residual is a few orders of magnitude above the Rad-5 figure only because the mixed-basis operator is applied through a ridge-regularized ($\lambda_{\text{solver}}=10^{-6}$) audit rather than an exact orthonormal projector, and it remains eleven orders below the $\sim\!10^{-3}$ noise floor.
+The witness is not merely feasible in principle; numerically it satisfies the record more tightly than the true scene does. On the Rad-5 operator ($m = 205$, $64\times 64$), across a set of $8$ cross-class feasible pairs, the relative measurement error of the witness against the target record lies in the range $\mathrm{RelMeasErr}(u_{ij}, y_i) \in [2.16\times10^{-15},\, 4.00\times10^{-15}]$, i.e. at floating-point round-off. Over the paired families the construction holds for $16/16$ cross-class pairs at the same $\sim\!2\times10^{-15}$ scale. The \textit{true} image, by contrast, only satisfies the (noisy) record to $[3.45\times10^{-3},\, 7.46\times10^{-3}]$. The gap is roughly twelve orders of magnitude: \textbf{the wrong image reproduces the buckets more exactly than the ground truth.} The two numbers measure different things, and saying so is the point: the witness's $10^{-15}$ is pure geometry (it is \textit{constructed} on the record), while the truth's $10^{-3}$ is exactly its own bucket noise ($\sigma_\varepsilon = 0.01$) --- so the twelve orders quantify how far \textit{any} residual test is from adjudicating truth: every threshold loose enough to admit the noisy truth admits the exact-fitting impostor a fortiori.
+A featured car-versus-horse pair makes the point concretely --- the target car has $\mathrm{RelMeasErr}(x_i, y_i) = 5.36\times10^{-3}$, while the constructed witness follows the horse donor visually and yet attains $\mathrm{RelMeasErr}(u_{ij}, y_i) = 2.93\times10^{-15}$. The witnesses remain semantically wrong with respect to the target, with $\mathrm{PSNR}(u_{ij}, x_i)$ in the range $7.70$--$11.38$ dB.
+
+Crucially, the construction is not tied to that operator: on the \textit{same} $64\times64$ STL10 operator at $5\%$ sampling ($m=205$) used for the governed dial of §7, 40 feasible-wrong witnesses reproduce their target records at $\mathrm{RelMeasErr}(u_{ij}, y_i)$ between $1.7\times10^{-14}$ and $5.6\times10^{-13}$ (median $9.9\times10^{-14}$) while remaining semantically wrong (median $\mathrm{PSNR}(u_{ij}, x_i) = 19.5$ dB). The converse of this section and the constructive dial of §7 are therefore exhibited on one and the same operator; the residual is a few orders of magnitude above the Rad-5 figure only because the mixed-basis operator is applied through a ridge-regularized ($\lambda_{\text{solver}}=10^{-6}$) audit rather than an exact orthonormal projector, and it remains eleven orders below the $\sim\!10^{-3}$ noise floor.
 
 The immediate corollary is that no residual-based test, however tight its threshold, can separate the witness from the truth: any threshold that admits the true image (residual $\sim\!10^{-3}$) admits the witness (residual $\sim\!10^{-15}$) a fortiori. This is precisely the failure mode PULSE exhibits for super-resolution (Menon et al. 2020) --- visually distinct realistic reconstructions collapsing to the same low-dimensional observation --- but here it is exact, per-instance, and derived from the operator's own geometry rather than sampled from a generator.
 
@@ -213,6 +201,8 @@ The decoupling is empirical, not merely formal. On the $64\times 64$ Rad-5 valid
 \medskip\hrule\medskip
 
 \section*{4. The Accountability Certificate (Achievability)}
+
+\textit{On the map: the} can \textit{branch --- what the same geometry still permits.}
 
 Section 3 established a converse: the record $y$ fixes $P_R x$ and nothing else, so any two feasible reconstructions may differ arbitrarily in the null space while producing the same measurement. That result is destructive --- it says what cannot be verified. This section is its constructive counterpart. If the measurement cannot certify null-space content, it should at least certify, exactly and without ground truth, the one thing it does constrain: the measured component. We give a test-time operator that does this, prove that it contracts each measured mode by a known factor determined only by $A$ and $\lambda$, and show that it can be applied after any reconstructor as a post-hoc audit.
 
@@ -242,6 +232,11 @@ $$c_i(\lambda) \;=\; \frac{\lambda}{\lambda + \sigma_i^2}.$$
 
 The interpretation is exact rather than asymptotic. After one audit, the residual along the $i$-th measured mode is multiplied by $\lambda/(\lambda + \sigma_i^2)$ --- a factor fixed entirely by the operator's singular value $\sigma_i$ and the chosen $\lambda$, independent of the image and of the reconstructor. As $\lambda \to 0$ the contraction becomes a hard projection onto $\{Av = y\}$; for $\lambda > 0$ it retains a controlled residual, appropriate when $y$ is noisy and should not be over-interpreted as exact truth. This closed-form modal spectrum is the object we certify. One scope sentence governs all audit numbers below: the certificate certifies agreement with the \textit{recorded} $y$ (which carries $\sigma_\varepsilon = 0.01$ bucket noise in these experiments), never agreement with the noiseless $A x$; driving the residual far below the noise floor therefore reproduces the record, noise realization included --- a deliberate choice we flag rather than a virtue, and the reason a deployment would set $\lambda$ by a discrepancy criterion instead of as small as possible.
 
+\begin{figure}[t]\centering
+\includegraphics[width=1.0\linewidth]{CERT_SEPARATION.pdf}
+\caption{\textbf{The certificate and the separation.} \textit{(a)} Each measured mode's residual contracts by the closed-form factor $\lambda/(\lambda+\sigma_i^2)$ --- smaller $\lambda$, harder projection. \textit{(b)} Applied post-hoc to four unrelated reconstructors, the audit moves measurement accountability by orders of magnitude while PSNR barely moves (green): the two axes are decoupled exactly because $AP_0 = 0$.}
+\end{figure}
+
 \textbf{Float64 verification.} The contraction formula is confirmed in double precision. For the Rad-5 operator ($\sigma_{\min} = 3.476$, $\sigma_{\max} = 5.454$) the maximum deviation between the measured contraction and $\lambda/(\lambda + \sigma_i^2)$ is $1.04\times10^{-10}$; for the Scr-5 operator ($\sigma_{\min} = \sigma_{\max} = 1.000$) it is $2.29\times10^{-12}$. The identity therefore holds to the floating-point floor. (Repeated float32 pipeline audits saturate at a solver floor and are not evidence for the modal identity; the certificate is a float64 statement.)
 
 \subsection*{4.3 Post-hoc audit across reconstructor families}
@@ -259,6 +254,8 @@ A second, closer antecedent is Bayesian. MacKay's (1992) \textit{number of well-
 \medskip\hrule\medskip
 
 \section*{5. Quality Is Not Accountability: The Separation Law}
+
+\textit{On the map: still the} can \textit{branch --- what the certificate does and does not buy.}
 
 The certificate of §4 contracts each measured mode by exactly $\lambda/(\lambda+\sigma_i^2)$. Section 3 established that the measurement pins down only $P_R x$. This section states the consequence as a formal separation: image quality, as scored by pixel metrics such as PSNR, and measurement accountability, as scored by the audit residual, are coupled \textit{only} through the row-space part of the error. Where the residual error lives in the null space, the two quantities move independently. This is not a weakness of any particular metric; it is a geometric identity, and it is exactly what an accountability audit is for --- it catches the failures a quality metric is structurally blind to.
 
@@ -307,6 +304,8 @@ Taken together, Sections 5.1--5.4 establish the \textbf{separation law}: because
 
 \section*{6. Governed Supply: Injecting Detail Where the Measurement Is Blind}
 
+\textit{On the map: the} therefore \textit{--- the converse licenses injection exactly where the certificate cannot reach.}
+
 Sections 3--5 establish an asymmetry that is exact rather than practical. The measurement $y = Ax$ fixes the row-space component $P_R x$ and constrains nothing else, because $A P_0 = 0$; the audit of §4 certifies that a reconstruction reproduces $P_R x$, and the barrier of §3 shows that no test, however sharp, can decide the null-space component $P_0 x$ from $y$ alone. That barrier is usually read as a prohibition. Here we read the \textit{same identity} the other way: since $A P_0 = 0$, any content placed in the null space is invisible to $A$, so editing $P_0 x$ cannot move $Ax$ and cannot break the measurement record. The geometry that forbids certifying invented detail simultaneously guarantees that supplying it is measurement-safe. This section makes that reading constructive.
 
 \subsection*{6.1 An audited anchor and two matched priors}
@@ -332,7 +331,7 @@ $$A\hat{x}_B = A x_0 + A\,P_0\big(d_A + B(d_G - d_A)\big).$$
 The audited anchor gives $A x_0 = y$. The null-space identity $A P_0 = 0$ (§2) annihilates the second term regardless of the bracketed vector and regardless of $B$, so
 $$A\hat{x}_B = y + 0 = y. \qquad \blacksquare$$
 
-This is the constructive counterpart of the verifiability barrier. In §3 the identity $A P_0 = 0$ produced a feasible-but-wrong witness that satisfied the record to $\sim\!2\times10^{-15}$ --- content that is provably unverifiable. Here the \textit{same} identity guarantees that no matter how much adversarial detail the dial injects, the reconstruction never leaves the feasible set. The audit and the fusion are two consequences of one fact: what the bucket cannot certify, editing cannot corrupt. Figure 2 draws the mechanism.
+This is the constructive counterpart of the verifiability barrier. In §3 the identity $A P_0 = 0$ produced a feasible-but-wrong witness that satisfied the record to $\sim\!2\times10^{-15}$ --- content that is provably unverifiable. Here the \textit{same} identity guarantees that no matter how much adversarial detail the dial injects, the reconstruction never leaves the feasible set. The audit and the fusion are two consequences of one fact: what the bucket cannot certify, editing cannot corrupt. Figure 5 draws the mechanism.
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.92\linewidth]{METHOD_DIAGRAM_3D.pdf}
@@ -348,6 +347,8 @@ We restate the scope deliberately, because the firewall of this program depends 
 \medskip\hrule\medskip
 
 \section*{7. The Honesty Dial}
+
+\textit{On the map: still the} therefore \textit{--- choosing, locking, and stress-testing one operating point.}
 
 The consistency theorem of §6 licenses a construction but does not, by itself, decide how much invented detail to admit. The fusion weight $B$ is a free scalar: every value produces a reconstruction that reproduces the record exactly, so the measurement offers no guidance on where along the family $\hat{x}_B = x_0 + P_0\big(d_A + B(d_G - d_A)\big)$ to stand. This is the point of the construction, not a defect of it --- the geometry $A P_0 = 0$ that makes null-space content unverifiable (the converse of §3) is the same geometry that makes injecting it measurement-safe (the consistency theorem of §6). What remains is to choose $B$ honestly, report the trade it buys, and pre-commit to the choice before touching the confirmatory data. We call the resulting object an \textit{honesty dial}: a single scalar that meters null-space detail, moves along a perception--distortion frontier, and never converts the perceptual gain it produces into a measurement claim.
 
@@ -371,7 +372,7 @@ Full VQGAN ($B=1$) & 0.172 & 21.43 & 0.089 & 0.571 & 0.0019 \\
 
 From the VQAE branch onward the ordering is strictly monotone in every column (the LMMSE anchor, which precedes the dial, is dominated by VQAE on every axis). LPIPS falls from $0.404$ (LMMSE) through $0.300$ (VQAE) to $0.172$ (full VQGAN), and RAPSD --- a radially-averaged power-spectral measure of how closely the reconstruction's spectrum matches natural-image statistics (cf. Durall et al. 2020) --- improves in lockstep from $0.0041$ to $0.0019$; over the same range PSNR declines from $23.13$ dB (VQAE, the pixel-fidelity optimum) to $21.43$ dB and SSIM from $0.657$ to $0.571$. This is the geometric content of the consistency theorem made empirical: because all null-space content is confined to $P_0$, each increment of $B$ trades measured pixel fidelity for perceptual realism along a smooth curve, and does so at fixed measurement fidelity. Every row of Table 1 satisfies $A\hat{x} = y$ to $\mathrm{RelMeasErr}\sim10^{-7}$; the ladder moves entirely within the null space the bucket cannot see.
 
-The balanced point sits at a deliberately chosen interior of this ladder. It captures roughly three-quarters of the LPIPS improvement available between VQAE ($0.300$) and full VQGAN ($0.172$) --- landing at $0.202$ --- and the bulk of the RAPSD gain, while holding PSNR within half a decibel of the reconstruction-optimal VQAE. It is the operating point we pre-register and confirm below; quality-lite is offered as a second registered point for applications that tolerate a larger distortion cost in exchange for further perceptual gain. Figure 3 places the named operating points on the perception--distortion plane, and Figure 4 shows the full 21-point sweep.
+The balanced point sits at a deliberately chosen interior of this ladder. It captures roughly three-quarters of the LPIPS improvement available between VQAE ($0.300$) and full VQGAN ($0.172$) --- landing at $0.202$ --- and the bulk of the RAPSD gain, while holding PSNR within half a decibel of the reconstruction-optimal VQAE. It is the operating point we pre-register and confirm below; quality-lite is offered as a second registered point for applications that tolerate a larger distortion cost in exchange for further perceptual gain. Figure 6 places the named operating points on the perception--distortion plane, and Figure 7 shows the full 21-point sweep.
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.9\linewidth]{PARETO_FIGURE.pdf}
@@ -387,7 +388,11 @@ The balanced point sits at a deliberately chosen interior of this ladder. It cap
 
 Because $B$ is a free knob and LPIPS is the metric it is chosen to improve, a naive report would risk selecting the operating point on the same data used to evaluate it. The dial is therefore \textit{locked}: the protocol fixes every degree of freedom before the confirmatory data are touched, and the confirmatory run is executed exactly once.
 
-\textbf{Protocol.} The task is low-rate ghost imaging on $64\times64$ grayscale STL10 ($n = 4096$) at a single fixed operator: $m = 205$ rows (5.0\% sampling), composed of 1 DC term, 128 low-frequency DCT rows, 56 low-sequency Hadamard rows, and 20 random rows, orthonormalized and generated from seed 772001. Data are split by raw-SHA256 deduplication into train (20,000, for the anchor and priors), validation (512, used \textit{only} to select $B$), development (512, mechanical scoring), and a locked set (512, one-shot confirmation). The locked set is raw-hash disjoint from the union of 60,497 previously consumed STL10 hashes --- overlap $0$, intra-duplicates $0$ --- so the confirmation is on genuinely unseen images rather than a re-scored development set. The balanced weight is frozen per seed at $B = \{0.55, 0.55, 0.50\}$ on validation, before the locked split is read. An 8-condition acceptance gate is fixed in advance: (1) relative LPIPS gain $\ge 5\%$; (2) the LPIPS bootstrap confidence interval strictly below zero; (3) at least 2 of 3 seeds agree in direction (achieved: 3/3); (4) PSNR cost within $0.5$ dB; (5) RMSE cost within $0.005$; (6) RAPSD not worse; (7) mean $\mathrm{RelMeasErr} \le 10^{-5}$; (8) the raw-hash disjointness audit passes. Confidence intervals are formed by averaging the per-image fusion-minus-VQAE deltas over seeds and bootstrapping over images (2000 resamples).
+\textbf{Protocol.} The task is low-rate ghost imaging on $64\times64$ grayscale STL10 ($n = 4096$) at a single fixed operator: $m = 205$ rows (5.0\% sampling), composed of 1 DC term, 128 low-frequency DCT rows, 56 low-sequency Hadamard rows, and 20 random rows, orthonormalized and generated from seed 772001.
+
+Data are split by raw-SHA256 deduplication into train (20,000, for the anchor and priors), validation (512, used \textit{only} to select $B$), development (512, mechanical scoring), and a locked set (512, one-shot confirmation). The locked set is raw-hash disjoint from the union of 60,497 previously consumed STL10 hashes --- overlap $0$, intra-duplicates $0$ --- so the confirmation is on genuinely unseen images rather than a re-scored development set. The balanced weight is frozen per seed at $B = \{0.55, 0.55, 0.50\}$ on validation, before the locked split is read.
+
+An 8-condition acceptance gate is fixed in advance: (1) relative LPIPS gain $\ge 5\%$; (2) the LPIPS bootstrap confidence interval strictly below zero; (3) at least 2 of 3 seeds agree in direction (achieved: 3/3); (4) PSNR cost within $0.5$ dB; (5) RMSE cost within $0.005$; (6) RAPSD not worse; (7) mean $\mathrm{RelMeasErr} \le 10^{-5}$; (8) the raw-hash disjointness audit passes. Confidence intervals are formed by averaging the per-image fusion-minus-VQAE deltas over seeds and bootstrapping over images (2000 resamples).
 
 The one-shot property attaches to the pre-registered \textit{gate evaluation}: the eight conditions were evaluated exactly once on the locked split. Later development-level analyses (the noise sweep of §8.2 and the breadth analysis of §8.3) re-read the same locked images with the dial frozen and \textit{no further selection of any kind}; they postdate the gate, change nothing upstream of it, and are labeled development-level precisely because the split's one-shot statistical guarantee does not extend to them.
 
@@ -397,7 +402,7 @@ a $32.6\%$ relative reduction whose interval lies entirely below zero. The cost 
 
 \textbf{Replication on the same-drawn development set.} The development split, scored mechanically before the locked run, gives $\Delta\mathrm{LPIPS} = -0.0965$ ($32.9\%$) and $\Delta\mathrm{PSNR} = -0.43$ dB. The development and locked effect sizes nearly coincide ($-0.0965$ versus $-0.0977$; $32.9\%$ versus $32.6\%$), so the confirmation reflects a stable property of the method rather than selection on the evaluation set.
 
-\textbf{Distribution-level corroboration (post-hoc; not among the eight gate conditions).} Per-image LPIPS measures distance to each image's own reference; kernel Inception distance (KID) instead compares each method's \textit{distribution} of reconstructions to the natural-image distribution. KID follows the same ladder and confirms the gain at the distributional level: balanced fusion improves locked-split KID from $0.119$ (VQAE) to $0.043$, a $2.7\times$ reduction, with quality-lite and full VQGAN closer still to the natural-image manifold. The injected null-space detail therefore makes the reconstructions distributionally more natural, not merely better on a single per-image metric. Figure 5 shows fixed locked-split samples across the ladder.
+\textbf{Distribution-level corroboration (post-hoc; not among the eight gate conditions).} Per-image LPIPS measures distance to each image's own reference; kernel Inception distance (KID) instead compares each method's \textit{distribution} of reconstructions to the natural-image distribution. KID follows the same ladder and confirms the gain at the distributional level: balanced fusion improves locked-split KID from $0.119$ (VQAE) to $0.043$, a $2.7\times$ reduction, with quality-lite and full VQGAN closer still to the natural-image manifold. The injected null-space detail therefore makes the reconstructions distributionally more natural, not merely better on a single per-image metric. Figure 8 shows fixed locked-split samples across the ladder.
 
 \begin{figure}[t]\centering
 \includegraphics[width=1.0\linewidth]{QUALITATIVE_GRID.pdf}
@@ -422,13 +427,19 @@ The scalar $B$ is the closest interface in this literature to CodeFormer's fidel
 
 \textit{Proof.} $g$ depends on $x$ only through $y = Ax$; two scenes on one fiber produce the same $y$, hence the same $g$ and the same reconstruction. The oracle weight depends on the unobserved $P_0 x$; a rule matching it beyond its $y$-predictable component would distinguish fiber-mates, contradicting constancy. $\blacksquare$
 
-The lemma is elementary --- the converse of §3 restated for selection rules --- and we claim it as a clarification, not as mathematical depth: it is the measurability fact the per-image-adaptation literature keeps paying for ignoring. What it does \textit{not} rule out is a $y$-adaptive dial $B(y)$ capturing whatever of $B^\star$ correlates with the measured component. Whether that component is worth anything is an empirical question, and on this benchmark the answer is no [development-level]: a feature-based per-image selector --- null energies $\|d_A\|, \|d_G\|$, the chord and cosine between the residuals, anchor texture statistics, cross-arm perceptual distances --- trained on validation and tested on development recovers the oracle only through a \textit{global} shift of $B$: its excess over a global scalar matched to its own mean PSNR is $\le 0.002$ LPIPS, a deliberately constant predictor reproduces it exactly, and the features barely rank-correlate with the oracle weight ($|\rho| \le 0.24$). The scalar dial is thus honest twice over --- exactly, because nothing computable from one record can adapt across a fiber; empirically, because the $y$-predictable component of the oracle is worth essentially nothing here. We scope the lemma explicitly: it concerns ground-truth-free selection on one fixed operator and one record. Frameworks that do recover null-space information import exactly what the lemma says is missing --- structure beyond the single record --- as in equivariant imaging and its sensing theorems (Chen et al. 2021; Tachella et al. 2023), where group actions or operator diversity convert the null content of one record into the range content of another.
+The lemma is elementary --- the converse of §3 restated for selection rules --- and we claim it as a clarification, not as mathematical depth: it is the measurability fact the per-image-adaptation literature keeps paying for ignoring.
+
+What it does \textit{not} rule out is a $y$-adaptive dial $B(y)$ capturing whatever of $B^\star$ correlates with the measured component. Whether that component is worth anything is an empirical question, and on this benchmark the answer is no [development-level]: a feature-based per-image selector --- null energies $\|d_A\|, \|d_G\|$, the chord and cosine between the residuals, anchor texture statistics, cross-arm perceptual distances --- trained on validation and tested on development recovers the oracle only through a \textit{global} shift of $B$: its excess over a global scalar matched to its own mean PSNR is $\le 0.002$ LPIPS, a deliberately constant predictor reproduces it exactly, and the features barely rank-correlate with the oracle weight ($|\rho| \le 0.24$). The scalar dial is thus honest twice over --- exactly, because nothing computable from one record can adapt across a fiber; empirically, because the $y$-predictable component of the oracle is worth essentially nothing here.
+
+We scope the lemma explicitly: it concerns ground-truth-free selection on one fixed operator and one record. Frameworks that do recover null-space information import exactly what the lemma says is missing --- structure beyond the single record --- as in equivariant imaging and its sensing theorems (Chen et al. 2021; Tachella et al. 2023), where group actions or operator diversity convert the null content of one record into the range content of another.
 
 \textbf{Remark (the audit tax).} The lemma also prices its own escape: change the fiber. Hold out $q$ extra bucket rows, never used for reconstruction; the holdout residual estimates the entire $(n-m)$-dimensional null error of any measurement-consistent candidate, and $q = O(\varepsilon^{-2}\log|\mathcal{K}|)$ rows suffice to rank $|\mathcal{K}|$ candidates. This is compressed-sensing cross-validation, verbatim (Ward 2009; Boufounos et al. 2007) --- we run no new experiment and claim no novelty for the estimator. The allocational reading is the point: spent on sensing, $q = 32$ rows shrink this null space by ${\sim}0.8\%$; spent on auditing, they estimate the whole null ledger. Testing is cheaper than sensing --- but by the oracle ceilings above, the tax buys \textit{falsification} of a hypothesized completion, not quality: even a ground-truth per-image dial choice under the registered tolerance is worth only ${\sim}0.004$ LPIPS here.
 
 \medskip\hrule\medskip
 
 \section*{8. Robustness and Reach}
+
+\textit{On the map: the outer branches --- how far the locked point travels, and what the frame says about the published field.}
 
 The locked claim of §7 fixes one operating point: the balanced dial $B$, at a single $5.0\%$ operator, on one $64\times64$ resolution, under noiseless acquisition. This section asks how far that operating point reaches --- across sampling rate, across measurement noise, and across the image population. All results here are \textbf{development-level}: they reuse the frozen system, re-select nothing on the locked split, and constitute supplementary evidence rather than a second pre-registered claim. We label them as such throughout and treat none of them as certified. The measurement-consistency guarantee, however, is not development-level: because $A P_0 = 0$ holds for every operator by construction, $A\hat{x}_B = y$ remains exact at every rate and every noise level below.
 
@@ -486,7 +497,7 @@ The gain is broad, not anecdotal. Balanced fusion improves LPIPS on $99.0\%$, $9
 
 \subsection*{8.4 External validity: projector forensics of published pipelines, on their own operators}
 
-Everything above is demonstrated on our operator. To test whether the two-ledger reading describes the field rather than our construction, we audited three published DL-GI pipelines --- three different learning paradigms on three different operators --- using \textbf{each paper's own released or measured operator and each paper's own code}, with exact orthogonal attribution $\|\hat{x}-x\|^2 = \|P_R(\hat{x}-x)\|^2 + \|P_0(\hat{x}-x)\|^2$ computed from the SVD of \textit{their} $A$ (Figure 8).
+Everything above is demonstrated on our operator. To test whether the two-ledger reading describes the field rather than our construction, we audited three published DL-GI pipelines --- three different learning paradigms on three different operators --- using \textbf{each paper's own released or measured operator and each paper's own code}, with exact orthogonal attribution $\|\hat{x}-x\|^2 = \|P_R(\hat{x}-x)\|^2 + \|P_0(\hat{x}-x)\|^2$ computed from the SVD of \textit{their} $A$ (Figure 11).
 
 \begin{figure}[t]\centering
 \includegraphics[width=1.0\linewidth]{FORENSICS_CROSS_TARGET.pdf}
@@ -506,12 +517,18 @@ Everything above is demonstrated on our operator. To test whether the two-ledger
 pipeline & operator & headline vs own range ceiling & gain split (row/null) & terminal null share & final consistency \\
 \midrule
 PEDL, fine-tuned (Wang et al. 2022a) & learned patterns, 25\% & $25.12$ vs $16.99$ dB ($+8.1$) & $61/39$ & $96.9\%$ & $2.3\times10^{-2}$ \\
-GIDC, untrained (Wang et al. 2022b); known-GT scene & real measured speckle, 10\% & $19.54$ vs $15.04$ dB ($+4.5$) & $60/40$ & $95.4\%$ & $0.134$ (exp.\textbackslash\{\} scene) \\
+GIDC, untrained (Wang et al. 2022b); known-GT scene & real measured speckle, 10\% & $19.54$ vs $15.04$ dB ($+4.5$) & $60/40$ & $95.4\%$ & $0.134$ (experimental scene) \\
 Noise2Ghost, self-supervised (Manni et al. 2025) & sim masks, 10\%, noisy record & $18.40$ vs $15.26$ dB ($+3.1$) & $5/95$ & $92.7\%$ & noise floor \\
 \bottomrule
 \end{tabular}\end{center}
 
-\textbf{The cross-target regularity, with its base rates.} The \textit{qualitative direction} of these findings is forced by the sampling rate and must be said plainly: at $6$--$25\%$ sampling, most of any scene's energy is null-space energy to begin with (the true scene carries $10.1\%$ of its energy in the learned operator's null space, $17.2\%$ in GIDC's, and the pseudo-inverse reference point has a $100\%$-null terminal error by construction), so "most residual error is null" is partially dimension counting. What is \textit{not} forced, and constitutes the findings, are the quantitative splits and their agreement: the $61/39$ and $60/40$ row/null attributions of two entirely different optimizations, the $5/95$ split of the self-supervised method whose in-range denoising is real ($42\%$ below the noisy pseudo-inverse) yet small, the truth-alignment trajectories ($0.07 \to 0.65$ for GIDC), and the fact that all three terminate with the row ledger \textit{repaired} --- the methods reduce the null share of error below the base rate, and stall exactly when the certifiable ledger is exhausted. Two caveats bound the audit's own accountability: the GIDC null attribution inherits any calibration error in the released patterns (the operator is measured, not exact), and the attribution is stated relative to the min-norm reference. None of the three pipelines applies an exact consistency projection (residuals $2.3\times10^{-2}$, $0.134$, and noise-floor respectively), so the audit step of §4 is available to each at zero cost. We stress the reading: this is not an accusation of error --- the null content these methods supply is often substantially truth-aligned --- it is the \textit{location} of their gains in the two-ledger account, measured on their own instruments. The separation law of §5 describes the field, not just our operator.
+\textbf{The cross-target regularity, with its base rates.} The \textit{qualitative direction} of these findings is forced by the sampling rate and must be said plainly: at $6$--$25\%$ sampling, most of any scene's energy is null-space energy to begin with (the true scene carries $10.1\%$ of its energy in the learned operator's null space, $17.2\%$ in GIDC's, and the pseudo-inverse reference point has a $100\%$-null terminal error by construction), so "most residual error is null" is partially dimension counting.
+
+What is \textit{not} forced, and constitutes the findings, are the quantitative splits and their agreement: the $61/39$ and $60/40$ row/null attributions of two entirely different optimizations, the $5/95$ split of the self-supervised method whose in-range denoising is real ($42\%$ below the noisy pseudo-inverse) yet small, the truth-alignment trajectories ($0.07 \to 0.65$ for GIDC), and the fact that all three terminate with the row ledger \textit{repaired} --- the methods reduce the null share of error below the base rate, and stall exactly when the certifiable ledger is exhausted.
+
+Two caveats bound the audit's own accountability: the GIDC null attribution inherits any calibration error in the released patterns (the operator is measured, not exact), and the attribution is stated relative to the min-norm reference. None of the three pipelines applies an exact consistency projection (residuals $2.3\times10^{-2}$, $0.134$, and noise-floor respectively), so the audit step of §4 is available to each at zero cost.
+
+We stress the reading: this is not an accusation of error --- the null content these methods supply is often substantially truth-aligned --- it is the \textit{location} of their gains in the two-ledger account, measured on their own instruments. The separation law of §5 describes the field, not just our operator.
 
 \medskip\hrule\medskip
 
@@ -522,9 +539,7 @@ The certificate of §4 and the dial of §6 are one fact read in two directions. 
 \subsection*{9.1 A prior can raise naturalness without reducing distance to the true null content}
 
 Take any two audited-and-fused reconstructions sharing an operator and anchor. Both satisfy $A\hat{x} = y$, so both have the identical row-space component, and their entire difference lives in the null space:
-$$
-\textbackslash\{\}hat\{x\}\_\{B\_1\} - \textbackslash\{\}hat\{x\}\_\{B\_2\} = P\_0\textbackslash\{\}big[(B\_1 - B\_2)(d\_G - d\_A)\textbackslash\{\}big] \textbackslash\{\}in \textbackslash\{\}mathcal\{N\}(A).
-$$
+$$\hat{x}_{B_1} - \hat{x}_{B_2} = P_0\big[(B_1 - B_2)(d_G - d_A)\big] \in \mathcal{N}(A).$$
 Whatever a stronger prior buys --- the locked perceptual and distributional gains of §7 --- it buys entirely in $P_0$. The null-space error, however, is $P_0(\hat{x} - x) = P_0\hat{x} - P_0 x$, and its second term is the true scene's unmeasured content, the one quantity the record cannot reveal. A prior that increases naturalness changes $P_0\hat{x}$; it carries \textbf{no guarantee} of reducing the distance to $P_0 x$ --- a more realistic reconstruction may be nearer to, or farther from, the true null content than a flatter one, and the measurement provides no way to tell which (the prior-content map $|P_0\hat{x}|$ of §3.4 exhibits the same decoupling directly). Perceptual gain is real and is measured on the quality axis; it must never be read as evidence on the null axis, because $A P_0 = 0$ severs the two.
 
 \subsection*{9.2 Prescription: report both axes, and label provenance}
@@ -597,7 +612,15 @@ Our thesis has deep provenance outside imaging. Econometric identification theor
 
 \subsection*{10.9 Novelty statement}
 
-Every line above uses the range--null geometry, or a prior over the unmeasured content, to \textbf{reconstruct}: install the "correct" prior in the null space for fidelity (Wang et al., 2023 AAAI; RND-SCI; DDNM; MCG), learn to predict null content from $y$ (NPN; GSNR; Chen \& Davies, 2020), fabricate null-like error to benchmark detectors (HalluGen), quantify output uncertainty against calibration data (RCPS; conformal risk control; Wen et al., 2024), or prove abstractly that the kernel forces hallucination (Iagaru et al., 2026; Bhadra et al., 2021; Antun et al., 2020). We use the identical geometry to \textbf{certify, bound, and meter}, and our contribution rests on four airtight, uncontested hooks. \textbf{First}, we make the barrier \textit{constructive}: an explicit feasible-but-wrong witness that matches the same bucket record to machine precision --- tighter than the noisy truth --- turning "consistency is not correctness" from a theorem about maps (Iagaru et al., 2026) and an SVD diagnostic (Bhadra et al., 2021) into a per-instance object --- and where Gottschling et al.'s (2025) kernel constructions establish destabilizing existence, ours are cross-class, record-tight, and displayed. \textbf{Second}, we give a ground-truth-free, reconstructor-agnostic \textbf{test-time certificate} that contracts each measured mode by \textit{exactly} $\lambda/(\lambda+\sigma_i^2)$ --- a closed-form modal spectrum, not a feasible-set-diameter bound (Iagaru et al., 2026), a soft penalty (NPN; GSNR), a design-time predictability curve (GSNR), or a calibrated statistical interval (Angelopoulos et al., 2022) --- auditing BP, Tikhonov, CS-TV, and learned reconstructors uniformly --- including, in §8.4, three \textit{published} DL-GI pipelines decomposed on their own released or measured operators --- and \textbf{separating image quality from measurement accountability}. \textbf{Third}, that separation is demonstrated as an explicit protocol (perceptual/PSNR quality essentially unchanged while measurement residuals fall orders of magnitude), an axis none of the reconstruction or UQ lines report. \textbf{Fourth}, we convert null-space injection from an all-or-nothing fill into a single-scalar, pre-registered \textbf{honesty dial} that fuses VQAE structure and VQGAN detail and keeps $A\hat{x}_B = y$ \textit{exact} for every $B$ behind a locked gate --- moving the field from \textit{assessment} (does a reconstruction hallucinate?) to \textit{governance} (how much invented detail do we add, where the bucket is provably blind, without ever breaking or laundering the measurement?). We explicitly do \textbf{not} claim SOTA, do not beat diffusion, and never claim the measurement certifies invented texture --- the point is that it provably cannot. That inversion --- \textbf{reconstruct, becomes certify / bound / meter} --- is the slot this paper occupies.
+Every line above uses the range--null geometry, or a prior over the unmeasured content, to \textbf{reconstruct}: install the "correct" prior in the null space for fidelity (Wang et al., 2023 AAAI; RND-SCI; DDNM; MCG), learn to predict null content from $y$ (NPN; GSNR; Chen \& Davies, 2020), fabricate null-like error to benchmark detectors (HalluGen), quantify output uncertainty against calibration data (RCPS; conformal risk control; Wen et al., 2024), or prove abstractly that the kernel forces hallucination (Iagaru et al., 2026; Bhadra et al., 2021; Antun et al., 2020). We use the identical geometry to \textbf{certify, bound, and meter}, and our contribution rests on four airtight, uncontested hooks. \textbf{First}, we make the barrier \textit{constructive}: an explicit feasible-but-wrong witness that matches the same bucket record to machine precision --- tighter than the noisy truth --- turning "consistency is not correctness" from a theorem about maps (Iagaru et al., 2026) and an SVD diagnostic (Bhadra et al., 2021) into a per-instance object --- and where Gottschling et al.'s (2025) kernel constructions establish destabilizing existence, ours are cross-class, record-tight, and displayed.
+
+\textbf{Second}, we give a ground-truth-free, reconstructor-agnostic \textbf{test-time certificate} that contracts each measured mode by \textit{exactly} $\lambda/(\lambda+\sigma_i^2)$ --- a closed-form modal spectrum, not a feasible-set-diameter bound (Iagaru et al., 2026), a soft penalty (NPN; GSNR), a design-time predictability curve (GSNR), or a calibrated statistical interval (Angelopoulos et al., 2022) --- auditing BP, Tikhonov, CS-TV, and learned reconstructors uniformly --- including, in §8.4, three \textit{published} DL-GI pipelines decomposed on their own released or measured operators --- and \textbf{separating image quality from measurement accountability}.
+
+\textbf{Third}, that separation is demonstrated as an explicit protocol (perceptual/PSNR quality essentially unchanged while measurement residuals fall orders of magnitude), an axis none of the reconstruction or UQ lines report.
+
+\textbf{Fourth}, we convert null-space injection from an all-or-nothing fill into a single-scalar, pre-registered \textbf{honesty dial} that fuses VQAE structure and VQGAN detail and keeps $A\hat{x}_B = y$ \textit{exact} for every $B$ behind a locked gate --- moving the field from \textit{assessment} (does a reconstruction hallucinate?) to \textit{governance} (how much invented detail do we add, where the bucket is provably blind, without ever breaking or laundering the measurement?).
+
+We explicitly do \textbf{not} claim SOTA, do not beat diffusion, and never claim the measurement certifies invented texture --- the point is that it provably cannot. That inversion --- \textbf{reconstruct, becomes certify / bound / meter} --- is the slot this paper occupies.
 
 \medskip\hrule\medskip
 
