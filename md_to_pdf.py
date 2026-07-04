@@ -67,6 +67,17 @@ def convert(md: str) -> str:
     while i < n:
         ln = lines[i]
         s = ln.strip()
+        # inline figure directive: [FIG: file.pdf | width | Caption text]
+        mfig = re.match(r"^\[FIG:\s*([^|\]]+?)\s*\|\s*([\d.]+)\s*\|\s*(.*)\]$", s)
+        if mfig:
+            close_list()
+            fname, width, cap = mfig.group(1).strip(), mfig.group(2).strip(), mfig.group(3).strip()
+            out.append(r"\begin{figure}[t]\centering")
+            out.append(rf"\includegraphics[width={width}\linewidth]{{{fname}}}")
+            out.append(r"\caption{" + inline(cap) + "}")
+            out.append(r"\end{figure}")
+            i += 1
+            continue
         # table block
         if s.startswith("|") and i + 1 < n and re.match(r"^\s*\|[\s:|-]+\|\s*$", lines[i + 1]):
             close_list()
@@ -150,6 +161,8 @@ def convert(md: str) -> str:
                  ("QUALITATIVE_GRID.pdf", "Locked-split reconstructions on fixed samples."),
                  ("rate_generalization_figure.pdf", "Cross-sampling-rate generalization (development-level, 3 seeds/rate): the balanced-fusion LPIPS advantage over VQAE holds at 2\\%, 5\\% (locked), and 10\\% sampling."),
                  ("B_CURVE.pdf", "Fine-grained perception--distortion frontier: a dense 21-point sweep of the fusion weight $B$ (development split), smooth and monotone from VQAE ($B{=}0$) to full VQGAN ($B{=}1$).")]
+    if "[FIG:" in md:
+        fig_specs = []          # inline directives supersede the appended review-figure block
     if any((PAPER / f).exists() for f, _ in fig_specs):
         figs.append(r"\clearpage\section*{Figures}")
         for f, cap in fig_specs:
