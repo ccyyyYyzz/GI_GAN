@@ -438,9 +438,250 @@ def cmd_risk(k=8, n_scenes=128):
     log(f"wrote risk_k{k}.json")
 
 
+# ============================================================================ #
+# Stage 2: stronger verifiable classifier (train WITH BN, fold exactly at eval)
+# + real-label scenes from the classifier's heldout split (double-clean:
+# classifier never trained on them; refiners never saw STL10 'test' at all).
+# ============================================================================ #
+class VerifiableCNN2(nn.Module):
+    """conv-BN-ReLU-avgpool x3 + GAP + linear. BN folds exactly into conv at eval."""
+    def __init__(self, nc=10, ch=(32, 64, 128)):
+        super().__init__()
+        self.c1 = nn.Conv2d(1, ch[0], 3, padding=1); self.b1 = nn.BatchNorm2d(ch[0])
+        self.c2 = nn.Conv2d(ch[0], ch[1], 3, padding=1); self.b2 = nn.BatchNorm2d(ch[1])
+        self.c3 = nn.Conv2d(ch[1], ch[2], 3, padding=1); self.b3 = nn.BatchNorm2d(ch[2])
+        self.fc = nn.Linear(ch[2], nc)
+    def forward(self, x):
+        h = F.avg_pool2d(F.relu(self.b1(self.c1(x))), 2)
+        h = F.avg_pool2d(F.relu(self.b2(self.c2(h))), 2)
+        h = F.avg_pool2d(F.relu(self.b3(self.c3(h))), 2)
+        return self.fc(h.mean(dim=(2, 3)))
+
+
+def fold_bn(conv: nn.Conv2d, bn: nn.BatchNorm2d) -> nn.Conv2d:
+    """Exact eval-mode fold: W' = W * g/sqrt(v+eps) per out-channel; b' = beta + (b - mean)*g/sqrt(v+eps)."""
+    s = (bn.weight / torch.sqrt(bn.running_var + bn.eps)).detach()
+    out = nn.Conv2d(conv.in_channels, conv.out_channels, 3, padding=1)
+    out.weight = nn.Parameter((conv.weight.detach() * s[:, None, None, None]).clone())
+    b = conv.bias.detach() if conv.bias is not None else torch.zeros_like(s)
+    out.bias = nn.Parameter((bn.bias.detach() + (b - bn.running_mean.detach()) * s).clone())
+    return out
+
+
+class FoldedCNN(nn.Module):
+    def __init__(self, net2: VerifiableCNN2):
+        super().__init__()
+        self.c1 = fold_bn(net2.c1, net2.b1); self.c2 = fold_bn(net2.c2, net2.b2)
+        self.c3 = fold_bn(net2.c3, net2.b3); self.fc = net2.fc
+    def forward(self, x):
+        h = F.avg_pool2d(F.relu(self.c1(x)), 2)
+        h = F.avg_pool2d(F.relu(self.c2(h)), 2)
+        h = F.avg_pool2d(F.relu(self.c3(h)), 2)
+        return self.fc(h.mean(dim=(2, 3)))
+
+
+def _stl10_test_split():
+    """Reproduce the exact train/heldout split used for classifier training (seed 0)."""
+    import torchvision as tv
+    from torchvision import transforms
+    tf = transforms.Compose([transforms.Resize((64, 64)), transforms.Grayscale(1), transforms.ToTensor()])
+    ds = tv.datasets.STL10(root=DATA_ROOT, split="test", download=False, transform=tf)
+    torch.manual_seed(0)
+    tr, va = torch.utils.data.random_split(ds, [len(ds) - 1000, 1000])
+    return ds, tr, va
+
+
+def train_classifier2():
+    ckpt = SB / "verifiable_cnn2_folded.pt"
+    if ckpt.exists():
+        net = FoldedCNN(VerifiableCNN2()).to(DEV)
+        net.load_state_dict(torch.load(ckpt, map_location=DEV)); net.eval()
+        log("loaded verifiable_cnn2_folded.pt"); return net
+    from torchvision import transforms
+    ds, tr, va = _stl10_test_split()
+    aug = transforms.Compose([transforms.RandomHorizontalFlip(),
+                              transforms.RandomCrop(64, padding=4)])
+    net2 = VerifiableCNN2().to(DEV)
+    dl = torch.utils.data.DataLoader(tr, batch_size=128, shuffle=True)
+    dv = torch.utils.data.DataLoader(va, batch_size=256)
+    opt = torch.optim.AdamW(net2.parameters(), lr=2e-3, weight_decay=5e-4)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=40)
+    best, best_state = -1.0, None
+    for ep in range(40):
+        net2.train()
+        for x, yb in dl:
+            x, yb = aug(x.to(DEV)), yb.to(DEV)
+            opt.zero_grad(); F.cross_entropy(net2(x), yb).backward(); opt.step()
+        sched.step()
+        net2.eval(); ok = tot = 0
+        with torch.no_grad():
+            for x, yb in dv:
+                ok += int((net2(x.to(DEV)).argmax(1).cpu() == yb).sum()); tot += len(yb)
+        if ok / tot > best: best, best_state = ok / tot, {k: v.detach().cpu().clone() for k, v in net2.state_dict().items()}
+        if ep % 5 == 0 or ep == 39: log(f"  clf2 epoch {ep}: acc {ok/tot:.3f} (best {best:.3f})")
+    net2.load_state_dict(best_state); net2.eval()
+    folded = FoldedCNN(net2).to(DEV).eval()
+    # fold audit: mathematically exact; numerically float32 accumulation differs -> check
+    # relative error + 100% argmax agreement (downstream uses ONLY the folded net, consistently)
+    with torch.no_grad():
+        xs = torch.rand(256, 1, 64, 64, device=DEV)
+        a, b = net2(xs), folded(xs)
+        d = (a - b).abs().max().item(); rel = d / a.abs().max().clamp(min=1e-9).item()
+        agree = float((a.argmax(1) == b.argmax(1)).float().mean())
+    assert rel < 5e-3 and agree == 1.0, f"BN fold mismatch rel={rel:.1e} agree={agree}"
+    torch.save(folded.state_dict(), ckpt)
+    log(f"saved verifiable_cnn2_folded.pt (heldout acc {best:.3f}, fold rel|diff|={rel:.1e}, argmax agree={agree:.3f})")
+    return folded
+
+
+def prep_labeled_scenes(n=256):
+    """Reconstruct the classifier's heldout STL10-test images through the deployed GI pipeline.
+    Double-clean labels: classifier never trained on them; refiners/priors never saw split='test'.
+    (Heldout was used for classifier early stopping -- mild selection leakage, disclosed.)"""
+    cache = SB / f"labeled_scenes_{n}.pt"
+    if cache.exists():
+        d = torch.load(cache, map_location=DEV); log(f"loaded labeled_scenes_{n}.pt"); return d["xhat"], d["truth"], d["labels"]
+    import anchor_initialized_vqgan_inversion as ai
+    ds, tr, va = _stl10_test_split()
+    xs, ys = [], []
+    for i in range(n):
+        x, lab = va[i]; xs.append(x); ys.append(lab)
+    X = torch.stack(xs).to(DEV); labels = torch.tensor(ys)
+    cfg = vdf.load_cfg(0); cfg["data"]["dataset_root"] = DATA_ROOT
+    sub = vdf.Substrate(cfg, DEV)
+    meas, proj = sub.measurement, sub.projector
+    priors = {ai.VQAE: ai.load_prior(ai.VQAE, vdf.ROOT / cfg["priors"]["vqae_checkpoint"], cfg, DEV),
+              ai.VQGAN: ai.load_prior(ai.VQGAN, vdf.ROOT / cfg["priors"]["vqgan_checkpoint"], cfg, DEV)}
+    refs = {ai.VQAE: ai.load_refiner_checkpoint(vdf.refiner_ckpt(0, ai.VQAE), cfg, DEV),
+            ai.VQGAN: ai.load_refiner_checkpoint(vdf.refiner_ckpt(0, ai.VQGAN), cfg, DEV)}
+    dt = float(cfg["training"].get("distance_temperature", 1.0)); st = float(cfg["training"].get("soft_temperature", 1.0))
+    @torch.no_grad()
+    def refine(kind, x0, unc):
+        p = priors[kind]; z0 = p.model.encode(x0)
+        dz, dl = refs[kind](x0, unc, z0)
+        logits = ai.logits_from_latent(z0 + dz, p, distance_temperature=dt) + dl
+        zq, _, _ = ai.quantize_from_logits(p, logits, soft_temperature=st, straight_through=False)
+        return p.model.decode_embeddings(zq)
+    xh_all = []
+    with torch.no_grad():
+        for i in range(0, n, 32):
+            xb = X[i:i + 32]
+            y = meas.A_forward(meas.flatten_img(xb))
+            x0 = meas.unflatten_img(sub.lmmse.anchor(y, meas, device=DEV))
+            unc = sub.lmmse.uncertainty_map(img_size=64, device=DEV, batch_size=xb.shape[0], dtype=xb.dtype)
+            xA = refine(ai.VQAE, x0, unc); xG = refine(ai.VQGAN, x0, unc)
+            pre = vdf.prep_residuals({"x0": x0, "x_A": xA, "x_G": xG, "y": y, "truth": xb,
+                                      "source_index": torch.arange(xb.shape[0]), "label": labels[i:i + 32]}, meas, proj)
+            xh = vdf.fuse(("scalar", 0.55), pre["x0f"], pre["d_A"], pre["d_G"], pre["y"], meas, proj, [])
+            xh_all.append(xh.double())
+    xhat = torch.cat(xh_all)
+    torch.save({"xhat": xhat.cpu(), "truth": X.cpu(), "labels": labels}, cache)
+    log(f"cached labeled_scenes_{n}.pt")
+    return xhat.to(DEV), X, labels
+
+
+def cmd_risk2(k=16, n_scenes=256):
+    """Paper-grade pass: strong folded classifier + REAL labels + the headline catch metric.
+    Reports: DF (decision fidelity) AND label-correctness; r* vs confidence global ranking;
+    matched-budget catch comparison INSIDE the high-confidence set."""
+    net = train_classifier2()
+    layers = net_layers_folded(net)
+    Ball, sig, _ = build_slab(32)
+    Bk = Ball[:, :k].float(); sk = sig[:k].float()
+    xhat, truth, labels = prep_labeled_scenes(n_scenes)
+    labels = labels.cpu(); truth = truth.to(DEV)
+    fgrid = [0.02, 0.05, 0.08, 0.1, 0.125, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
+    with torch.no_grad():
+        lo_hat = net(xhat.float()); pred_hat = lo_hat.argmax(1).cpu()
+        pred_tru = net(truth.float()).argmax(1).cpu()
+        sm = torch.softmax(lo_hat, 1).cpu(); top2 = sm.topk(2, 1).values
+        conf = (top2[:, 0] - top2[:, 1]).numpy()
+    acc_truth = float((pred_tru == labels).float().mean())
+
+    # FRAGILITY PROBE: is r*=0 genuine (PGD finds flips) or CROWN looseness (GAP)? subsample.
+    nfp = min(64, n_scenes)
+    for w in [0.05, 0.1]:
+        cert = flip = gap = 0
+        for i in range(nfp):
+            xi = xhat[i:i + 1].float(); pred = int(pred_hat[i])
+            lb, _ = verify_margin(layers, Bk, xi, -w * sk, w * sk, pred)
+            if lb > 0: cert += 1; continue
+            fl, _, in01 = pgd_attack(net, Bk, xi, -w * sk, w * sk, pred, steps=150, restarts=3)
+            if fl and in01: flip += 1
+            else: gap += 1
+        log(f"  FRAGILITY w={w} (n={nfp}): CROWN-cert {cert}  PGD-flip(physical) {flip}  GAP {gap}  "
+            f"-> {'GENUINELY FRAGILE' if flip>gap else 'CROWN-LOOSE(GAP-dominated)'}")
+    rows = []
+    t0 = time.time()
+    for i in range(n_scenes):
+        xi = xhat[i:i + 1].float(); pred = int(pred_hat[i])
+        rstar = 0.0
+        for w in fgrid:
+            lb, _ = verify_margin(layers, Bk, xi, -w * sk, w * sk, pred)
+            if lb > 0: rstar = w
+            else: break
+        rows.append({"scene": i, "rstar": rstar, "conf": float(conf[i]),
+                     "DF": int(pred_hat[i] == pred_tru[i]), "correct": int(pred_hat[i] == labels[i])})
+    dt = time.time() - t0
+    r = np.array([x["rstar"] for x in rows]); cf = np.array([x["conf"] for x in rows])
+    df = np.array([x["DF"] for x in rows]); cor = np.array([x["correct"] for x in rows])
+
+    def spearman(a, b):
+        ra = np.argsort(np.argsort(a)).astype(float); rb = np.argsort(np.argsort(b)).astype(float)
+        ra -= ra.mean(); rb -= rb.mean(); d = ra.std() * rb.std()
+        return float((ra * rb).mean() / d) if d > 0 else 0.0
+
+    def sel_auc(score, target):
+        order = np.argsort(-score); t = target[order]
+        cum = np.cumsum(t) / (np.arange(len(t)) + 1)
+        return float(cum.mean())
+
+    log(f"RISK2 k={k}: n={n_scenes}  clf-acc-on-truth={acc_truth:.3f}  base DF={df.mean():.3f}  base correct={cor.mean():.3f}  ({dt:.0f}s)")
+    for name, tgt in [("DF", df), ("correct", cor)]:
+        log(f"  [{name}] Spearman r*={spearman(r, tgt):+.3f} conf={spearman(cf, tgt):+.3f} | sel-AUC r*={sel_auc(r, tgt):.3f} conf={sel_auc(cf, tgt):.3f}")
+    # HEADLINE: matched-budget catch inside the high-confidence half
+    hi = cf >= np.median(cf)
+    out_catch = {}
+    for name, tgt in [("DF", df), ("correct", cor)]:
+        err = (1 - tgt).astype(bool)
+        n_err_hi = int(err[hi].sum())
+        # r*-flag: lowest-r* scenes within hi-conf, budget = 25% of hi-conf set
+        budget = max(1, int(0.25 * hi.sum()))
+        idx_hi = np.where(hi)[0]
+        flag_r = idx_hi[np.argsort(r[hi])[:budget]]
+        flag_c = idx_hi[np.argsort(cf[hi])[:budget]]          # confidence's own ranking, same budget
+        caught_r = int(err[flag_r].sum()); caught_c = int(err[flag_c].sum())
+        out_catch[name] = {"n_hi": int(hi.sum()), "n_err_in_hi": n_err_hi, "budget": budget,
+                           "caught_by_rstar": caught_r, "caught_by_conf": caught_c,
+                           "recall_rstar": caught_r / max(n_err_hi, 1), "recall_conf": caught_c / max(n_err_hi, 1),
+                           "precision_rstar": caught_r / budget, "precision_conf": caught_c / budget}
+        log(f"  [CATCH {name}] hi-conf n={hi.sum()} errors={n_err_hi} budget={budget}: "
+            f"r* catches {caught_r} (recall {caught_r/max(n_err_hi,1):.2f}, prec {caught_r/budget:.2f}) "
+            f"vs conf catches {caught_c} (recall {caught_c/max(n_err_hi,1):.2f}, prec {caught_c/budget:.2f})")
+    out = {"k": k, "n": n_scenes, "clf_acc_on_truth": acc_truth,
+           "base_DF": float(df.mean()), "base_correct": float(cor.mean()),
+           "spearman": {"rstar_DF": spearman(r, df), "conf_DF": spearman(cf, df),
+                        "rstar_correct": spearman(r, cor), "conf_correct": spearman(cf, cor),
+                        "rstar_conf": spearman(r, cf)},
+           "sel_auc": {"rstar_DF": sel_auc(r, df), "conf_DF": sel_auc(cf, df),
+                       "rstar_correct": sel_auc(r, cor), "conf_correct": sel_auc(cf, cor)},
+           "catch": out_catch, "fgrid": fgrid, "rows": rows,
+           "leakage_note": "scenes = classifier's heldout STL10-test subset: classifier never trained on them "
+                           "(used only for early stopping -- disclosed); refiners/priors never saw split=test."}
+    (SB / f"risk2_k{k}.json").write_text(json.dumps(out, indent=2, default=float))
+    log(f"wrote risk2_k{k}.json")
+
+
+def net_layers_folded(net: FoldedCNN):
+    return [("conv", net.c1.weight, net.c1.bias), ("relu",), ("avgpool", 2),
+            ("conv", net.c2.weight, net.c2.bias), ("relu",), ("avgpool", 2),
+            ("conv", net.c3.weight, net.c3.bias), ("relu",), ("avgpool", 2),
+            ("gmean",), ("linear", net.fc.weight, net.fc.bias)]
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["selftest", "prep", "gate", "diag", "risk"])
+    ap.add_argument("command", choices=["selftest", "prep", "gate", "diag", "risk", "risk2"])
     ap.add_argument("--k", type=int, default=8)
     ap.add_argument("--scenes", type=int, default=16)
     a = ap.parse_args()
@@ -451,6 +692,7 @@ def main():
     elif a.command == "gate": cmd_gate(a.k, a.scenes)
     elif a.command == "diag": cmd_diag(a.k, a.scenes)
     elif a.command == "risk": cmd_risk(a.k, a.scenes)
+    elif a.command == "risk2": cmd_risk2(a.k, a.scenes)
 
 
 if __name__ == "__main__":

@@ -68,24 +68,51 @@ failure confidence cannot. Head-to-head (128 scenes):
    That is precisely the converse (P1) operationalized — the *confidently-wrong-on-hallucinated-content*
    failure mode, which softmax confidence is structurally blind to.
 
-## Verdict on direction #1: VIABLE, with an honest scope
-- **Cheap:** yes — 50–80 ms/scene, no BaB needed for the trust score, no external deps.
-- **Improvement:** yes but *targeted* — not a blowout over confidence as a ranker; the genuine, defensible
-  contribution is the measurement-aware catch of confident-but-fragile decisions (the high-confidence
-  subgroup split).
-- **Real innovation, not A+B:** yes — a *sound* decision certificate over the exact measurement fiber is a new
-  object (nonlinear-f fiber-invariance; it structurally escaped the round-1 renaming kill-pattern), and it
-  yields a GT-free reliability score whose value is exactly the paper's thesis at the decision level.
+## Stage 2 — the paper-grade pass overturns the Stage-1 positive (rigor)
+The Stage-1 "measurement-aware catch" was tested honestly with (a) a **properly trained, still-verifiable**
+classifier (train with BN, fold exactly at eval — `rel|diff|=1.6e-4`, 100% argmax agreement; heldout acc
+**0.651**, on-truth acc **0.605**) and (b) **real labels** on 256 **double-clean** scenes (the classifier's
+own heldout STL10-`test` subset — classifier never trained on them; the fusion refiners/priors never saw
+`split=test` at all). `risk2`, k∈{8,16}:
 
-## What the paper-grade version needs (next, ranked)
-1. **Stronger, still-verifiable classifier** (fold eval-mode BN into conv — exact; recovers the 0.537 SmallCNN
-   margins). The 0.375 net here makes DF noisy and likely *understates* the separation.
-2. **Real correctness, not just DF:** run the recon pipeline on STL10 `train` (labeled, disjoint from the
-   classifier's `test` training; disclose fusion-refiner leakage) and correlate r* with `pred==true_label`.
-3. **The catch as the headline metric:** precision/recall of r* flagging the low-DF cases *inside* the
-   high-confidence set (where it beats confidence by construction).
-4. Multi-seed/operator, k sweep {8,16,32}, and the design-dual (certificate-guided vs random-axis vs
-   eigen-order acquisition) — reviewer-flagged ratio ceiling = k, so headline at k=32.
+| signal (256 scenes, real classifier) | r* | softmax confidence |
+|---|:---:|:---:|
+| Spearman vs decision-fidelity | +0.098 | **+0.254** |
+| Spearman vs label-correctness | +0.095 | **+0.235** |
+| selective-pred AUC (correctness) | 0.429 | **0.523** |
+| catch inside hi-conf set — recall (correctness) | 0.14 | **0.32** |
 
-All arms keep `A x_hat = y` exact; the certificate is slab-relative determination of the decision, never
-correctness. Result JSONs: `outputs/.../detail_fusion_paper/sandwich/{gate,diag,risk}_k*.json` (local-only).
+**r\* loses to free softmax confidence on every axis, including the "catch" that was the whole novel claim.**
+Diagnosis: on the strong classifier the cheap CROWN-only r* is **degenerate — identically 0** at k=16 (nothing
+certifies at any width in the grid). The fragility probe (k=8, w=0.05/0.1σ) resolves *why*: PGD finds **~0**
+flips while CROWN certifies **0** → **GAP-dominated**. So the decisions are **not** genuinely fragile (they are
+likely certifiable), but the **cheap verifier is too loose to prove it**; a non-degenerate r* would require
+heavy α-CROWN + deep branch-and-bound (~tens of s/scene, still GAP-dominated at 2048 boxes) — which **breaks the
+"small compute" premise outright**.
+
+The Stage-1 positive (0.90-vs-0.50 catch) was an **artifact** of the weak 0.375 classifier (poorly-calibrated
+confidence) + decision-fidelity self-agreement instead of correctness — the **same class of artifact** as C1's
+global-B-shift illusion. It did not survive.
+
+## Verdict on direction #1: NOT a cheap win — do not pursue as specified
+- **Cheap?** Only while degenerate. A non-degenerate certificate on a real classifier needs heavy BaB → the
+  "small compute" premise fails.
+- **Improvement over the free baseline?** No. Where r* is cheaply computable (weak classifier) it merely ties
+  softmax confidence; on a real classifier the cheap r* is all-zero and loses. No demonstrated advantage.
+- **What genuinely survives** (worth keeping, not a paper on its own):
+  1. **Geometry-not-compute infrastructure** — exact k-dim slab (`||A b_j||=3.6e-16`) + sound hand-rolled
+     verifier. The dimensional collapse (4096→k) is real and reusable; it simply did not buy a winning app here.
+  2. **A verifier-limited converse**: at prior-plausible scale the cheap verifier cannot certify decisions AND
+     (for a strong classifier) PGD cannot easily flip them — the certifiability of GI decisions is
+     **inconclusive without heavy compute**, which is itself evidence against a cheap certificate.
+- **Honest lineage of the negative:** this is the third rigor-caught illusion of the session (C1 B-shift;
+  deep-audit's 15 renamings; now the r* trust-score). Each cost little and prevented an overclaim.
+
+## Recommendation
+Stop investing in a new *method/quantity* for GI (the deep-innovation audit already showed the linear-Gaussian
+layer is mined out; this prototype shows the one structurally-novel escape does not cash out cheaply). The
+highest-value remaining work is **consolidating the existing paper**: own the lineage
+(Backus–Gilbert → Barrett–Myers → MacKay → us), fold in the defensive citations, and add the free
+**no-adaptation lemma** — the contribution is the converse + governance framing for DL-era GI, not another gadget.
+
+Result JSONs: `outputs/.../detail_fusion_paper/sandwich/{gate,diag,risk,risk2}_k*.json` (local-only).
