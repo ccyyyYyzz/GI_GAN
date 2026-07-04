@@ -118,5 +118,69 @@ def main():
     log("wrote forensics_pedl_stl10.json")
 
 
+def stage2():
+    """Decompose their fine-tuning TRAJECTORY (results/stl10_sim_r.mat, produced by running their
+    finetune.py untouched in their TF1 env: loss 0.041 -> 6.2e-5 over 300 steps).
+    Per step: row-repair vs prior-correct null vs hallucinated null. Step 0 = physics-informed DNN."""
+    log("stage 2: trajectory decomposition")
+    pat = sio.loadmat(EXT + r"\model\trained_stl10_patterns_1024_Unet_wDGI_64.mat")["trained_patterns"]
+    m = pat.shape[-1]; n = pat.shape[0] * pat.shape[1]
+    A = torch.from_numpy(pat[:, :, 0, :].reshape(n, m).T.copy()).double().to(DEV)
+    sim = sio.loadmat(EXT + r"\data\stl10_sim.mat")
+    x = torch.from_numpy(sim["GT"].astype(np.float64)).to(DEV).reshape(-1)
+    R = sio.loadmat(EXT + r"\results\stl10_sim_r.mat")["im_pred"]     # [64,64,300]
+    steps = R.shape[-1]
+    U, S, Vh = torch.linalg.svd(A, full_matrices=False)
+    tol = S[0] * max(A.shape) * torch.finfo(torch.float64).eps
+    Vr = Vh[: int((S > tol).sum())]
+    def P_R(v): return (v @ Vr.T) @ Vr
+    def P_0(v): return v - P_R(v)
+    u = P_0(x); unorm2 = float(u @ u)
+    yx = A @ x
+    traj = []
+    for t in range(steps):
+        xt = torch.from_numpy(R[:, :, t].astype(np.float64)).to(DEV).reshape(-1)
+        e = xt - x; er, e0 = P_R(e), P_0(e)
+        z = P_0(xt)
+        coef = float((z @ u) / unorm2)
+        zperp = z - (z @ u) / unorm2 * u
+        traj.append({"step": t,
+                     "psnr": float(-10 * np.log10(max(float((e ** 2).mean()), 1e-30))),
+                     "mse_row": float((er ** 2).mean()), "mse_null": float((e0 ** 2).mean()),
+                     "null_share": float((e0 ** 2).sum() / (e ** 2).sum().clamp(min=1e-30)),
+                     "prior_correct_coef": coef, "halluc_null_norm": float(zperp.norm()),
+                     "consist_relerr": float((A @ xt - yx).norm() / yx.norm())})
+    key = [0, 1, 5, 10, 25, 50, 100, 200, 299]
+    log(f"{'step':>5} {'PSNR':>6} {'row-MSE':>9} {'null-MSE':>9} {'null%':>6} {'align':>6} {'halluc':>7} {'consist':>8}")
+    for t in key:
+        r = traj[t]
+        log(f"{t:>5} {r['psnr']:>6.2f} {r['mse_row']:>9.2e} {r['mse_null']:>9.2e} {100*r['null_share']:>5.1f}% "
+            f"{r['prior_correct_coef']:>+6.3f} {r['halluc_null_norm']:>7.3f} {r['consist_relerr']:>8.1e}")
+    # summary deltas: what did fine-tuning buy, and in which ledger?
+    s0, sE = traj[0], traj[-1]
+    minnorm_psnr = float(-10 * np.log10(max(float((P_0(x) ** 2).mean()), 1e-30)))
+    summ = {"steps": steps, "informed_dnn_step0": s0, "final_step": sE,
+            "range_ceiling_psnr_minnorm": minnorm_psnr,
+            "row_mse_drop": s0["mse_row"] - sE["mse_row"], "null_mse_drop": s0["mse_null"] - sE["mse_null"],
+            "row_share_of_total_mse_improvement":
+                (s0["mse_row"] - sE["mse_row"]) /
+                max((s0["mse_row"] + s0["mse_null"]) - (sE["mse_row"] + sE["mse_null"]), 1e-30)}
+    log(f"fine-tuning bought: dPSNR {sE['psnr']-s0['psnr']:+.2f} dB | row-MSE {s0['mse_row']:.2e}->{sE['mse_row']:.2e} | "
+        f"null-MSE {s0['mse_null']:.2e}->{sE['mse_null']:.2e} | row share of improvement "
+        f"{100*summ['row_share_of_total_mse_improvement']:.1f}% | range ceiling {minnorm_psnr:.2f} dB")
+    prev = json.load(open(OUT + r"\forensics_pedl_stl10.json"))
+    prev["stage2_trajectory"] = {"summary": summ, "key_steps": {str(t): traj[t] for t in key}}
+    with open(OUT + r"\forensics_pedl_stl10.json", "w") as f:
+        json.dump(prev, f, indent=2)
+    np.save(OUT + r"\forensics_pedl_trajectory.npy", np.array([[r[k] for k in
+        ("psnr", "mse_row", "mse_null", "null_share", "prior_correct_coef", "halluc_null_norm", "consist_relerr")]
+        for r in traj]))
+    log("wrote stage2 into forensics_pedl_stl10.json (+ trajectory npy)")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "stage2":
+        stage2()
+    else:
+        main()

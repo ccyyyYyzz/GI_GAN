@@ -44,13 +44,42 @@ Two findings already:
    hallucinated-null norm 0.68). So the first job of their DNN is legitimate row-space repair (certifiable,
    up to the 16.99 ceiling); everything beyond is prior.
 
-### Stage 2 — reproduce their DNN / fine-tuned numbers (TODO)
-Their pretrained U-Net + fine-tuning requires their TF1/py36 env (`environment.yml` ships). Plan: create the
-conda env, run `finetune.py` untouched at their operating point (stl10_sim, 1024 patterns, 300 steps),
-decompose `DLDC_r[:, :, step]` through the same exact projectors: row-repair vs prior-correct null vs
-hallucinated null, as a function of fine-tuning step. Expected shape: rapid row-space repair to ≈ the
-ceiling, then null-ledger gains only. The per-step trajectory decomposition (physics fine-tuning as
-row-repair → null-injection phases) would be the headline figure of the case study.
+### Stage 2 — their pipeline reproduced UNTOUCHED and decomposed (2026-07-04, DONE)
+Built a minimal TF1.15/py37 env (`D:/tf1_audit_env`); ran their `finetune.py` **without any code
+modification** (`MPLBACKEND=Agg` only) at their operating point: loads their pretrained ckpt, 300
+fine-tuning steps minimizing only the measurement loss (0.041 → 6.2e-5). Every step's reconstruction
+decomposed through the exact projectors on their operator:
+
+| step | PSNR | row-MSE | null-MSE | null share of error | align | consistency |
+|---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 0 (informed DNN) | 20.76 | 3.4e-3 | 5.0e-3 | 60.0% | +0.834 | 5.8e-2 |
+| 10 | 22.37 | 1.7e-3 | 4.1e-3 | 70.1% | +0.855 | 8.6e-3 |
+| 50 | 24.50 | 5.2e-4 | 3.0e-3 | 85.3% | +0.834 | 1.0e-2 |
+| 200 | 25.27 | 9.1e-5 | 2.9e-3 | **96.9%** | +0.847 | 1.6e-2 |
+| 299 (final) | 25.12 | 9.9e-5 | 3.0e-3 | 96.8% | +0.845 | 2.3e-2 |
+
+**Findings (the case-study headline set):**
+1. **Two-ledger read of their headline number.** Final 25.12 dB vs the 16.99 dB range ceiling: **≥ 8.1 dB
+   of the reported quality rests on prior-supplied null content** — truth-aligned on this scene
+   (align ≈ 0.85) but unverifiable from the record by the converse. The pretrained DNN *starts* 3.8 dB
+   above the ceiling: the prior arrives before any fine-tuning.
+2. **The fine-tuning gain decomposes 61.4% / 38.6%.** Of the +4.36 dB bought by 300 steps of
+   measurement-loss-only fine-tuning, 61.4% of the MSE improvement is row-space repair (the certifiable
+   ledger — exactly what a measurement loss is entitled to fix) and 38.6% is **null-space spillover**:
+   the U-Net's coupling moved null content toward the truth as a side effect (null-MSE 5.0e-3 → 3.0e-3,
+   hallucinated-null norm 4.29 → 3.20). The spillover helped here — but nothing in the measurement
+   certifies it, and that is precisely the paper's point stated on *their* pipeline.
+3. **The saturation shape, observed.** By step ≈ 200 the row ledger is exhausted (96.9% of the remaining
+   error is null) and PSNR plateaus — fine-tuning ends where the only error left is the kind the
+   measurement cannot see. This is the range-contribution saturation curve, per-step, on a published
+   pipeline's own operator.
+4. **Exact consistency is left on the table.** Their fine-tuned output still violates the record at
+   2.3e-2 relative (they minimize the measurement loss but never project). The exact audit step
+   `x̂ ← x̂ − A†(Ax̂ − y)` would pin it to ~1e-13 and remove the residual row-MSE for free.
+
+Artifacts: `forensics_pedl_stl10.json` (stages 1+2), `forensics_pedl_trajectory.npy` (full 300-step
+trajectory for the figure). Reproduction: their repo untouched at `external_audit/physics-driven-fine-tuning/`
+(TF1 env `D:/tf1_audit_env`), audit script `forensics_pedl_stl10.py` (stage 1) / `stage2`.
 
 ### Targets 2–3 (queued)
 - `FeiWang0824/GIDC` — real measured patterns+buckets in `data.mat` (exact own operator); only sim numbers
