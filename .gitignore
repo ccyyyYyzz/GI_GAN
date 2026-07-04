@@ -10,3 +10,4 @@ outputs/*
 *.pt
 *.pth
 runs/
+external_audit/
