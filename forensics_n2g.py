@@ -21,8 +21,17 @@ REPO = r"E:\ns_mc_gan_gi_code_fcc_phase1"
 OUT = REPO + r"\outputs\compatibility\measurement_conditioned_vqgan\detail_fusion_paper"
 DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-BASE = dict(phantom_type="chromosomes", num_splits=4, num_perms=8, n_features=24, epochs=1024 * 8, sampling_ratio=10)
-PHYS = dict(photon_density=1e8, readout_noise_std=5)
+# phantom swap DISCLOSED: the example's 'chromosomes' data is NOT actually shipped -- data/chromosomes.png
+# in the repo is a symlink to a CEA-internal path checked out as text (reproducibility finding). The shipped
+# 'toy_xray' tif is unnormalized uint16 and overflows their own Poisson noise path at the example's
+# photon_density (second finding). We use their built-in 'shepp-logan' ([0,1] range like the chromosomes
+# path); all other settings are the example's verbatim.
+BASE = dict(phantom_type="shepp-logan", num_splits=4, num_perms=8, n_features=24, epochs=1024 * 8, sampling_ratio=10)
+# photon_density 1e8 -> 1e5 DISCLOSED: numpy's Poisson on Windows uses C long (int32), lam limit ~2.1e9;
+# their lam ~ buckets*density ~ 1e11 works on Linux only (cross-platform repro footnote). Their noise is
+# readout-dominated either way (sigma=5 on normalized buckets), so the regime is essentially unchanged --
+# the script logs the ACTUAL realized rel noise on the record.
+PHYS = dict(photon_density=1e5, readout_noise_std=5)
 REG_VAL_DIP = 5e-6
 
 
@@ -43,6 +52,7 @@ def main():
 
     ret = create_datasets(
         phantom_type=BASE["phantom_type"], sampling_ratio=BASE["sampling_ratio"],
+        shape_fov=[64, 64],   # shepp-logan native 400x400 -> 16000 masks = 9.5GB; 64x64 matches our program scale
         photon_density=PHYS["photon_density"], reg_val_tv=None,
         readout_noise_std=PHYS["readout_noise_std"],
     )
@@ -109,14 +119,22 @@ def main():
     rows["LS"] = split(torch.from_numpy(gi_ls.reshape(-1)).to(DEV), "least-squares")
 
     log("fitting their TV baseline ...")
-    reg_val_tv, rec_tv, _perf = fit_variational_reg_weight(data["masks"], data["buckets"],
-                                                           reg=Regularizer_TV2D, lambda_range=(0.1, 10, 4))
-    rows["TV"] = split(torch.from_numpy(np.squeeze(np.asarray(rec_tv, dtype=np.float64)).reshape(-1)).to(DEV),
-                       f"TV (w={reg_val_tv:.3g})")
+    buckets_vec = np.squeeze(np.asarray(data["buckets"]))   # (1,410) multiplicity dim -> (410,); corrct 2.0 lstsq needs 1-D (4th drift)
+    try:
+        reg_val_tv, rec_tv, _perf = fit_variational_reg_weight(data["masks"], buckets_vec,
+                                                               reg=Regularizer_TV2D, lambda_range=(0.1, 10, 4))
+        rows["TV"] = split(torch.from_numpy(np.squeeze(np.asarray(rec_tv, dtype=np.float64)).reshape(-1)).to(DEV),
+                           f"TV (w={reg_val_tv:.3g})")
+    except TypeError as e:
+        # THEIR reconstructions._get_projector does isinstance() against a parameterized generic ->
+        # crashes with current corrct 2.0 (third API-drift finding). TV is a baseline, not the audited
+        # method; recorded and skipped.
+        log(f"  their TV wrapper incompatible with its own corrct dep ({e}) -- finding logged, TV skipped")
+        rows["TV"] = {"error": f"their fit_variational_reg_weight incompatible with corrct 2.0: {e}"}
 
     log(f"training their N2G ({BASE['epochs']} epochs) ...")
     solver = N2G(model=NetworkParamsUNet(n_features=BASE["n_features"], n_levels=3), reg_val=REG_VAL_DIP)
-    inp, tgt, _, cv, tinds = solver.prepare_data(data["masks"], data["buckets"],
+    inp, tgt, _, cv, tinds = solver.prepare_data(data["masks"], buckets_vec,
                                                  num_splits=BASE["num_splits"], num_perms=BASE["num_perms"],
                                                  tst_fraction=0.0, cv_fraction=0.1)
     _losses = solver.train(inp, tgt, tinds, cv, epochs=BASE["epochs"], learning_rate=2e-4)

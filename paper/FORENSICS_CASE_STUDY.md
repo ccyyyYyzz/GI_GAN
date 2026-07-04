@@ -114,7 +114,47 @@ Script: `forensics_gidc.py` → `forensics_gidc.json`.
 3. The audit closes our own C6 caveat with hardware data: real speckle row-sums are large and uniform
    (+8.7% spread), exactly the regime where DGI's reference subtraction is meaningful.
 
-## Target 3 (queued)
-- `Noise2Ghost` (arXiv 2504.10288) — pip-installable PyTorch; its natively noisy regime is where the
-  range-saturation claim is non-tautological. Also queued: GIDC Part B (their code, our known-GT scene on
-  their real patterns + Poisson — labeled extension).
+## Target 3 — Noise2Ghost (Viganò et al., arXiv 2504.10288): the noisy-regime test
+Repo: `CEA-MetroCarac/noise2ghost` (installed from the clone; deps corrct/auto-denoise from PyPI; torch
+untouched). **Their library at their example's settings** (ratio 10 → m=410 at 64×64, readout σ=5, splits 4,
+perms 8, n_feat 24, epochs 8192, reg 5e-6). Disclosed adaptations, all at call level: phantom → their
+built-in `shepp-logan` (the example's `chromosomes` data is NOT shipped — see findings), `shape_fov=[64,64]`
+(native 400×400 → 9.5 GB masks), photon_density 1e8→1e5 (Windows numpy int32 Poisson bound; their noise is
+readout-dominated either way — realized record noise logged below). Script: `forensics_n2g.py` →
+`forensics_n2g.json`.
+
+**The one genuinely NOISY record: rel measurement noise = 1.21e-2** → row error is a real degree of freedom
+and range saturation is non-tautological here.
+
+| reconstruction | PSNR | row-MSE | null-MSE | null share of error | align | consistency |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| oracle range ceiling `P_R x` | 15.53 | 0 | 2.8e-2 | 100% | — | — |
+| achievable ceiling `A†y` | 15.26 | 1.9e-3 | 2.8e-2 | 93.6% | 0 | ~0 |
+| least-squares (theirs) | 15.26 | 1.8e-3 | 2.8e-2 | 93.9% | 0.000 | 3.9e-7 |
+| **Noise2Ghost** | **18.40** | **1.06e-3** | **1.34e-2** | 92.7% | +0.437 | 1.4e-2 |
+
+**Findings:**
+1. **In-range denoising is real — and small.** N2G's row-MSE lands **42% below the noisy pseudo-inverse**
+   (1.81e-3 → 1.06e-3): with a genuinely noisy record, the learned prior does improve the *measured*
+   component beyond any record-faithful linear solution — the one effect near-noiseless sims cannot exhibit.
+   But it accounts for only **≈4.9% of N2G's total MSE improvement; 95.1% is null-ledger** (null-MSE halved,
+   truth-alignment +0.44). The range-contribution saturation claim survives its strongest test.
+2. **Consistency stops at the noise floor** (1.4e-2 ≈ record noise) — correct self-supervised behavior
+   (exact consistency would overfit noise), and exactly the regime where our soft-audit λ-projection applies.
+3. **Reproducibility findings (logged, not editorial):** the shipped example imports
+   `noise2ghost.config.NetworkParamsUNet` and unpacks return shapes that do not exist in the repo's own
+   current code (API drifted to `autoden`); the example's `chromosomes.png`/`ghost.png` are CEA-internal
+   symlinks checked out as text — the example's data is not actually shipped; their TV wrapper crashes
+   against their own current corrct dependency (parameterized-generic `isinstance`); their bucket shape
+   `(1, m)` breaks corrct 2.0's `lstsq` path. Four independent drift/packaging faults between a
+   2025 paper's repo and its own dependencies, one year on.
+
+## Case-study status (3 targets, Part A complete)
+| target | operator | reproduction | headline number |
+|---|---|---|---|
+| PEDL (Photon. Res. 2022) | released learned patterns, verified 1.2e-7 | their TF1 code untouched | ≥8.1 dB of 25.12 dB reported rests on null content; fine-tune gain 61% row / 39% null |
+| GIDC (LSA 2022) | 410 real measured speckle patterns | their TF1 code untouched | 43.8% of published recon's structure in null(A); consistency 0.134 |
+| Noise2Ghost (2025) | their sim masks, noisy record 1.2e-2 | their library, call-level adaptations | in-range denoising real but ≈5% of gain; 95% null-ledger |
+
+Queued extensions (Part B, labeled ours): GIDC known-GT scene on their real patterns + Poisson; PEDL noise
+dial; the cross-target saturation figure.
