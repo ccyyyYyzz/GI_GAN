@@ -156,5 +156,32 @@ and range saturation is non-tautological here.
 | GIDC (LSA 2022) | 410 real measured speckle patterns | their TF1 code untouched | 43.8% of published recon's structure in null(A); consistency 0.134 |
 | Noise2Ghost (2025) | their sim masks, noisy record 1.2e-2 | their library, call-level adaptations | in-range denoising real but ≈5% of gain; 95% null-ledger |
 
-Queued extensions (Part B, labeled ours): GIDC known-GT scene on their real patterns + Poisson; PEDL noise
-dial; the cross-target saturation figure.
+## Part B — GIDC with a known ground truth on their REAL patterns (2026-07-04, DONE; labeled OUR extension)
+Their 410 real measured speckle patterns + known GT (PEDL's shipped `stl10.bmp`, prepared with their own
+gen-script convention) + Poisson at their real count level (mean 1.8e7 → realized shot noise 2.35e-4).
+**Their GIDC code byte-identical** — only `data.mat` swapped (sibling dir `external_audit/GIDC_partB`).
+Script: `forensics_gidc_partB.py` → `forensics_gidc_partB.json`.
+
+| reconstruction | PSNR | row-MSE | null-MSE | null share | align |
+|---|:---:|:---:|:---:|:---:|:---:|
+| range ceiling `P_R x` | 15.04 | — | — | — | — |
+| DGI (float) | 14.39 | 7.6e-3 | 2.9e-2 | 79.1% | +0.067 |
+| GIDC step 0 | 12.46 | 2.8e-2 | 2.9e-2 | 50.6% | +0.070 |
+| GIDC step 100 | 18.52 | 2.8e-3 | 1.1e-2 | 79.8% | +0.587 |
+| GIDC step 200 | **19.54** | 5.1e-4 | 1.1e-2 | **95.4%** | **+0.647** |
+
+The pattern repeats on real hardware patterns with a decomposable scene: the DIP optimization repairs the
+row ledger (gain attribution **60.3% row / 39.7% null** — nearly identical to PEDL's 61/39), the untrained
+net's structure prior genuinely populates the null space toward truth (align 0.07 → 0.65 — GIDC's real
+merit, precisely quantified), and the run terminates 4.5 dB above the ceiling with 95.4% of the remaining
+error in the null space.
+
+## The cross-target figure (headline)
+`FORENSICS_CROSS_TARGET.png/pdf` (in `paper/` and outputs): (a) PEDL's fine-tuning trajectory vs its
+range ceiling with the null-share overlay; (b) MSE-improvement attribution per target (PEDL 61/39,
+GIDC-B 60/40, N2G 5/95); (c) every headline number sits **+3.1 to +8.1 dB above its own operator's range
+ceiling** with terminal error 93–97% null. Three different learning paradigms (pretrained+fine-tune,
+untrained DIP, self-supervised), three different operators (learned, real speckle, sim masks), one law:
+**the certifiable ledger saturates; the headline is paid from the null space.**
+
+Queued (Part B remainder): PEDL noise dial; polish figure typography for the paper.
