@@ -16,15 +16,13 @@ This folder holds a **Fresnel zone-plate (菲涅耳波带片) student manuscript
 
 The manuscript was committed to the ghost-imaging repo alongside other working files. It is **not** part of the ghost-imaging science (no connection to y = Ax + eps, null-space diagnostics, GAN/VQGAN priors, or FCC row-null analysis). It lives in this quarantine folder solely to preserve the file history; no content was deleted.
 
-## Warning: figures/assemble_mentor_proposals.py
+## Note: figures/assemble_mentor_proposals.py (deleted 2026-07-06)
 
-The script `figures/assemble_mentor_proposals.py` (at the repo root level, under `figures/`) still hardcodes:
-
-```python
-DEST = r"E:\ns_mc_gan_gi_code_fcc_phase1"
-```
-
-If that script is run it will **re-emit** `proposal_scheme1_baseline.tex` and `proposal_scheme2B_radial_binary.tex` directly to the repo root, not to this folder. Do not run that script unless you intend to regenerate those files there.
+The one-off generator `figures/assemble_mentor_proposals.py` — which hardcoded
+`DEST = r"E:\ns_mc_gan_gi_code_fcc_phase1"` and would **re-emit**
+`proposal_scheme1_baseline.tex` / `proposal_scheme2B_radial_binary.tex` to the
+repo root if run — was **deleted from git on 2026-07-06** to remove that
+run-hazard. It is recoverable from git history if ever needed.
 
 ## Status
 

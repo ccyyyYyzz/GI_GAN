@@ -39,23 +39,16 @@ its content is a plain-text extract of `paper/main.pdf` (the GI measurement-audi
 paper, "Measurement Auditing for Learned Ghost Imaging…").  It was misplaced during
 a text-extraction step.  It is not FZP content; treat it as a stale reference copy.
 
-### The `figures/assemble_mentor_proposals.py` hazard
+### The `figures/assemble_mentor_proposals.py` hazard — RESOLVED (deleted 2026-07-06)
 
-`figures/assemble_mentor_proposals.py` is the script that produced
-`proposal_scheme1_baseline.tex` and `proposal_scheme2B_radial_binary.tex`.
-It hardcodes two absolute paths:
-
-| Variable | Hardcoded value |
-|---|---|
-| `OUT_JSON` | `D:\tmp\claude\E--ns-mc-gan-gi-code-fcc-phase1\649423c0-...\tasks\wof8tkr6b.output` |
-| `DEST` | `E:\ns_mc_gan_gi_code_fcc_phase1` |
-
-**If this script is run**, it reads the session-scoped JSON from `D:\tmp\...`
-and writes `proposal_scheme1_baseline.tex` and `proposal_scheme2B_radial_binary.tex`
-directly to repo root (`E:\ns_mc_gan_gi_code_fcc_phase1\`), polluting root again.
-The `OUT_JSON` path references a now-stale session scratchpad; the script will
-fail with a `FileNotFoundError` on that path unless the session file is restored.
-Do not run this script.  It should not be executed as part of any GI workflow.
+`figures/assemble_mentor_proposals.py` was a one-off generator (imported by no
+code) that produced the FZP `proposal_scheme1_baseline.tex` and
+`proposal_scheme2B_radial_binary.tex`. It hardcoded a now-stale session-scoped
+`OUT_JSON` under `D:\tmp\claude\...` and a `DEST` of the repo root, so running it
+would either fail with `FileNotFoundError` (stale scratchpad path) or re-emit the
+proposal `.tex` files to repo root, re-polluting it. To remove that standing
+run-hazard the script was **deleted from git on 2026-07-06**; it is recoverable
+from history if ever needed. No GI workflow referenced it.
 
 ---
 
@@ -129,7 +122,7 @@ and are legitimate repo content.
 | Content | Action | Current state |
 |---|---|---|
 | FZP student manuscript (`main.tex`, proposals, 队友版) | git-renamed to `_unrelated_fresnel_zone_plate/` | Staged rename; files present in quarantine dir |
-| `figures/assemble_mentor_proposals.py` | Left in place; flagged as DO-NOT-RUN | Writes proposal .tex to repo root if executed |
+| `figures/assemble_mentor_proposals.py` | Deleted 2026-07-06 (git history preserves it) | File does not exist |
 | ZIFB `_manuscript_view/` (60 binary files) | Deleted in commit `986bdfe` | Directory does not exist |
 | ZIFB `_inbox/REPLY_TO_GPT_REVISION_GUIDANCE_20260629.md` | Deleted in commit `986bdfe` | File does not exist |
 | ZIFB audit records in `research_lines/00_program_overview/manuscript_audit/` | Retained as provenance | Not ZIFB science; documents the identity-check incident |
