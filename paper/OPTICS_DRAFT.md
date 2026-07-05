@@ -211,7 +211,7 @@ The governed-dial operating point of Section 3.1 was retrained under three indep
 9. W. Jiao et al., "Single-pixel imaging: principles, methods, algorithms, and applications," Adv. Imaging (2026), doi:10.3788/AI.2026.20002.
 10. M. Lyu, W. Wang, H. Wang, H. Wang, G. Li, N. Chen, and G. Situ, "Deep-learning-based ghost imaging," Sci. Rep. **7**, 17865 (2017).
 11. Y. He, G. Wang, G. Dong, S. Zhu, H. Chen, A. Zhang, and Z. Xu, "Ghost imaging based on deep learning," Sci. Rep. **8**, 6469 (2018).
-12. R. Shang, M. A. O'Brien, and G. P. Luke, "Deep-learning-driven reliable single-pixel imaging with uncertainty approximation," arXiv:2107.11678 (2021).
+12. R. Shang, M. A. O'Brien, F. Wang, G. Situ, and G. P. Luke, "Approximating the uncertainty of deep learning reconstruction predictions in single-pixel imaging," Commun. Eng. **2**, 53 (2023).
 13. F. Wang, C. Wang, C. Deng, S. Han, and G. Situ, "Single-pixel imaging using physics enhanced deep learning," Photonics Res. **10**, 104–110 (2022).
 14. F. Wang, C. Wang, M. Chen, W. Gong, Y. Zhang, S. Han, and G. Situ, "Far-field super-resolution ghost imaging with a deep neural network constraint," Light Sci. Appl. **11**, 1 (2022).
 15. E. J. Candès, J. Romberg, and T. Tao, "Robust uncertainty principles: exact signal reconstruction from highly incomplete frequency information," IEEE Trans. Inf. Theory **52**, 489–509 (2006).
