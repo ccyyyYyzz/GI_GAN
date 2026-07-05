@@ -11,3 +11,17 @@ outputs/*
 *.pth
 runs/
 external_audit/
+
+# run logs (chatter, not source)
+logs/
+
+# LaTeX build byproducts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.toc
+paper/optp.txt
+paper/ptp.txt
