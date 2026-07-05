@@ -48,8 +48,8 @@ chip(axa,xi,0.02,0.30,0.34,C_BLUE,r"true scene $x_i$")
 chip(axa,u,0.02,-0.12,0.34,C_RED,r"feasible-wrong $u$")
 axa.annotate("same bucket\n"+r"$A u = y_i$", xy=(0.42,0.36),xytext=(0.42,0.36),fontsize=9,ha="left",va="center")
 axa.text(0.42,0.10,r"$\frac{\|A u - y_i\|}{\|y_i\|}\approx 10^{-13}$",fontsize=11,ha="left",color=C_RED)
-axa.text(0.42,-0.14,"(vs noise floor $\sim 10^{-3}$)",fontsize=7.5,ha="left",color="#666")
-axa.text(0.0,-0.34,"consistency $\neq$ correctness",fontsize=9.5,style="italic",color=INK)
+axa.text(0.42,-0.14,r"(vs noise floor $\sim 10^{-3}$)",fontsize=7.5,ha="left",color="#666")
+axa.text(0.0,-0.34,r"consistency $\neq$ correctness",fontsize=9.5,style="italic",color=INK)
 
 # ---- (b) CAN ----
 axb=fig.add_subplot(gs[1])

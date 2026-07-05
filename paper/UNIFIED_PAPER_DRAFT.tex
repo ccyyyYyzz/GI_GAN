@@ -18,7 +18,7 @@
 
 \section*{Abstract}
 
-In low-rate ghost imaging, measurement consistency is not evidence of image correctness. The reason is geometric: the record constrains only the measurement-visible row-space coordinate --- $P_R x = A^\dagger y$ in the noiseless model, its noisy counterpart $A^\dagger y = P_R x + A^\dagger\varepsilon$ otherwise --- while $P_0 x \in \ker A$ is invisible to the bucket. We turn this fact into an accountability framework. First, we construct feasible-but-wrong witnesses that match a target record to floating-point precision, around $10^{-15}$ --- more tightly than the noisy truth matches its own record, around $10^{-3}$ --- while remaining semantically far from the target. Second, we give a test-time row-space audit: applied after any reconstructor, it contracts the $i$-th measured residual mode by exactly $\lambda/(\lambda+\sigma_i^2)$, certifying agreement with the recorded bucket without ground truth. Third, we use the same boundary as a governance rule: prior detail is injected only through $P_0$, so $A\hat{x}_B = y$ holds for every dial setting $B$. We validate the framework on locked $64\times64$ STL10 at 5\% sampling: the governed dial reduces LPIPS by 32.6\% relative to the projected VQAE endpoint at a 0.45 dB PSNR cost while preserving exact record consistency. A projector audit of three published DL-GI pipelines shows the same ledger structure on external operators. The result is a two-ledger account: certify what the bucket measured; label and govern what the prior supplied.
+In low-rate ghost imaging, measurement consistency is not evidence of image correctness. The reason is geometric: the record constrains only the measurement-visible row-space coordinate --- $P_R x = A^\dagger y$ in the noiseless model, its noisy counterpart $A^\dagger y = P_R x + A^\dagger\varepsilon$ otherwise --- while $P_0 x \in \ker A$ is invisible to the bucket. We turn this fact into an accountability framework. First, we construct feasible-but-wrong witnesses that match a target record to floating-point precision, around $10^{-15}$ --- more tightly than the noisy truth matches its own record, around $10^{-3}$ --- while remaining semantically far from the target. Second, we give a test-time record-consistency audit: applied after any reconstructor, it contracts the $i$-th measured residual mode by exactly $\lambda/(\lambda+\sigma_i^2)$, certifying agreement with the recorded bucket without ground truth. Third, we use the same boundary as a governance rule: prior detail is injected only through $P_0$, so $A\hat{x}_B = y$ holds for every dial setting $B$. We validate the framework on locked $64\times64$ STL10 at 5\% sampling: the governed dial reduces LPIPS by 32.6\% relative to the projected VQAE endpoint at a 0.45 dB PSNR cost while preserving exact record consistency. A projector audit of three published DL-GI pipelines shows the same ledger structure on external operators. The result is a two-ledger account: certify what the bucket measured; label and govern what the prior supplied.
 
 \medskip\hrule\medskip
 
@@ -32,7 +32,7 @@ $$A P_0 = 0,$$
 
 so the noiseless record $Ax$ is a function of $P_R x$ alone, and a noisy record fixes only the noisy row-space coordinate $A^\dagger y = P_R x + A^\dagger\varepsilon$. In both cases two images that agree on the measured component produce the identical record no matter how much they differ elsewhere. Every quality metric integrates both components; the measurement sees one. Image quality and measurement accountability are therefore different quantities, and a pipeline can score well on the first while saying nothing about the second.
 
-The paper has one geometry and three consequences. Because $A P_0 = 0$, the bucket cannot distinguish images that share a row-space component; we make this failure concrete with feasible-but-wrong witnesses that match a target's noisy record around $10^{-15}$ --- more tightly than the clean truth matches that same record (§2). The same geometry gives a positive result: the measured modes can be audited exactly, with a known contraction factor per mode, after any reconstructor (§3). And since the null space cannot be certified, we do not hide prior detail there; we govern it with a scalar dial that changes only $P_0$ and preserves the recorded bucket exactly (§4). The locked confirmation of the dial, its limits, and a projector audit of three published pipelines on their own operators complete the account (§4--5). The result is a two-ledger reading of low-rate ghost imaging: the \textbf{row ledger} is measured and certifiable; the \textbf{null ledger} is prior-supplied and must be governed rather than laundered as measurement evidence.
+The paper has one geometry and three consequences. Because $A P_0 = 0$, the bucket cannot distinguish images that share a row-space component; we make this failure concrete with feasible-but-wrong witnesses that match a target's noisy record around $10^{-15}$ --- more tightly than the clean truth matches that same record (§2). The same geometry gives a positive result: the measured modes can be audited exactly, with a known contraction factor per mode, after any reconstructor (§3). And since the null space cannot be certified, we do not hide prior detail there; we govern it with a scalar dial that changes only $P_0$ and preserves the recorded bucket exactly (§4). The locked confirmation of the dial, its limits, and a projector audit of three published pipelines on their own operators complete the account (§4--5). The result is a two-ledger reading of low-rate ghost imaging: the \textbf{row ledger} is measured and certifiable; the \textbf{null ledger} is prior-supplied and must be reported separately from measurement-certified content.
 
 \begin{figure}[H]\centering
 \includegraphics[width=1.0\linewidth]{METHOD_FIG1.pdf}
@@ -56,12 +56,12 @@ The paper has one geometry and three consequences. Because $A P_0 = 0$, the buck
 \toprule
 Claim & Status & Evidence \\
 \midrule
-Null content is not certifiable from one record & theorem + witness & Proposition 1; witness residuals (§2) \\
-Record consistency is certifiable, mode by mode & theorem & modal contraction (§3) \\
-Prior detail can be supplied without breaking record consistency & theorem & $A\hat{x}_B = y$ (§4) \\
-Balanced dial improves perception at bounded distortion & locked experiment & 32.6\% LPIPS, 8/8 gate (§4.3) \\
-Per-image GT-free dial adaptation adds little & development-level & $\le 0.002$ LPIPS (§4.5) \\
-Published DL-GI gains show the same ledger structure & external audit & 3 pipelines (§5) \\
+Null content not certifiable from one record & theorem + witness & Prop. 1; §2 \\
+Record consistency certifiable per mode & theorem & contraction; §3 \\
+Prior supply preserves record consistency & theorem & Thm. 2; §4 \\
+Balanced dial: perception up at bounded cost & locked experiment & 32.6\%, 8/8; §4.3 \\
+GT-free per-image adaptation adds little & development-level & $\le 0.002$; §4.5 \\
+Published DL-GI gains: same ledger structure & external audit & 3 pipelines; §5 \\
 \bottomrule
 \end{tabular}\end{center}
 
@@ -494,11 +494,11 @@ With noise, $A^\dagger y$ is the least-squares row-space estimate induced by the
 The Lemma partitions the $n$ image coordinates into two disjoint accountabilities, one settled by the data and one settled only by a prior:
 
 \begin{itemize}
-\item \textbf{Certifiable (the $m$ row coordinates).} The component $P_R x = A^\dagger y$ is fixed by the record: any measurement-consistent reconstruction must have $P_R \hat{x} = A^\dagger y$, and re-measuring it reproduces $y$. These $m$ coordinates are pinned down and can be audited without ground truth (main §3).
-\item \textbf{Not certifiable (the $n - m$ null coordinates).} The component $P_0 x$ is unconstrained by $y$. The measurement supplies no evidence about what lives there; any content placed in the null space is a modeling choice, not a verified fact. This is the barrier of main §2 and, read constructively, the safe channel for the governed injection of main §4.
+\item \textbf{Certifiable (the $m$ measured degrees of freedom).} The component $P_R x = A^\dagger y$ is fixed by the record: any measurement-consistent reconstruction must have $P_R \hat{x} = A^\dagger y$, and re-measuring it reproduces $y$. These $m$ modal degrees of freedom are pinned down and can be audited without ground truth (main §3).
+\item \textbf{Not certifiable (the $n - m$ null degrees of freedom).} The component $P_0 x$ is unconstrained by $y$. The measurement supplies no evidence about what lives there; any content placed in the null space is a modeling choice, not a verified fact. This is the barrier of main §2 and, read constructively, the safe channel for the governed injection of main §4.
 \end{itemize}
 
-Concretely, in the locked setting of this paper --- $64 \times 64$ grayscale images, $n = 4096$ pixels, at a $5.0\%$ sampling rate with $m = 205$ measurements --- the bucket certifies exactly the $205$ row-space coordinates and leaves the remaining $3891$ null-space coordinates to a prior. Most of what the eye reads as detail lives in those $3891$ directions.
+Concretely, in the locked setting of this paper --- $64 \times 64$ grayscale images, $n = 4096$ pixels, at a $5.0\%$ sampling rate with $m = 205$ measurements --- the measurement-visible subspace has dimension $205$ and the null subspace dimension $3891$ --- modal degrees of freedom of the operator, not pixel subsets. Most of what the eye reads as detail is carried by those $3891$ directions.
 
 \subsection*{A.5 The rows-orthonormal fusion case}
 
@@ -722,7 +722,7 @@ Second, the \textit{simplest} dial is the confirmed one. We evaluated two richer
 
 We are deliberate about what $B$ is not. It is a fixed, validation-selected operating point held constant per seed --- not adapted per image, and not an oracle that knows the best weight for each scene. A per-image adaptive weight might improve the trade, but it lies outside this frozen-system result, and the learned per-image gate we tried did not beat the global scalar. The dial meters how much prior-supplied detail enters the null space; it does not, and cannot, certify that the detail it admits is the true scene. That boundary is the subject of the two-ledger synthesis (main §7): the perceptual win reported here lives entirely on the quality axis, and the exact consistency $A\hat{x}_B = y$ that accompanies it certifies reproduction of the record, never the correctness of what the record cannot see.
 
-The scalar $B$ is the closest interface in this literature to CodeFormer's fidelity--quality knob $w$ (Zhou et al. 2022) and ESRGAN's network-interpolation weight $\alpha$ (Wang et al. 2018); the difference is that those knobs act on entangled features, so higher quality genuinely moves the reconstruction off the measurement manifold, whereas $B$ acts only within $P_0$ and holds $A\hat{x}_B = y$ exact at every setting. The governed dial is thus a perception--distortion control (Blau and Michaeli 2018) whose distortion is paid entirely in null-space coordinates the measurement never certified.
+The scalar $B$ is the closest interface in this literature to CodeFormer's fidelity--quality knob $w$ (Zhou et al. 2022) and ESRGAN's network-interpolation weight $\alpha$ (Wang et al. 2018); the difference is that those knobs act on entangled features, so higher quality genuinely moves the reconstruction off the measurement manifold, whereas $B$ acts only within $P_0$ and holds $A\hat{x}_B = y$ exact at every setting. The governed dial is thus a perception--distortion control (Blau and Michaeli 2018) whose distortion is paid entirely in null-space components the measurement never certified.
 
 \subsection*{C.4 The no-adaptation lemma and the audit tax}
 
