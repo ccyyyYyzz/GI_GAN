@@ -25,3 +25,6 @@ paper/*.fdb_latexmk
 paper/*.toc
 paper/optp.txt
 paper/ptp.txt
+
+# regenerable LaTeX PDF/PNG preview renders (layout checks) — not source
+paper/tmp/
