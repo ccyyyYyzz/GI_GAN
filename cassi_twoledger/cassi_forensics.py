@@ -163,21 +163,25 @@ def make_figure(results, op, lam=1e-3):
     drifts = [r["record_drift_median"] for _, r in items]
     x = np.arange(len(names))
 
+    # muted, colorblind-friendly palette
+    C_NULL, C_ROW, C_DRIFT, C_CEIL = "#dd8452", "#4c72b0", "#c44e52", "#333333"
     fig, ax = plt.subplots(1, 2, figsize=(13.5, 4.4))
-    ax[0].bar(x, nulls, 0.72, bottom=ceil, color="#c0392b", label="null-supply (prior)")
-    ax[0].bar(x, rows, 0.72, bottom=[ceil + n for n in nulls], color="#3a6ea5", label="row-effect (measured)")
-    ax[0].axhline(ceil, color="#111", lw=1.6, ls="--", label=f"range ceiling {ceil:.1f} dB ($A^\\dagger y$)")
+    ax[0].bar(x, nulls, 0.72, bottom=ceil, color=C_NULL, edgecolor="white", linewidth=0.7, label="null-supply (prior)")
+    ax[0].bar(x, rows, 0.72, bottom=[ceil + n for n in nulls], color=C_ROW, edgecolor="white", linewidth=0.7, label="row-effect (measured)")
+    ax[0].axhline(ceil, color=C_CEIL, lw=1.6, ls="--", label=f"range ceiling {ceil:.1f} dB ($A^\\dagger y$)")
     ax[0].set_xticks(x); ax[0].set_xticklabels(names, rotation=55, ha="right", fontsize=8)
     ax[0].set_ylabel("reconstruction PSNR (dB)")
     ax[0].set_ylim(ceil - 1.5, max(ceil + n + 1 for n in nulls))
     ax[0].set_title("(a) The whole CASSI leaderboard's gain is null-supplied (23$\\times$)", fontsize=10.5)
-    ax[0].legend(fontsize=8, loc="upper left")
+    ax[0].legend(fontsize=8, loc="upper left", frameon=False)
+    ax[0].set_axisbelow(True); ax[0].grid(axis="y", color="#cfcfcf", alpha=0.7, lw=0.6)
     for sp in ("top", "right"): ax[0].spines[sp].set_visible(False)
 
-    ax[1].bar(x, [d * 100 for d in drifts], 0.72, color="#e0a500")
+    ax[1].bar(x, [d * 100 for d in drifts], 0.72, color=C_DRIFT, edgecolor="white", linewidth=0.7)
     ax[1].set_xticks(x); ax[1].set_xticklabels(names, rotation=55, ha="right", fontsize=8)
     ax[1].set_ylabel("record drift $\\|A\\hat x - y\\|/\\|y\\|$  (%)")
     ax[1].set_title("(b) every published model is inconsistent with its own snapshot", fontsize=10.5)
+    ax[1].set_axisbelow(True); ax[1].grid(axis="y", color="#cfcfcf", alpha=0.7, lw=0.6)
     for sp in ("top", "right"): ax[1].spines[sp].set_visible(False)
     fig.suptitle("CASSI forensics: at 23$\\times$ undersampling the range ceiling is 19 dB; "
                  "100% of every model's headline gain is prior-supplied null content", fontsize=11.5, y=1.01)
