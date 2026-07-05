@@ -1,4 +1,6 @@
 scenes/
 mask.mat
+architecture/
+mst_code/
 __pycache__/
 *.pyc

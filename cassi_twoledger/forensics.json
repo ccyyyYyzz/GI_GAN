@@ -1,0 +1,132 @@
+{
+  "tsa_net": {
+    "psnr": 31.673696937871163,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 12.631237997498744,
+    "null_supply_db": 12.794584099279337,
+    "row_effect_db": -0.16334610178059245,
+    "null_share_pct": 101.29319154474754,
+    "record_drift_median": 0.05301773538700269,
+    "audit_ratio_median": 0.00015079349310868087
+  },
+  "gap_net": {
+    "psnr": 29.566472086071997,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 10.524013145699577,
+    "null_supply_db": 9.760622822791271,
+    "row_effect_db": 0.7633903229083068,
+    "null_share_pct": 92.74620515634523,
+    "record_drift_median": 0.11894197087742625,
+    "audit_ratio_median": 0.00025796285564047496
+  },
+  "dgsmp": {
+    "psnr": 32.68203062387116,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 13.639571683498737,
+    "null_supply_db": 13.77913179839189,
+    "row_effect_db": -0.1395601148931533,
+    "null_share_pct": 101.0232001277723,
+    "record_drift_median": 0.058870501649321456,
+    "audit_ratio_median": 8.973247879920254e-05
+  },
+  "hdnet": {
+    "psnr": 35.06172341269457,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 16.01926447232215,
+    "null_supply_db": 16.151609297697895,
+    "row_effect_db": -0.13234482537574763,
+    "null_share_pct": 100.82616043704385,
+    "record_drift_median": 0.03232013659728954,
+    "audit_ratio_median": 0.00011375508685693962
+  },
+  "mst_s": {
+    "psnr": 34.37533387880847,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 15.33287493843605,
+    "null_supply_db": 15.491341252767464,
+    "row_effect_db": -0.1584663143314163,
+    "null_share_pct": 101.03350686004863,
+    "record_drift_median": 0.03814922669656017,
+    "audit_ratio_median": 0.00013195526948998272
+  },
+  "mst_m": {
+    "psnr": 35.03757847587797,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 15.995119535505552,
+    "null_supply_db": 16.097449946197266,
+    "row_effect_db": -0.10233041069170738,
+    "null_share_pct": 100.63976021226077,
+    "record_drift_median": 0.03113799542243804,
+    "audit_ratio_median": 0.00013805150987858928
+  },
+  "mst_l": {
+    "psnr": 35.334654211553946,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 16.292195271181527,
+    "null_supply_db": 16.38169074246965,
+    "row_effect_db": -0.08949547128811872,
+    "null_share_pct": 100.54931499284463,
+    "record_drift_median": 0.028760747098219082,
+    "audit_ratio_median": 0.0001552862372850333
+  },
+  "mst_plus_plus": {
+    "psnr": 36.10314040236604,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 17.060681461993617,
+    "null_supply_db": 17.16005811991645,
+    "row_effect_db": -0.09937665792282716,
+    "null_share_pct": 100.58248938147176,
+    "record_drift_median": 0.02599219416176941,
+    "audit_ratio_median": 0.00014196813052178757
+  },
+  "cst_l": {
+    "psnr": 35.93791060710476,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 16.895451666732342,
+    "null_supply_db": 16.999767393055496,
+    "row_effect_db": -0.10431572632315778,
+    "null_share_pct": 100.61741898577684,
+    "record_drift_median": 0.026017342581791548,
+    "audit_ratio_median": 0.00013943641647466449
+  },
+  "birnat": {
+    "psnr": 37.72982906872719,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 18.68737012835477,
+    "null_supply_db": 18.720047505979544,
+    "row_effect_db": -0.03267737762477054,
+    "null_share_pct": 100.17486343664372,
+    "record_drift_median": 0.012581127258599566,
+    "audit_ratio_median": 0.00018548655311364633
+  },
+  "lambda_net": {
+    "psnr": 28.650005641471644,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 9.607546701099224,
+    "null_supply_db": 9.723910721563266,
+    "row_effect_db": -0.11636402046404086,
+    "null_share_pct": 101.2111730921977,
+    "record_drift_median": 0.05332787715713339,
+    "audit_ratio_median": 0.00019671115337905161
+  },
+  "dauhst_2stg": {
+    "psnr": 35.31187033762442,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 16.269411397252,
+    "null_supply_db": 16.40504429813425,
+    "row_effect_db": -0.13563290088225202,
+    "null_share_pct": 100.83366814920643,
+    "record_drift_median": 0.028113458494676002,
+    "audit_ratio_median": 0.0003020990028901934
+  },
+  "dauhst_9stg": {
+    "psnr": 38.18299912296928,
+    "range_ceiling": 19.04245894037242,
+    "gain_over_ceiling": 19.140540182596858,
+    "null_supply_db": 19.16687208783973,
+    "row_effect_db": -0.026331905242876985,
+    "null_share_pct": 100.1375713798653,
+    "record_drift_median": 0.009191483956563553,
+    "audit_ratio_median": 0.00047794072191717225
+  }
+}
