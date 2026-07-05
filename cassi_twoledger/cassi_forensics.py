@@ -163,8 +163,8 @@ def make_figure(results, op, lam=1e-3):
     drifts = [r["record_drift_median"] for _, r in items]
     x = np.arange(len(names))
 
-    # muted, colorblind-friendly palette
-    C_NULL, C_ROW, C_DRIFT, C_CEIL = "#dd8452", "#4c72b0", "#c44e52", "#333333"
+    # cool academic blue-green palette (colorblind-friendly)
+    C_NULL, C_ROW, C_DRIFT, C_CEIL = "#2a9d8f", "#1d3557", "#457b9d", "#333333"
     fig, ax = plt.subplots(1, 2, figsize=(13.5, 4.4))
     ax[0].bar(x, nulls, 0.72, bottom=ceil, color=C_NULL, edgecolor="white", linewidth=0.7, label="null-supply (prior)")
     ax[0].bar(x, rows, 0.72, bottom=[ceil + n for n in nulls], color=C_ROW, edgecolor="white", linewidth=0.7, label="row-effect (measured)")
