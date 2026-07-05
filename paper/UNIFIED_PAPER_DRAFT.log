@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.9.25)  5 JUL 2026 03:34
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.9.25)  5 JUL 2026 12:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -422,136 +422,146 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 File: METHOD_FIG1.pdf Graphic file (type pdf)
 <use METHOD_FIG1.pdf>
 
-[2] [3]
+[2]
+Overfull \hbox (137.43155pt too wide) in paragraph at lines 57--75
+ [] 
+ []
+
+[3]
+Overfull \hbox (11.31229pt too wide) in paragraph at lines 77--78
+[]\TU/lmr/m/n/10.95 The locked dial experiments use signed, gray-valued computa
+tional GI operators (row-orthonormalized
+ []
+
+[4]
 File: WITNESS_GEOMETRY.pdf Graphic file (type pdf)
 <use WITNESS_GEOMETRY.pdf>
- [4] [5]
+ [5] [6]
 File: CERT_SEPARATION.pdf Graphic file (type pdf)
 <use CERT_SEPARATION.pdf>
- [6] [7]
+ [7] [8]
 File: DIAL_MECHANISM.pdf Graphic file (type pdf)
 <use DIAL_MECHANISM.pdf>
- [8]
-Overfull \hbox (9.11423pt too wide) in paragraph at lines 189--199
+ [9]
+Overfull \hbox (9.11423pt too wide) in paragraph at lines 198--208
  [] 
  []
 
 File: PARETO_FIGURE.pdf Graphic file (type pdf)
 <use PARETO_FIGURE.pdf>
-[9]
+[10]
 File: QUALITATIVE_GRID.pdf Graphic file (type pdf)
 <use QUALITATIVE_GRID.pdf>
- [10]
+ [11]
 File: NOADAPT_EMPIRICAL.pdf Graphic file (type pdf)
 <use NOADAPT_EMPIRICAL.pdf>
- [11]
-Overfull \hbox (119.75525pt too wide) in paragraph at lines 273--281
+ [12]
+Overfull \hbox (119.75525pt too wide) in paragraph at lines 282--290
  [] 
  []
 
-[12]
+[13]
 File: FORENSICS_CROSS_TARGET.pdf Graphic file (type pdf)
 <use FORENSICS_CROSS_TARGET.pdf>
-
-Overfull \hbox (286.7658pt too wide) in paragraph at lines 296--306
+ [14] [15]
+File: CASSI_SPECTRUM.pdf Graphic file (type pdf)
+<use CASSI_SPECTRUM.pdf>
+File: CASSI_WITNESS.pdf Graphic file (type pdf)
+<use CASSI_WITNESS.pdf>
+ [16]
+File: CASSI_FORENSICS.pdf Graphic file (type pdf)
+<use CASSI_FORENSICS.pdf>
+ [17]
+Overfull \hbox (373.68689pt too wide) in paragraph at lines 354--365
  [] 
  []
 
-[13] [14]
-Overfull \hbox (1.83514pt too wide) in paragraph at lines 342--343
+[18] [19]
+Overfull \hbox (1.83514pt too wide) in paragraph at lines 403--404
 \TU/lmr/m/n/10.95 hyayula, S., Romano, Y. Image-to-Image Regression with Distri
 bution-Free Uncertainty Quan-
  []
 
-[15]
-Overfull \hbox (46.52647pt too wide) in paragraph at lines 351--352
+[20]
+Overfull \hbox (46.52647pt too wide) in paragraph at lines 412--413
 \TU/lmr/m/n/10.95 Conference on Computer Vision and Pattern Recognition (CVPR),
  6228-6237 (2018). arXiv:1711.06077. 
  []
 
-[16]
-Overfull \hbox (5.76065pt too wide) in paragraph at lines 362--363
+[21]
+Overfull \hbox (5.76065pt too wide) in paragraph at lines 425--426
 \TU/lmr/m/n/10.95 bracio, M. A Survey on Diffusion Models for Inverse Problems.
  arXiv preprint arXiv:2410.00083
  []
 
-[17] [18]
-Overfull \hbox (31.27312pt too wide) in paragraph at lines 394--395
+[22] [23]
+Overfull \hbox (31.27312pt too wide) in paragraph at lines 457--458
 \TU/lmr/m/n/10.95 vances in Neural Information Processing Systems 31 (NeurIPS),
  8507-8516 (2018). arXiv:1805.11572. 
  []
 
-
-Overfull \hbox (27.05739pt too wide) in paragraph at lines 399--400
+[24]
+Overfull \hbox (27.05739pt too wide) in paragraph at lines 462--463
 \TU/lmr/m/n/10.95 ference on Computer Vision and Pattern Recognition (CVPR), 24
 37-2445 (2020). arXiv:2003.03808. 
  []
 
-[19]
-Overfull \hbox (14.55249pt too wide) in paragraph at lines 420--421
+[25]
+Overfull \hbox (14.55249pt too wide) in paragraph at lines 485--486
 \TU/lmr/m/n/10.95 ence on Computer Vision and Pattern Recognition (CVPR), 9446-
 9454 (2018). arXiv:1711.10925. 
  []
 
-[20] [21] [22] [23
+[26] [27] [28] [29
 
-] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34]
-[35]
+] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39] [40]
+[41]
 File: B_CURVE.pdf Graphic file (type pdf)
 <use B_CURVE.pdf>
- [36] [37]
-Overfull \hbox (62.8921pt too wide) in paragraph at lines 761--769
+ [42] [43]
+Overfull \hbox (62.8921pt too wide) in paragraph at lines 829--837
  [] 
  []
 
 File: rate_generalization_figure.pdf Graphic file (type pdf)
 <use rate_generalization_figure.pdf>
-[38]
+[44]
 File: NOISE_ROBUSTNESS.pdf Graphic file (type pdf)
 <use NOISE_ROBUSTNESS.pdf>
- [39] [40] [41]
-Overfull \hbox (2.98056pt too wide) in paragraph at lines 841--842
+ [45] [46] [47]
+Overfull \hbox (2.98056pt too wide) in paragraph at lines 909--910
 \TU/lmr/m/n/10.95 tics, so ”matches the reference” and ”looks real” are formall
 y at odds; their rate-distortion-perception
  []
 
-[42] [43]
-Overfull \hbox (5.91733pt too wide) in paragraph at lines 861--862
+[48] [49]
+Overfull \hbox (5.91733pt too wide) in paragraph at lines 929--930
 \TU/lmr/m/n/10.95 at calibration (RCPS, conformal risk control, task-conformal)
 , and they operate in output/pixel/label
  []
 
-[44] [45]
-Overfull \hbox (79.09789pt too wide) in paragraph at lines 887--895
+[50] [51]
+Overfull \hbox (79.09789pt too wide) in paragraph at lines 955--963
  [] 
  []
 
 
-Overfull \hbox (65.5108pt too wide) in paragraph at lines 897--898
-\TU/lmr/m/n/10.95 measured speckle operator against the substituted-GT reconstr
-uction: RelMeasErr $\OT1/cmr/m/n/10.95 3\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/10.95
- 04\OML/cmm/m/it/10.95 imes\OT1/cmr/m/n/10.95 10[]\OML/cmm/m/it/10.95 o\OT1/cmr
-/m/n/10.95 2\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/10.95 96\OML/cmm/m/it/10.95 imes\
-OT1/cmr/m/n/10.95 10[]$\TU/lmr/m/n/10.95 ,
- []
-
-
-Overfull \hbox (16.28664pt too wide) in paragraph at lines 897--898
-\TU/lmr/m/n/10.95 PSNR $\OT1/cmr/m/n/10.95 19\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/
-10.95 54\OML/cmm/m/it/10.95 o\OT1/cmr/m/n/10.95 19\OML/cmm/m/it/10.95 :\OT1/cmr
-/m/n/10.95 74$ \TU/lmr/m/n/10.95 dB, max deviation of the measured modal contra
-ction from $\OML/cmm/m/it/10.95 ^^U=\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 ^^U
- \OT1/cmr/m/n/10.95 + \OML/cmm/m/it/10.95 ^^[[]\OT1/cmr/m/n/10.95 )$\TU/lmr/m/n
-/10.95 : $\OT1/cmr/m/n/10.95 3\OML/cmm/m/it/10.95 :\OT1/cmr/m/n/10.95 5\OML/cmm
-/m/it/10.95 imes\OT1/cmr/m/n/10.95 10[]$
- []
-
-
-Overfull \hbox (653.05061pt too wide) in paragraph at lines 901--909
+Overfull \hbox (653.05061pt too wide) in paragraph at lines 969--977
  [] 
  []
 
-[46] [47] [48] (./UNIFIED_PAPER_DRAFT.aux)
+[52] [53]
+File: FORENSICS_MRI_8x.pdf Graphic file (type pdf)
+<use FORENSICS_MRI_8x.pdf>
+
+Overfull \hbox (3.79497pt too wide) in paragraph at lines 1013--1020
+ [] 
+ []
+
+[54]
+File: DECISION_MRI.pdf Graphic file (type pdf)
+<use DECISION_MRI.pdf>
+ [55] [56] [57] (./UNIFIED_PAPER_DRAFT.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -560,12 +570,12 @@ Package rerunfilecheck Info: File `UNIFIED_PAPER_DRAFT.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 10162 strings out of 476720
- 158200 string characters out of 5800058
- 1936842 words of memory out of 5000000
- 32049 multiletter control sequences out of 15000+600000
+ 10207 strings out of 476720
+ 159330 string characters out of 5800058
+ 1938842 words of memory out of 5000000
+ 32089 multiletter control sequences out of 15000+600000
  564710 words of font info for 72 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 72i,8n,79p,2344b,400s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 72i,8n,79p,2764b,400s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on UNIFIED_PAPER_DRAFT.pdf (48 pages).
+Output written on UNIFIED_PAPER_DRAFT.pdf (57 pages).

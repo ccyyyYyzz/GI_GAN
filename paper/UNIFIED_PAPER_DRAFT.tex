@@ -7,7 +7,7 @@
 \usepackage{array}
 \usepackage[hidelinks]{hyperref}
 \usepackage{parskip}
-\title{Certify What You Measure, Govern What You Cannot: A Range--Null Account of Accountability and Governed Detail in Undersampled Ghost Imaging}
+\title{Certify What You Measure, Govern What You Cannot: A Range--Null Account of Accountability and Governed Detail Across Undersampled Imaging Operators}
 \author{}\date{}
 \begin{document}
 \maketitle
@@ -18,7 +18,7 @@
 
 \section*{Abstract}
 
-In low-rate ghost imaging, measurement consistency is not evidence of image correctness. The reason is geometric: the record constrains only the measurement-visible row-space coordinate --- $P_R x = A^\dagger y$ in the noiseless model, its noisy counterpart $A^\dagger y = P_R x + A^\dagger\varepsilon$ otherwise --- while $P_0 x \in \ker A$ is invisible to the bucket. We turn this fact into an accountability framework. First, we construct feasible-but-wrong witnesses that match a target record to floating-point precision, around $10^{-15}$ --- more tightly than the clean truth matches that same noisy record, around $10^{-3}$ --- while remaining semantically far from the target. Second, we give a test-time record-consistency audit: applied after any reconstructor, it contracts the $i$-th measured residual mode by exactly $\lambda/(\lambda+\sigma_i^2)$, certifying agreement with the recorded bucket without ground truth. Third, we use the same boundary as a governance rule: prior detail is injected only through $P_0$, so $A\hat{x}_B = y$ holds for every dial setting $B$. We validate the framework on locked $64\times64$ STL10 at 5\% sampling: the governed dial reduces LPIPS by 32.6\% relative to the projected VQAE endpoint at a 0.45 dB PSNR cost while preserving exact record consistency. A projector audit of three published DL-GI pipelines shows the same ledger structure on external operators. The result is a two-ledger account: certify what the bucket measured; label and govern what the prior supplied.
+In low-rate compressive imaging --- single-pixel and ghost imaging, accelerated MRI, snapshot spectral imaging --- measurement consistency is not evidence of image correctness, and when the ground truth is unknown a learned reconstruction's fidelity cannot be assessed from its record alone. The reason is geometric: the record constrains only the measurement-visible row-space coordinate --- $P_R x = A^\dagger y$ in the noiseless model, its noisy counterpart $A^\dagger y = P_R x + A^\dagger\varepsilon$ otherwise --- while $P_0 x \in \ker A$ is invisible to the sensor, since $A P_0 = 0$. We turn this fact into an accountability framework and validate it on three explicit operators: a simulated single-pixel ghost-imaging matrix, the real masked-Fourier operator of NYU fastMRI single-coil knee $k$-space, and the real released CASSI coded aperture. First, we construct feasible-but-wrong witnesses --- two different scenes sharing one undersampled record, matched tighter than the noisy truth itself (to $\sim\!10^{-16}$). Second, we give a ground-truth-free, per-mode record-consistency audit that contracts the $i$-th measured residual mode by exactly $\lambda/(\lambda+\sigma_i^2)$; CASSI's non-uniform singular spectrum (a $528\times$ range) makes this contraction vary over $2\times10^4\times$ where masked-Fourier MRI's flat spectrum collapses to a single value. Third, a third-party forensic ledger decomposes published gains through each operator's own projectors: $91$--$92\%$ of the official fastMRI U-Net's PSNR gain and $93$--$101\%$ of thirteen published CASSI models' gains are null-supplied, not measured. The same boundary becomes a governance dial --- prior detail is injected only through $P_0$, so a null-space edit alters fine detail while $A\hat{x}_B = y$ holds to machine precision for every setting $B$ (locked GI: LPIPS $-32.6\%$ at $-0.45$ dB). The result is a two-ledger account: certify what the sensor measured; label and govern what the prior supplied. Scope is honest --- simulation and declared-operator level throughout.
 
 \medskip\hrule\medskip
 
@@ -42,10 +42,12 @@ The paper has one geometry and three consequences. Because $A P_0 = 0$, the buck
 \textbf{Contributions.}
 
 \begin{enumerate}
-\item \textbf{Constructive impossibility.} For any target record and donor image, we construct a feasible-but-wrong witness that preserves the target bucket record while importing the donor's null-space content (§2).
-\item \textbf{Exact record-consistency audit.} A post-hoc audit whose residual in each measured singular mode contracts by exactly $\lambda/(\lambda+\sigma_i^2)$, certifying agreement with the recorded bucket independently of the reconstructor (§3).
-\item \textbf{Governed null-space supply.} A scalar dial that fuses prior detail strictly inside $\ker A$, preserving $A\hat{x}_B = y$ for every setting and improving locked LPIPS by 32.6\% at a bounded distortion cost (§4).
-\item \textbf{Limits and external validity.} A no-adaptation lemma for ground-truth-free dial selection, and a projector audit of three published DL-GI pipelines on their own released or measured operators (§4.5, §5).
+\item \textbf{Constructive impossibility, cross-operator.} For any target record and donor scene we construct a feasible-but-wrong witness that preserves the record while importing the donor's null-space content. The construction transfers verbatim across operators: on $64\times64$ ghost imaging, on the real masked-Fourier fastMRI operator ($A = MF$, single-coil emulated), and on the real released SD-CASSI coded aperture, a box-legal impostor matches the record to $\sim\!10^{-16}$ --- more tightly than the clean truth matches its own noisy record (§2, §6).
+\item \textbf{Exact ground-truth-free record-consistency audit.} A post-hoc audit whose residual in each measured singular mode contracts by exactly $\lambda/(\lambda+\sigma_i^2)$, image- and reconstructor-independent, certifying agreement with the recorded bucket without ground truth. On the real, data-inconsistent fastMRI U-Net the median record drift contracts from $5.86\times10^{-2}$ to $5.85\times10^{-5}$ at $\lambda = 10^{-3}$ (§3, §6).
+\item \textbf{Governed null-space supply.} A scalar dial that injects prior detail strictly inside $\ker A$, preserving $A\hat{x}_B = y$ for every setting and improving locked LPIPS by 32.6\% at a bounded distortion cost. The same rule turns any published reconstructor into a governed, exactly record-consistent variant --- a data-consistent fastMRI U-Net keeps 29.42 of 29.68 dB at $R{=}4$ while restoring record consistency to $3.5\times10^{-16}$ (§4, §6).
+\item \textbf{Real-operator validation and the non-uniform spectrum.} Projector identities hold in float64 on real data --- $\sim\!10^{-17}$ on real fastMRI $k$-space, $\sim\!10^{-13}$ on the real CASSI aperture, where $AA^\top = \mathrm{diag}(\Phi_s)$ makes $A^\dagger$, $P_R$, $P_0$ and the whole singular spectrum closed-form and $O(N)$. The measured CASSI spectrum spans a $528\times$ range, so the per-mode contraction spans $2\times10^4\times$ --- the empirical face of the modal-contraction theorem, invisible to flat-spectrum MRI (§6).
+\item \textbf{Cross-operator third-party attribution ledger.} On the shared operators of published pipelines --- three DL-GI systems (§5), the official fastMRI single-coil U-Net, and thirteen CASSI models from the MST zoo (§6) --- we decompose each reported gain through the operator's own projectors. Twelve of the thirteen CASSI models supply 100--101\% of their gain over the $19.04$ dB min-norm ceiling from the null space with a slightly \textit{negative} row-effect (gap-net is the sole exception, 93\%); and published models are measurably record-inconsistent (0.9--12\% across the CASSI zoo; 5.9\% / 3.3\% U-Net drift), which a data-consistent estimator would not be.
+\item \textbf{Limits.} A no-adaptation lemma bounds ground-truth-free dial selection (§4.5); on 429 real fastMRI+ pathology boxes the certifiable claim is \textit{coarse-certified, fine-detail-uncertified} --- the calibration region fixes a lesion's coarse presence but not its 88--94\%-null-supplied fine detail (§6).
 \end{enumerate}
 
 \medskip\noindent\fbox{\parbox{0.96\linewidth}{\textbf{Scope of all certificates.} In this paper, "certified" always means certified agreement with the recorded bucket $y$. It never means certified agreement with the unknown scene. All content in $P_0$ is prior-supplied unless additional measurements are acquired. Claims are tiered: \textit{locked} results follow a pre-specified one-shot protocol; \textit{development-level} results reuse the frozen system without a pre-specified gate. This box governs every section below.}}\medskip
@@ -57,15 +59,22 @@ The paper has one geometry and three consequences. Because $A P_0 = 0$, the buck
 Claim & Status & Evidence \\
 \midrule
 Null content not certifiable from one record & theorem + witness & Prop. 1; §2 \\
-Record consistency certifiable per mode & theorem & contraction; §3 \\
+Witness matches record tighter than clean truth, cross-operator & construction & GI/MRI/CASSI $\sim\!10^{-16}$; §2, §6 \\
+Record consistency certifiable per mode & theorem & contraction $\lambda/(\lambda+\sigma_i^2)$; §3 \\
+GT-free audit contracts real U-Net drift & external audit & $5.86\mathrm{e}{-2}\!\to\!5.85\mathrm{e}{-5}$; §6 \\
 Prior supply preserves record consistency & theorem & Thm. 2; §4 \\
-Balanced dial: perception up at bounded cost & locked experiment & 32.6\%, 8/8; §4.3 \\
+Governed dial: perception up at bounded cost & locked experiment & LPIPS $-32.6\%$, 8/8; §4.3 \\
+Governed U-Net keeps gain at exact consistency & external audit & $29.42/29.68$ dB, drift $3.5\mathrm{e}{-16}$; §6 \\
 GT-free per-image adaptation adds little & development-level & $\le 0.002$; §4.5 \\
-Published DL-GI gains: same ledger structure & external audit & 3 pipelines; §5 \\
+Projector identities exact on real operators & real-operator & fastMRI $\sim\!10^{-17}$, CASSI $\sim\!10^{-13}$; §6 \\
+CASSI spectrum non-uniform ($528\times$) & real-operator & $\sigma_j \in [0.009, 4.907]$; §6 \\
+Published gains 93--101\% null-supplied & external audit & 3 GI + U-Net + 13 CASSI; §5, §6 \\
+Published models record-inconsistent (contingent) & external audit & 0.9--12\%; 5.9\%/3.3\%; §6 \\
+Coarse lesion certified, fine detail not & external audit & 429 fastMRI+ boxes; §6 \\
 \bottomrule
 \end{tabular}\end{center}
 
-The experiments use signed, gray-valued computational GI operators (row-orthonormalized for the dial's operator) on $64\times64$ grayscale STL10 --- deterministic basis-scan single-pixel operators, implementable in principle by complementary exposures with multi-level modulation as in Fourier single-pixel imaging. We do not model DMD quantization, photon budgets, or Poisson statistics; all quantitative claims are simulation-level (§7).
+The locked dial experiments use signed, gray-valued computational GI operators (row-orthonormalized for the dial's operator) on $64\times64$ grayscale STL10; the real-operator legs (§6) use the exact masked-Fourier operator of NYU fastMRI single-coil $k$-space and the real released CASSI coded aperture. We do not model DMD quantization, photon budgets, or Poisson statistics; the emulated-single-coil MRI and declared-integer-shift CASSI operators keep $A$ exact rather than physically captured, and all quantitative claims are simulation- and declared-operator-level (§8).
 
 \medskip\hrule\medskip
 
@@ -136,7 +145,7 @@ The contraction is exact, image-independent, and reconstructor-independent. In f
 
 The audit is a record-consistency certificate. It certifies agreement with the recorded bucket $y$, not with the unknown noiseless $Ax$. In a physical deployment, $\lambda$ should be chosen by a discrepancy principle or a noise model rather than driven to zero.
 
-The factor itself is classical --- the complement of the Tikhonov filter factor (Engl, Hanke \& Neubauer 1996; Hansen 1998), and MacKay's (1992) effective-parameter summand. The contribution is its use: a post-hoc, per-record audit after arbitrary reconstructors, paired with the converse of §2 (positioning: §6, Appendix D).
+The factor itself is classical --- the complement of the Tikhonov filter factor (Engl, Hanke \& Neubauer 1996; Hansen 1998), and MacKay's (1992) effective-parameter summand. The contribution is its use: a post-hoc, per-record audit after arbitrary reconstructors, paired with the converse of §2 (positioning: §7, Appendix D). Its non-uniform empirical face --- a $528\times$ singular spectrum spreading the per-mode factor over four orders of magnitude --- is measured on the CASSI operator in §6.
 
 \begin{figure}[H]\centering
 \includegraphics[width=1.0\linewidth]{CERT_SEPARATION.pdf}
@@ -285,13 +294,62 @@ Noise2Ghost & released sim masks & known, noisy record & full error split \\
 \caption{\textbf{Three paradigms, three operators, one structure.} \textit{(a)} A fine-tuning trajectory decomposed per step: PSNR rises past the operator's range ceiling --- everything above it is paid from the null ledger. \textit{(b)} Attribution of each method's improvement: row repair vs null supply. \textit{(c)} Every headline stands $+3.1$ to $+8.1$ dB above its own range ceiling with terminal error $93$--$97\%$ null.}
 \end{figure}
 
-The audit itself survives the transfer to physical hardware [development-level]: applied on GIDC's measured speckle operator to the substituted-GT reconstruction, the record-consistency audit drives the residual from $3.0	imes10^{-3}$ to $3.0	imes10^{-15}$ at a PSNR change of $+0.20$ dB, and the measured per-mode contraction matches $\lambda/(\lambda+\sigma_i^2)$ to $3.5	imes10^{-11}$ in float64 --- the closed form holds on a physically measured, uncalibrated-scale operator ($\sigma_i \in [511, 26607]$), not only on designed ones.
+The audit itself survives the transfer to physical hardware [development-level]: applied on GIDC's measured speckle operator to the substituted-GT reconstruction, the record-consistency audit drives the residual from $3.0\times10^{-3}$ to $3.0\times10^{-15}$ at a PSNR change of $+0.20$ dB, and the measured per-mode contraction matches $\lambda/(\lambda+\sigma_i^2)$ to $3.5\times10^{-11}$ in float64 --- the closed form holds on a physically measured, uncalibrated-scale operator ($\sigma_i \in [511, 26607]$), not only on designed ones.
 
 \medskip\noindent\fbox{\parbox{0.96\linewidth}{\textbf{Audit provenance and caveats.} All three audits use released code (run unmodified where the toolchain permits) and the papers' own operators: released learned patterns (verified against the shipped record to $1.2\times10^{-7}$), physically measured speckle (calibration error inherited by the attribution), and released simulation masks. The direction of the finding is partially forced by construction: most \textit{degrees of freedom} are null at these sampling rates, the min-norm reference has a $100\%$-null terminal error, and an exactly record-consistent estimator's residual error lies wholly in the null space. (These operators do capture most scene \textit{energy}: the audited scenes carry only $10$--$17\%$ of their energy in the respective null spaces.) The quantitative splits and their agreement, not the direction, are the content. Attribution is stated relative to the min-norm reference. Per-pipeline decompositions, the summary table, and a reproducibility table (code source, operator source, GT status, caveats per pipeline): Appendix E.}}\medskip
 
 \medskip\hrule\medskip
 
-\section*{6. Related Work}
+\section*{6. Real Operators: Accelerated MRI and Snapshot Spectral Imaging}
+
+The ghost-imaging account of §2--§5 rests on one geometric fact --- the record fixes $P_R x$ and leaves $P_0 x \in \ker A$ unconstrained --- and on one closed form, the modal contraction $c_i(\lambda)=\lambda/(\lambda+\sigma_i^2)$ of §3.2. Neither is special to single-pixel optics. We now instantiate the whole framework --- projector identities, feasible-but-wrong witness, GT-free audit, and third-party forensic ledger --- on two operators from other undersampled modalities: masked-Fourier MRI and snapshot spectral CASSI. We keep the paper's honest scope: both legs are declared-operator, emulated-single-coil, Gaussian-noise studies; the point is not a new physical experiment but that the accountability boundary transfers, verbatim, to operators built from \textit{real} released measurement systems.
+
+The two modalities bracket §3.2. Masked-Fourier MRI has an orthonormal, flat singular spectrum ($\sigma_i \equiv 1$), so its modal contraction collapses to a \textit{single} value and §3.2 has nothing to display; CASSI has an extreme non-uniform spectrum and turns the theorem into a picture. The pair therefore does double duty: MRI shows the framework holding where the geometry is benign and clinically familiar, CASSI shows the modal-contraction spectrum in a form flat-spectrum imaging cannot exhibit.
+
+\subsection*{6.1 Masked-Fourier MRI on real $k$-space}
+
+We emulate single-coil accelerated MRI with the exact operator $A = MF$ --- the 2-D Fourier transform $F$ followed by a Cartesian undersampling mask $M$ --- on real NYU fastMRI knee $k$-space, with zero training. Because $A$ is a subsampled unitary, both projectors are closed-form: $P_R = A^\dagger A = F^{-1} M F$, $P_0 = I - P_R$. On real measured $k$-space the projector identities hold to ${\sim}10^{-17}$ in float64, and the emulated-single-coil ground truth $|\mathrm{crop}(\mathrm{ifft2c}(k))|$ reproduces to correlation $1.00000$.
+
+\textbf{The witness transfers.} The §2 construction --- a feasible-but-wrong record twin --- reappears unchanged. Two \textit{different} knees are forced to share one identical $R{=}8$ (nominal; effective $6.9\times$ after the auto-calibration region) undersampled record: the two records match to median $2.9\times10^{-16}$, and a magnitude-legal, $[0,1]$-projected POCS witness matches to $2.5\times10^{-16}$. The witness is a visibly different knee at $20.3$ dB PSNR to the target, yet is measurement-indistinguishable from it. As in §2, consistency is not correctness; the geometry is the same, only the operator changed.
+
+\textbf{Forensics on the official pipeline.} We run the §5 ledger against the released fastMRI single-coil U-Net (chans $=256$, wired from the shipped state dict). Here the accounting reference is exact, not estimated: the zero-filled reconstruction \textit{equals} $P_R x_\text{gt}$, so its magnitude PSNR \textit{is} the range ceiling. At $R{=}4$ (eff. $3.7\times$) the ceiling is $26.70$ dB and the U-Net reaches $29.68$ dB, a $+2.98$ dB gain that is $91\%$ null-supplied; at $R{=}8$ (eff. $6.9\times$) the ceiling is $24.32$ dB, the U-Net $25.42$ dB, gain $+1.09$ dB, $92\%$ null. As in the GI forensics of §5, the headline sits \textit{above} the operator's range ceiling and the surplus is paid from the null ledger --- but here the U-Net also drifts off the record it was given ($5.9\%$ at $R{=}4$, $3.3\%$ at $R{=}8$), which undersampling does not entail. A \textit{governed} data-consistent variant $A^\dagger y + P_0 x_\text{UNet}$ --- the null-space dial of §4 applied post-hoc --- keeps almost all of the gain ($29.42$ vs $29.68$ dB at $R{=}4$) at \textit{exact} record consistency (drift $3.5\times10^{-16}$). The GT-free audit of §3 then contracts the U-Net's record drift by exactly $\lambda/(\lambda+1)$ --- the flat-spectrum collapse of the §3.2 factor --- from median $5.86\times10^{-2}$ to $5.85\times10^{-5}$ at $\lambda=10^{-3}$, per-mode deviation $\le10^{-15}$.
+
+\textbf{A governed certified decision.} On $429$ real fastMRI+ pathology bounding boxes we push the framework to a decision. The auto-calibration region certifies the \textit{coarse} lesion --- full-box null-energy median $13.5\%$ at $R{=}8$, $18.4\%$ at $R{=}16$ --- but the \textit{fine detail} inside the box is $88.4\%$ ($R{=}8$) / $93.8\%$ ($R{=}16$) null-supplied. A governed null-space edit therefore changes a soft-tissue lesion's fine-detail contrast by $-43\%$ while $Ax=y$ holds to $3.6\times10^{-16}$. We state the honest scope plainly: at clinical $4$--$8\times$ the calibration region retains the diagnostic low-frequency content, so there is no "erase the lesion" --- the certifiable claim is \textit{coarse-certified, fine-detail-uncertified}, not lesion deletion (full decomposition and the decision figure: Appendix E).
+
+\subsection*{6.2 CASSI on the real released coded aperture}
+
+Single-disperser CASSI shifts, masks and sums a $28$-band cube into a $256\times310$ snapshot --- a $23.1\times$ undersampling --- through the shift-mask-sum operator $A$. We build $A$ from the \textit{real released} TSA-Net gray coded aperture (fill $0.563$). This operator has a rare exact structure: $AA^\top = \operatorname{diag}(\Phi_s)$ is diagonal, so $A^\dagger$, $P_R$, $P_0$ and the entire singular spectrum are closed-form, $O(N)$, with no SVD. The projector identities hold to ${\sim}10^{-13}$ in float64.
+
+\textbf{The non-uniform spectrum: §3.2 made visible.} The singular values $\sigma_j=\sqrt{\Phi_s}$ over $79{,}360$ measured detector modes span $[0.009,\,4.907]$ (median $3.51$) --- a $528\times$ ratio. The per-mode audit contraction $\lambda/(\lambda+\sigma_j^2)$ at $\lambda=10^{-3}$ therefore spans $[4.15\times10^{-5},\,9.21\times10^{-1}]$, a $2\times10^{4}$ spread --- precisely the modal-contraction theorem of §3.2, where masked-Fourier MRI (§6.1) collapses to the single value $9.99\times10^{-4}$. This is the empirical face of the closed form: the same audit that is one scalar under a flat spectrum resolves into a full graded profile under a non-uniform one.
+
+\begin{figure}[H]\centering
+\includegraphics[width=1.0\linewidth]{CASSI_SPECTRUM.pdf}
+\caption{\textbf{The modal-contraction theorem, made visible.} The CASSI singular spectrum $\sigma_j=\sqrt{\Phi_s}$ over $79{,}360$ detector modes spans a $528\times$ range; the per-mode audit factor $\lambda/(\lambda+\sigma_j^2)$ of §3.2 spreads across four orders of magnitude, where flat-spectrum masked-Fourier MRI (§6.1) collapses to a single point (dashed).}
+\end{figure}
+
+\textbf{The witness transfers.} Two \textit{different} spectral scenes are forced to share one identical $23\times$ coded snapshot: matched to median $1.7\times10^{-16}$, with a box-legal ($[0,1]$) POCS witness to $1.9\times10^{-3}$. The witness carries the donor's null-space spectral content, so the two scenes' per-pixel spectra differ visibly under an identical snapshot --- the §2 impossibility, now in the spectral channel.
+
+\begin{figure}[H]\centering
+\includegraphics[width=1.0\linewidth]{CASSI_WITNESS.pdf}
+\caption{\textbf{Two spectra, one snapshot.} Two spectrally distinct scenes matched to an identical $23\times$ CASSI snapshot (median $1.7\times10^{-16}$). Per-pixel spectra (insets) differ visibly, yet the coded records are indistinguishable: measurement consistency does not fix the spectral cube.}
+\end{figure}
+
+\textbf{Forensics over thirteen published models.} We run the §5 ledger across $13$ published reconstruction models from the MST model zoo on the shared operator, with the wiring validated by reproducing each model's published simulation PSNR (MST-S $34.38$ vs $34.26$; HDNet $35.06$ vs $34.97$; BIRNAT $37.73$ vs $37.58$; DAUHST-9stg $38.18$ vs $38.36$). The min-norm $A^\dagger y$ range ceiling is $19.04$ dB, and \textit{twelve of the thirteen} models supply $100$--$101\%$ of their PSNR gain over that ceiling from the null space, with the row-effect slightly \textit{negative} --- the models mildly corrupt the measured component rather than repairing it; GAP-Net is the sole exception ($93\%$ null, a positive row-effect, and the largest record drift). The entire decade of progress, TSA-Net $31.67 \to$ DAUHST-9stg $38.18$ ($+6.5$ dB), happens wholly in the null ledger, and the models are $0.9$--$12\%$ record-inconsistent. This mirrors the GI ledger of §5 in a modality with $23\times$ more undersampling and $13\times$ more pipelines.
+
+\begin{figure}[H]\centering
+\includegraphics[width=1.0\linewidth]{CASSI_FORENSICS.pdf}
+\caption{\textbf{A decade of SOTA in the null ledger.} Thirteen published CASSI models decomposed on their shared operator against the $19.04$ dB min-norm range ceiling. Twelve of the thirteen gains (TSA-Net $\to$ DAUHST-9stg, $+6.5$ dB) are $100$--$101\%$ null-supplied (GAP-Net the exception at $93\%$); the row-effect is slightly negative (models move the measured component \textit{away} from $A^\dagger y$) and each is $0.9$--$12\%$ record-inconsistent.}
+\end{figure}
+
+\subsection*{6.3 What the two operators establish together}
+
+\textbf{The bracket.} MRI and CASSI bracket the geometry of §3.2 from both ends. MRI is flat and well-conditioned ($\sigma_i\equiv1$), clinically familiar, and its modal contraction is a single scalar; CASSI is extreme and non-uniform ($528\times$), and its contraction is a four-order-of-magnitude profile. The witness, the projector identities, the GT-free audit, and the forensic ledger hold at both ends and everywhere the operator can sit between them. Together with the GI operator of §5, the account now spans single-pixel optics, Fourier imaging, and dispersive spectral imaging on operators drawn from three real measurement systems.
+
+\textbf{Tautology defense.} As §5's caveat box already concedes, part of the direction is forced at $m\ll n$, and we keep definitional and contingent apart. That a record-consistent estimator's error is null-dominated is \textit{not} a finding: $AP_0=0$ and the orthogonal split $\|e\|^2=\|P_R e\|^2+\|P_0 e\|^2$ make it true by construction whenever most degrees of freedom are unsampled, and the min-norm reference has a $100\%$-null terminal error by definition. What is \textit{contingent} --- not entailed by $m\ll n$, and therefore the actual content --- is fourfold: (i) the measured record-\textit{inconsistency} of the published models ($5.9$/$3.3\%$ for the U-Net, $0.9$--$12\%$ across the CASSI zoo), which a data-consistent estimator would not have; (ii) the slightly \textit{negative} row-effect, models moving the measured component \textit{away} from $A^\dagger y$; (iii) the specific $528\times$ non-uniform CASSI spectrum, an operator fact rather than a consequence of sampling rate; and (iv) the cross-model, cross-modality \textit{agreement} of the split. The ledger is accounting, not accusation: it locates where each pipeline's quality is manufactured, and the governed variants of §6.1 show the same quality can be retained at exact record consistency. Positioning against the range--null and null-space-injection prior art is §7 and Appendix D.
+
+\medskip\hrule\medskip
+
+\section*{7. Related Work}
 
 \begin{center}\begin{tabular}{lcc}
 \toprule
@@ -299,23 +357,26 @@ Prior line & What it owns & What this paper adds \\
 \midrule
 Backus--Gilbert; Barrett--Myers & Linear estimability, null functions & Per-instance witness; GI governance protocol \\
 MacKay; Tikhonov filter factors & Modal factors, effective parameters & Per-record post-hoc audit role \\
-Null-space networks; DDNM; NPN/GSNR & Data-consistent null filling & Consistency read as non-certification; metered prior content \\
+Null-space networks; DDNM; NPN/GSNR; RND-SCI & Data-consistent null filling (incl. inside CASSI) & Consistency read as non-certification; metered prior content \\
 Bhadra; Gottschling; Antun; Iagaru & Hallucination limits, kernel instability & Constructive record-tight witness; governed dial; field audit \\
+Shang et al. (Bayesian SPI); conformal UQ & GT-free \textit{statistical} uncertainty of DL reconstructions & Exact operator-level record certificate; measured-vs-prior split \\
 Perception--distortion; CodeFormer/ESRGAN knobs & Fidelity--quality controls & Knob acts strictly in $P_0$, preserving the record exactly \\
 \bottomrule
 \end{tabular}\end{center}
 
 \textbf{Ghost imaging.} The modality began with entangled-photon correlation imaging (Pittman et al. 1995); thermal-light and computational variants (Gatti et al. 2004; Ferri et al. 2005; Shapiro 2008; Bromberg et al. 2009; Duarte et al. 2008; Edgar et al. 2019) established the single-pixel operator this paper audits. Learned GI reconstructors (Lyu et al. 2017; He et al. 2018; the three pipelines of §5) buy large quality gains whose provenance is exactly what the two-ledger account makes explicit.
 
-\textbf{Nearest prior art.} Bhadra et al. (2021) decompose reconstruction error through the same projectors and attribute null hallucinations to the prior; Iagaru et al. (2026) bound hallucination via feasible-set diameters; Gottschling et al. (2025) prove kernel-aware no-free-lunch theorems with destabilizing kernel constructions. Our witness differs in kind: cross-class, constructed on the governed dial's own operator, and matching the record more tightly than the noisy truth. Null-space networks (Schwab et al. 2019), DDNM, and NPN/GSNR use the same decomposition to reconstruct --- they fill $\ker A$ with learned content; we meter that filling and refuse it measurement authority. The certificate's factor is classical (filter factors; MacKay's $\gamma$); its per-record audit role, paired with a converse, is not. The dial's nearest interfaces, CodeFormer's $w$ and ESRGAN's $\alpha$, act on entangled features and move reconstructions off the measurement manifold; $B$ cannot. The extended review --- hallucination benchmarks, instability, diffusion solvers, conformal UQ, identification theory across fields --- is Appendix D.
+\textbf{Nearest prior art.} Three lines sit closest, and we separate ours from each by kind, not degree. \textit{The null-space reconstruction cluster.} RND-SCI (Wang et al. 2023) already places the range--null decomposition \textit{inside} CASSI, reconstructing the snapshot as $x = A^\dagger y + (I - A^\dagger A)q$ with a network that synthesizes only the null term; NPN/GSNR and the null-space networks of Schwab et al. (2019), together with DDNM, do the same on other operators. Every method in this cluster uses $A P_0 = 0$ to install the \textit{intended} content in $\ker A$ and reads consistency-by-construction as a fidelity virtue. We invert that reading: the identical $A P_0 = 0$ is exactly why the record cannot certify what they write there, so we meter that content rather than trust it. \textit{Hallucination limits.} Iagaru et al. (2026) bound hallucination through feasible-set diameters and Bhadra et al. (2021) map it through the same projectors, but both are worst-case or ground-truth-referenced statements about the operator; ours is a closed-form, per-mode, ground-truth-free contraction $c_i(\lambda)=\lambda/(\lambda+\sigma_i^2)$ evaluated at test time on the record actually in hand, plus a \textit{constructed} cross-class witness that matches that record more tightly than the noisy truth --- a per-instance object, not a bound. Gottschling et al. (2025) prove kernel-aware no-free-lunch theorems with destabilizing kernel constructions; ours are cross-class, record-tight, and displayed rather than existential. \textit{Reliability and uncertainty.} Closest in intent is the trust line for learned single-pixel imaging (surveyed by Chen et al. 2026): Shang, O'Brien \& Luke (2021) approximate the uncertainty of deep single-pixel reconstructions with a Bayesian CNN when the ground truth is unknown, localizing likely error to image edges via Monte-Carlo dropout. That estimate is statistical and model-dependent (finite training data and network); ours is complementary and different in kind --- an exact, operator-level, ground-truth-free record-consistency certificate with a per-mode contraction, plus a measured-vs-prior attribution. Statistical uncertainty and geometric certificate answer the same deployment question --- is this reconstruction trustworthy without a reference --- from two sides. The dial's nearest interfaces, CodeFormer's $w$ and ESRGAN's $\alpha$, act on entangled features and move reconstructions off the measurement manifold; $B$ moves strictly in $P_0$ and holds $A\hat{x}_B = y$ at every setting. The extended review --- hallucination benchmarks, instability, diffusion solvers, conformal UQ, identification theory across fields --- is Appendix D.
+
+\textbf{What survives prior-art subtraction.} After removing everything the range--null decomposition, null-space injection, and the Tikhonov filter complement already own, our contribution is exactly the pairing of a \textit{ground-truth-free, closed-form per-mode audit} (not a ground-truth hallucination map, not a worst-case feasible-set bound, not a statistical uncertainty estimate), a \textit{constructive cross-class witness} that matches the record tighter than the noisy truth on the estimator's own operator, and a \textit{third-party quantitative attribution ledger} run over many published pipelines on their own released operators --- whose contingent content (the $0.9$--$12\%$ measured record-inconsistency of those pipelines, the slightly negative row-effect, and the $528\times$ non-uniform CASSI spectrum that flat masked-Fourier MRI cannot exhibit) is not entailed by undersampling, and so is the finding rather than a tautology.
 
 \medskip\hrule\medskip
 
-\section*{7. Discussion and Limitations}
+\section*{8. Discussion and Limitations}
 
 \textbf{The synthesis.} Report both axes and label provenance: the $m$ measured degrees of freedom are \textit{measured} (certifiable by the audit); the injected null components are \textit{prior-supplied} (exact against the record by construction, and openly attributed); the true null content is \textit{unverifiable} from the record. These three labels are the whole discipline. $A\hat{x} = y$ certifies that a reconstruction reproduces the buckets; it never certifies that invented texture is the true scene.
 
-\textbf{Hard limitations.} The study is simulation-only, at one resolution, with locked claims on one 5\% operator; there is no photon-level noise model --- bucket noise is Gaussian, a first-order proxy for the signal-dependent Poisson statistics of photon counting --- and no hardware validation. The true null content remains uncertifiable by any within-record method --- that is the theorem, not an engineering gap.
+\textbf{Hard limitations.} Every operator is simulation- or declared-operator-level. The GI study is simulated; the MRI leg is \textit{emulated single-coil} (real multi-coil would need estimated ESPIRiT sensitivities and forfeit the exact $A = MF$ identity); the CASSI leg uses the \textit{declared integer-shift} operator on the real released aperture, not a physical dispersive capture. Each leg buys exactness by stepping back from the physically-captured sensor: there is no photon-level noise model --- bucket noise is Gaussian, a first-order proxy for the signal-dependent Poisson statistics of photon counting --- and no hardware validation, so the certificates concern the \textit{model} of the sensor. The clinical framing is honest about its own reach: at $4$--$8\times$ MRI the finding is coarse-certified, fine-detail-uncertified, with no reader study behind the pathology-box statistics. The true null content remains uncertifiable by any within-record method --- that is the theorem, not an engineering gap.
 
 \textbf{Method limitations.} The VQGAN is a representative adversarial prior, not a state-of-the-art generator, and we make no SOTA claim; the paired-seed evidence for the adversarial branch's margin over a matched control is small. $B$ is a fixed, validation-selected scalar --- the no-adaptation lemma and the selector experiment show per-record adaptation cannot do better from $y$ alone. Posterior latent sampling failed to produce calibrated null-space diversity and is reported as a negative result (Appendix F). $|P_0\hat{x}|$ is a provenance map, not an error map (§2.3).
 
@@ -323,11 +384,11 @@ Perception--distortion; CodeFormer/ESRGAN knobs & Fidelity--quality controls & K
 
 \medskip\hrule\medskip
 
-\section*{8. Conclusion}
+\section*{9. Conclusion}
 
-Low-rate ghost imaging has a two-ledger structure. The row ledger is measurement-visible and can be audited exactly against the recorded buckets. The null ledger carries most perceptual detail, and the record supplies no evidence about its truth.
+Undersampled imaging has a two-ledger structure. The row ledger is measurement-visible and can be audited exactly against the record. The null ledger carries most perceptual detail, and the record supplies no evidence about its truth. The structure is not special to ghost imaging: it holds verbatim on the real masked-Fourier operator of fastMRI $k$-space and the real released CASSI coded aperture, where the same audit is one scalar under a flat spectrum and a $2\times10^4\times$ graded profile under a $528\times$ non-uniform one.
 
-We made both sides constructive: feasible-but-wrong witnesses --- including box-constrained, $[0,1]$-legal ones --- expose the barrier; the modal audit certifies the measured record; and the governed dial supplies prior detail only through $P_0$, preserving $A\hat{x}_B = y$ at every setting while exposing the perception--distortion trade. On external operators, three published pipelines show the same ledger structure.
+We made both sides constructive: feasible-but-wrong witnesses --- including box-constrained, $[0,1]$-legal ones, on all three operators --- expose the barrier; the modal audit certifies the measured record; and the governed dial supplies prior detail only through $P_0$, preserving $A\hat{x}_B = y$ at every setting while exposing the perception--distortion trade. On external operators the ledger structure recurs: three published DL-GI pipelines, the official fastMRI single-coil U-Net ($91$--$92\%$ null-supplied), and thirteen CASSI models ($93$--$101\%$) each pay their headline gain from the ledger the measurement never certified.
 
 The practical recommendation is simple: report measurement accountability and image quality separately. Priors are necessary in undersampled imaging, but their contribution should be labeled as prior-supplied rather than measurement-certified --- the right standard is not to forbid priors, it is to stop reporting prior-supplied detail as measurement evidence.
 
@@ -354,8 +415,10 @@ The practical recommendation is simple: report measurement accountability and im
 \item Bromberg, Y., Katz, O. \& Silberberg, Y. Ghost imaging with a single detector. Physical Review A 79, 053840 (2009). arXiv:0812.2633.
 \item Buğday, S., Saeys, Y., Peck, J. Triggering hallucinations in model-based MRI reconstruction via adversarial perturbations. arXiv:2602.18536 (2026).
 \item Candès, E. J., Romberg, J. \& Tao, T. Robust Uncertainty Principles: Exact Signal Reconstruction from Highly Incomplete Frequency Information. IEEE Transactions on Information Theory 52(2), 489-509 (2006). arXiv:math/0409186 (2004).
+\item Cai, Y., Lin, J., Hu, X., Wang, H., Yuan, X., Zhang, Y., Timofte, R. \& Van Gool, L. Mask-guided Spectral-wise Transformer for Efficient Hyperspectral Image Reconstruction. In Proc. IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 17502--17511 (2022). arXiv:2111.07910. [MST model zoo audited in §6/Appendix E.3.]
 \item Chen, D. \& Davies, M. E. Deep Decomposition Learning for Inverse Imaging Problems. In Computer Vision -- ECCV 2020, Lecture Notes in Computer Science 12373, 510--526 (Springer, 2020). arXiv:1911.11028.
 \item Chen, D., Tachella, J. \& Davies, M. E. Equivariant Imaging: Learning Beyond the Range Space. Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), 4379-4388 (2021). arXiv:2103.14756.
+\item Chen, W. et al. Single-pixel imaging: principles, methods, algorithms, and applications. Advanced Imaging (2026). doi:10.3788/AI.2026.20002. [Review of the learned single-pixel-imaging line.]
 \item Chung, H., Kim, J., McCann, M. T., Klasky, M. L. \& Ye, J. C. Diffusion Posterior Sampling for General Noisy Inverse Problems. The Eleventh International Conference on Learning Representations (ICLR) (2023). arXiv:2209.14687.
 \item Chung, H., Sim, B., Ryu, D. \& Ye, J. C. Improving Diffusion Models for Inverse Problems using Manifold Constraints. Advances in Neural Information Processing Systems 35 (NeurIPS 2022), 25683-25696 (2022). arXiv:2206.00941.
 \item Coates, A., Ng, A. Y., Lee, H. An Analysis of Single-Layer Networks in Unsupervised Feature Learning. Proceedings of the 14th International Conference on Artificial Intelligence and Statistics (AISTATS), PMLR 15, 215-223 (2011).
@@ -406,8 +469,10 @@ The practical recommendation is simple: report measurement accountability and im
 \item Rothenberg, T. J. Identification in Parametric Models. Econometrica 39(3), 577-591 (1971).
 \item Rudin, L. I., Osher, S. \& Fatemi, E. Nonlinear total variation based noise removal algorithms. Physica D 60, 259-268 (1992).
 \item Schlemper, J., Caballero, J., Hajnal, J. V., Price, A. N. \& Rueckert, D. A Deep Cascade of Convolutional Neural Networks for Dynamic MR Image Reconstruction. IEEE Transactions on Medical Imaging 37(2), 491--503 (2018). arXiv:1704.02422.
+\item Meng, Z., Ma, J. \& Yuan, X. End-to-End Low Cost Compressive Spectral Imaging with Spatial-Spectral Self-Attention. In Computer Vision -- ECCV 2020, Lecture Notes in Computer Science 12368, 187--204 (Springer, 2020). [TSA-Net; source of the real released coded aperture and captures.]
 \item Schwab, J., Antholzer, S. \& Haltmeier, M. Deep null space learning for inverse problems: convergence analysis and rates. Inverse Problems 35, 025008 (2019). arXiv:1806.06137.
 \item Shah, V. \& Hegde, C. Solving linear inverse problems using GAN priors: an algorithm with provable guarantees. Proceedings of the IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 4609-4613 (2018). arXiv:1802.08406.
+\item Shang, R., O'Brien, M. A. \& Luke, G. P. Deep-learning-driven Reliable Single-pixel Imaging with Uncertainty Approximation. arXiv:2107.11678 (2021).
 \item Shapiro, J. H. Computational ghost imaging. Physical Review A 78, 061802(R) (2008). arXiv:0807.2614.
 \item Shimobaba, T., Endo, Y., Nishitsuji, T., Takahashi, T., Nagahama, Y., Hasegawa, S., Sano, M., Hirayama, R., Kakue, T., Shiraki, A. \& Ito, T. Computational ghost imaging using deep learning. Optics Communications 413, 147-151 (2018). arXiv:1710.08343.
 \item Song, K., Bian, Y., Wang, D., Li, R., Wu, K., Liu, H., Qin, C., Hu, J. \& Xiao, L. Advances and challenges of single-pixel imaging based on deep learning. Laser \& Photonics Reviews 19(7), 2401397 (2025).
@@ -422,6 +487,7 @@ The practical recommendation is simple: report measurement accountability and im
 \item Venkatakrishnan, S. V., Bouman, C. A. \& Wohlberg, B. Plug-and-Play Priors for Model Based Reconstruction. IEEE Global Conference on Signal and Information Processing (GlobalSIP), 945-948 (2013).
 \item Wang, F., Wang, C., Chen, M., Gong, W., Zhang, Y., Han, S. \& Situ, G. Far-field super-resolution ghost imaging with a deep neural network constraint. Light: Science \& Applications 11, 1 (2022). [Cited as Wang et al. 2022b.]
 \item Wang, F., Wang, C., Deng, C., Han, S. \& Situ, G. Single-pixel imaging using physics enhanced deep learning. Photonics Research 10, 104-110 (2022). [Cited as Wang et al. 2022a.]
+\item Wang, J., Wang, S., Zhang, R., Zheng, Z., Liu, W. \& Wang, X. A Range-Null Space Decomposition Approach for Fast and Flexible Spectral Compressive Imaging. arXiv:2305.09746 (2023). [RND-SCI.]
 \item Wang, J., Wang, S., Zhang, R., Zheng, Z., Liu, W. \& Wang, X. A Range-Null Space Decomposition Approach for Fast and Flexible Spectral Compressive Imaging. arXiv:2305.09746 (2023).
 \item Wang, X., Yu, K., Wu, S., Gu, J., Liu, Y., Dong, C., Qiao, Y., Loy, C. C. ESRGAN: Enhanced Super-Resolution Generative Adversarial Networks. Computer Vision - ECCV 2018 Workshops, Lecture Notes in Computer Science 11133, 63-79 (2019). arXiv:1809.00219.
 \item Wang, Y., Hu, Y., Yu, J., Zhang, J. GAN Prior Based Null-Space Learning for Consistent Super-resolution. Proceedings of the AAAI Conference on Artificial Intelligence 37(3), 2724-2732 (2023). arXiv:2211.13524.
@@ -433,8 +499,10 @@ The practical recommendation is simple: report measurement accountability and im
 \item Yang, Y., Sun, J., Li, H. \& Xu, Z. Deep ADMM-Net for Compressive Sensing MRI. Advances in Neural Information Processing Systems 29 (NIPS 2016), 10--18 (2016).
 \item Yeh, R. A., Chen, C., Lim, T.-Y., Schwing, A. G., Hasegawa-Johnson, M. \& Do, M. N. Semantic image inpainting with deep generative models. Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 6882-6890 (2017). arXiv:1607.07539.
 \item Youla, D. C. \& Webb, H. Image Restoration by the Method of Convex Projections: Part 1 --- Theory. IEEE Transactions on Medical Imaging 1(2), 81-94 (1982).
+\item Zbontar, J., Knoll, F., Sriram, A., Murrell, T., Huang, Z., Muckley, M. J., Defazio, A., Stern, R., Johnson, P., Bruno, M., et al. fastMRI: An Open Dataset and Benchmarks for Accelerated MRI. arXiv:1811.08839 (2018). [fastMRI single-coil knee $k$-space, §6/Appendix E.2.]
 \item Zhang, J. \& Ghanem, B. ISTA-Net: Interpretable Optimization-Inspired Deep Network for Image Compressive Sensing. Proc. IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR), 1828-1837 (2018). arXiv:1706.07929.
 \item Zhang, R., Isola, P., Efros, A. A., Shechtman, E. \& Wang, O. The Unreasonable Effectiveness of Deep Features as a Perceptual Metric. In Proc. IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 586--595 (2018). arXiv:1801.03924.
+\item Zhao, R. et al. fastMRI+, Clinical pathology annotations for knee and brain fully sampled magnetic resonance imaging data. Scientific Data 9, 152 (2022). [fastMRI+ pathology boxes, §6/Appendix E.2.]
 \item Zhou, S., Chan, K. C. K., Li, C., Loy, C. C. Towards Robust Blind Face Restoration with Codebook Lookup Transformer. Advances in Neural Information Processing Systems 35 (NeurIPS 2022), 30599-30611 (2022). arXiv:2206.11253.
 \item Zhu, Y., Zhang, K., Liang, J., Cao, J., Wen, B., Timofte, R. \& Van Gool, L. Denoising Diffusion Models for Plug-and-Play Image Restoration. IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW, NTIRE), 1219-1229 (2023). arXiv:2305.08995.
 \end{itemize}
@@ -541,7 +609,7 @@ where the second term vanishes because $A^\dagger$ maps into the row space and $
 The witness is not merely feasible in principle; numerically it satisfies the record more tightly than the true scene does. On the Rad-5 operator ($m = 205$, $64\times 64$), across a set of $8$ cross-class feasible pairs, the relative measurement error of the witness against the target record lies in the range $\mathrm{RelMeasErr}(u_{ij}, y_i) \in [2.16\times10^{-15},\, 4.00\times10^{-15}]$, i.e. at floating-point round-off. Over the paired families the construction holds for $16/16$ cross-class pairs at the same $\sim\!2\times10^{-15}$ scale. The \textit{true} image, by contrast, only satisfies the (noisy) record to $[3.45\times10^{-3},\, 7.46\times10^{-3}]$. The gap is roughly twelve orders of magnitude: \textbf{the wrong image reproduces the buckets more exactly than the ground truth.} The two numbers measure different things, and saying so is the point: the witness's $10^{-15}$ is pure geometry (it is \textit{constructed} on the record), while the truth's $10^{-3}$ is exactly its own bucket noise ($\sigma_\varepsilon = 0.01$) --- so the twelve orders quantify how far \textit{any} residual test is from adjudicating truth: every threshold loose enough to admit the noisy truth admits the exact-fitting impostor a fortiori.
 A featured car-versus-horse pair makes the point concretely --- the target car has $\mathrm{RelMeasErr}(x_i, y_i) = 5.36\times10^{-3}$, while the constructed witness follows the horse donor visually and yet attains $\mathrm{RelMeasErr}(u_{ij}, y_i) = 2.93\times10^{-15}$. The witnesses remain semantically wrong with respect to the target, with $\mathrm{PSNR}(u_{ij}, x_i)$ in the range $7.70$--$11.38$ dB.
 
-The box-constrained (POCS) witness experiment of main §2.1 uses this same operator; per-pair boxed residuals: 8 of 16 at machine precision, 9 of 16 below $10^{-11}$, worst pair $1.5	imes10^{-3}$ (artifact: domain\_diagnostics.json).
+The box-constrained (POCS) witness experiment of main §2.1 uses this same operator; per-pair boxed residuals: 8 of 16 at machine precision, 9 of 16 below $10^{-11}$, worst pair $1.5\times10^{-3}$ (artifact: domain\_diagnostics.json).
 
 
 Crucially, the construction is not tied to that operator: on the \textit{same} $64\times64$ STL10 operator at $5\%$ sampling ($m=205$) used for the governed dial of main §4, 40 feasible-wrong witnesses reproduce their target records at $\mathrm{RelMeasErr}(u_{ij}, y_i)$ between $1.7\times10^{-14}$ and $5.6\times10^{-13}$ (median $9.9\times10^{-14}$) while remaining semantically wrong (median $\mathrm{PSNR}(u_{ij}, x_i) = 19.5$ dB). The converse of this section and the constructive dial of main §4 are therefore exhibited on one and the same operator; the residual is a few orders of magnitude above the Rad-5 figure only because the mixed-basis operator is applied through a ridge-regularized ($\lambda_{\text{solver}}=10^{-6}$) audit rather than an exact orthonormal projector, and it remains ten orders below the $\sim\!10^{-3}$ noise floor.
@@ -720,7 +788,7 @@ First, the frontier is well-behaved. A dense 21-point sweep of $B$ (step $0.05$)
 
 Second, the \textit{simplest} dial is the confirmed one. We evaluated two richer parameterizations in development --- a 16-band radial-frequency weighting (a separate weight per spatial-frequency band) and a learned per-image gate --- and neither beat the single global scalar under the registered validation-selection rule. Both tolerance-bounded rules (balanced and quality-lite) select the plain scalar across all three seeds; only an \textit{unconstrained} oracle that ignores the PSNR and RMSE tolerances prefers a low-pass-cutoff variant, and its margin over the scalar is marginal. The confirmed result is thus the minimal one: a single measurement-safe scalar, not a learned gate or a frequency-dependent weighting.
 
-We are deliberate about what $B$ is not. It is a fixed, validation-selected operating point held constant per seed --- not adapted per image, and not an oracle that knows the best weight for each scene. A per-image adaptive weight might improve the trade, but it lies outside this frozen-system result, and the learned per-image gate we tried did not beat the global scalar. The dial meters how much prior-supplied detail enters the null space; it does not, and cannot, certify that the detail it admits is the true scene. That boundary is the subject of the two-ledger synthesis (main §7): the perceptual win reported here lives entirely on the quality axis, and the exact consistency $A\hat{x}_B = y$ that accompanies it certifies reproduction of the record, never the correctness of what the record cannot see.
+We are deliberate about what $B$ is not. It is a fixed, validation-selected operating point held constant per seed --- not adapted per image, and not an oracle that knows the best weight for each scene. A per-image adaptive weight might improve the trade, but it lies outside this frozen-system result, and the learned per-image gate we tried did not beat the global scalar. The dial meters how much prior-supplied detail enters the null space; it does not, and cannot, certify that the detail it admits is the true scene. That boundary is the subject of the two-ledger synthesis (main §8): the perceptual win reported here lives entirely on the quality axis, and the exact consistency $A\hat{x}_B = y$ that accompanies it certifies reproduction of the record, never the correctness of what the record cannot see.
 
 The scalar $B$ is the closest interface in this literature to CodeFormer's fidelity--quality knob $w$ (Zhou et al. 2022) and ESRGAN's network-interpolation weight $\alpha$ (Wang et al. 2018); the difference is that those knobs act on entangled features, so higher quality genuinely moves the reconstruction off the measurement manifold, whereas $B$ acts only within $P_0$ and holds $A\hat{x}_B = y$ exact at every setting. The governed dial is thus a perception--distortion control (Blau and Michaeli 2018) whose distortion is paid entirely in null-space components the measurement never certified.
 
@@ -894,7 +962,7 @@ Noise2Ghost (self-supervised) & $18.4$ vs $15.3$ dB ($+3.1$) & $5/95$ & $92.7\%$
 \bottomrule
 \end{tabular}\end{center}
 
-\textbf{Audit on the measured operator [development-level].} Running $\Pi_y^\lambda$ ($\lambda = 10^{-6}$) on GIDC's measured speckle operator against the substituted-GT reconstruction: RelMeasErr $3.04	imes10^{-3} 	o 2.96	imes10^{-15}$, PSNR $19.54 	o 19.74$ dB, max deviation of the measured modal contraction from $\lambda/(\lambda+\sigma_i^2)$: $3.5	imes10^{-11}$ (float64; $\sigma_i \in [511, 26607]$). Artifact: \texttt{gidc\_measured\_audit.json}.
+\textbf{Audit on the measured operator [development-level].} Running $\Pi_y^\lambda$ ($\lambda = 10^{-6}$) on GIDC's measured speckle operator against the substituted-GT reconstruction: RelMeasErr $3.04\times10^{-3} \to 2.96\times10^{-15}$, PSNR $19.54 \to 19.74$ dB, max deviation of the measured modal contraction from $\lambda/(\lambda+\sigma_i^2)$: $3.5\times10^{-11}$ (float64; $\sigma_i \in [511, 26607]$). Artifact: \texttt{gidc\_measured\_audit.json}.
 
 \textbf{Table E2. Reproducibility of the audits.}
 
@@ -928,6 +996,73 @@ What is \textit{not} forced, and constitutes the findings, are the quantitative 
 Two caveats bound the audit's own accountability: the GIDC null attribution inherits any calibration error in the released patterns (the operator is measured, not exact), and the attribution is stated relative to the min-norm reference. None of the three pipelines applies an exact consistency projection (residuals $2.3\times10^{-2}$, $0.134$, and noise-floor respectively), so the audit step of main §3 is available to each at zero cost.
 
 We stress the reading: this is not an accusation of error --- the null content these methods supply is often substantially truth-aligned --- it is the \textit{location} of their gains in the two-ledger account, measured on their own instruments. The separation law of main §3.3 describes the field, not just our operator.
+
+\subsection*{E.2 Accelerated MRI: masked-Fourier forensics on real fastMRI}
+
+The three pipelines above are ghost-imaging-native. To test the two-ledger reading on a real, second-modality operator --- not our speckle construction, and not a simulation --- we ran the same decomposition on real NYU fastMRI knee $k$-space with the exact masked-Fourier operator $A = MF$ (single-coil emulated, $M$ the released undersampling mask), and on the \textbf{official} fastMRI single-coil U-Net (chans $= 256$, wired from the released state dict). The operator is exact, so no calibration error is inherited: the projector identities hold in float64 on the real $k$-space to $\sim\!10^{-17}$, and the ESC ground truth $\lvert\operatorname{crop}(\operatorname{ifft2c}(k))\rvert$ agrees to correlation $1.00000$. Because $A = MF$ is a masked Fourier operator, the zero-filled reconstruction \textit{equals} $P_R x_{\mathrm{gt}}$ exactly; its magnitude PSNR therefore \textbf{is} the range ceiling, with no SVD reference needed.
+
+\textbf{The feasible-but-wrong witness carries over to real $k$-space.} Two different knees share one identical $R{=}8$ (nominal; effective $6.9\times$ after the autocalibration signal, ACS) undersampled record: a magnitude-legal $[0,1]$ POCS witness matches that record to median $2.5\times10^{-16}$ --- tighter than the clean truth matches its own noisy record --- while reading out at $20.3$ dB against the target, a visibly different knee. The converse of main §2 is not an artifact of our masks.
+
+\begin{figure}[H]\centering
+\includegraphics[width=1.0\linewidth]{FORENSICS_MRI_8x.pdf}
+\caption{\textbf{The two ledgers on real fastMRI at $R{=}8$.} The official single-coil U-Net's $+1.09$ dB over the range ceiling is $92\%$ null-supplied; the zero-filled image \textit{is} $P_R x_{\mathrm{gt}}$, so the ceiling is exact, not a min-norm proxy. The governed data-consistent variant keeps the gain at exact record consistency.}
+\end{figure}
+
+\textbf{Table E3. fastMRI single-coil U-Net decomposition (real $k$-space, official state dict).} \textit{Ceiling} is the exact magnitude PSNR of $P_R x_{\mathrm{gt}}$ (zero-filled). \textit{U-Net drift} is the measured record inconsistency $\lVert A\hat{x}-y\rVert/\lVert y\rVert$. \textit{Governed DC} is $A^\dagger y + P_0 x_{\mathrm{UNet}}$; its own record drift is $\le 3.5\times10^{-16}$ at both rates (exact by construction).
+
+\begin{center}\begin{tabular}{lcccccc}
+\toprule
+Rate (nom. / eff.) & Range ceiling & U-Net & Gain & Null share & U-Net drift & Governed DC \\
+\midrule
+$R{=}4$ / $3.7\times$ & $26.70$ dB & $29.68$ dB & $+2.98$ & $91\%$ & $5.9\%$ & $29.42$ dB \\
+$R{=}8$ / $6.9\times$ & $24.32$ dB & $25.42$ dB & $+1.09$ & $92\%$ & $3.3\%$ & $25.33$ dB \\
+\bottomrule
+\end{tabular}\end{center}
+
+The pattern of Appendix E.1 recurs on a modality that shares nothing with ghost imaging but the geometry: the U-Net's improvement over the ceiling is $91$--$92\%$ null-supplied, and the network is $3$--$6\%$ record-\textit{inconsistent} --- it moves the measured component off $A^\dagger y$. That inconsistency is the contingent content (a data-consistent estimator would have none): the governed variant $A^\dagger y + P_0 x_{\mathrm{UNet}}$ keeps nearly all the gain ($29.42$ vs $29.68$ dB at $R{=}4$) at exact record consistency (drift $3.5\times10^{-16}$), buying certifiability for $0.26$ dB.
+
+\textbf{The GT-free audit contracts the drift by the closed-form factor.} Applied post-hoc to the data-inconsistent U-Net, the record-consistency audit $\Pi_y^\lambda$ contracts the measured drift by exactly $\lambda/(\lambda+1)$ --- median $5.86\times10^{-2}\to5.85\times10^{-5}$ at $\lambda=10^{-3}$ --- with per-mode deviation from the theoretical contraction $\le10^{-15}$. Masked-Fourier $A$ has a flat singular spectrum ($\sigma_i\equiv1$ on the sampled modes), so the modal contraction collapses to a single value; the non-uniform face of the same theorem appears in E.3.
+
+\textbf{Certified-decision on real pathology boxes --- with the honest nuance.} On $429$ real fastMRI+ pathology bounding boxes, the ACS certifies the \textit{coarse} lesion but not the \textit{fine} detail. Full-box null-energy median is $13.5\%$ at $R{=}8$ and $18.4\%$ at $R{=}16$: the coarse lesion is largely record-determined. But its fine-detail contrast is $88.4\%$ ($R{=}8$) / $93.8\%$ ($R{=}16$) null-supplied, and a governed null-space edit changes a soft-tissue lesion's fine-detail contrast by $-43\%$ while $Ax=y$ holds to $3.6\times10^{-16}$. We state the scope plainly: at clinical $4$--$8\times$ the ACS retains the diagnostic low frequencies, so there is \textbf{no} "erase the lesion" demonstration here. The honest claim is \textit{coarse-certified, fine-detail-uncertified} --- the boundary runs through the lesion, not around it.
+
+\begin{figure}[H]\centering
+\includegraphics[width=1.0\linewidth]{DECISION_MRI.pdf}
+\caption{\textbf{Coarse-certified, fine-detail-uncertified.} Across $429$ real fastMRI+ pathology boxes, the ACS certifies the coarse lesion (full-box null median $13.5\%$ at $R{=}8$) while its fine-detail contrast is $88.4\%$ null-supplied; a record-preserving null-space edit shifts fine contrast by $-43\%$ with $Ax=y$ held to $10^{-16}$.}
+\end{figure}
+
+\subsection*{E.3 CASSI: forensics over the MST model zoo}
+
+The masked-Fourier operator hides the modal-contraction theorem behind a flat spectrum. Snapshot compressive spectral imaging exposes it. We ran the decomposition on SD-CASSI (shift-mask-sum, a $28$-band cube $\to$ a $256\times310$ snapshot, $23.1\times$ undersampling) using the \textbf{real released} TSA-Net gray coded aperture (fill $0.563$), over $13$ published models from the MST model zoo on that shared operator. Because $AA^\top = \operatorname{diag}(\Phi_s)$ is \textit{exactly} diagonal, $A^\dagger$, $P_R$, $P_0$ and the entire singular spectrum are closed-form, $O(N)$, with no SVD; the identities hold in float64 to $\sim\!10^{-13}$.
+
+\textbf{The non-uniform spectrum is the empirical face of the modal-contraction theorem.} The measured singular values $\sigma_j = \sqrt{\Phi_s}$ over $79{,}360$ detector modes span $[0.009,\,4.907]$ (median $3.51$) --- a $528\times$ ratio. The per-mode audit contraction $\lambda/(\lambda+\sigma_j^2)$ at $\lambda=10^{-3}$ therefore spans $[4.15\times10^{-5},\,9.21\times10^{-1}]$, a $2\times10^{4}\times$ spread, where masked-Fourier MRI (E.2) collapses to the single value $9.99\times10^{-4}$. The theorem's mode-dependence is measured on a real coded aperture, not designed.
+
+\textbf{Wiring validated against published PSNR.} Before attributing, we confirmed the operator wiring reproduces each model's published simulation PSNR (ours vs. reported): MST-S $34.38$ vs $34.26$; HDNet $35.06$ vs $34.97$; BIRNAT $37.73$ vs $37.58$; DAUHST-9stg $38.18$ vs $38.36$. The ledger below is computed on the same operator that reproduces the field's own numbers.
+
+\textbf{Table E4. Attribution over the MST model zoo (shared real coded aperture, range ceiling $19.04$ dB).} \textit{Gain} is over the min-norm $A^\dagger y$ ceiling. \textit{Null share} is the fraction of that gain supplied from $\ker A$ (values slightly above $100\%$ mean the row-effect is negative --- the model's measured component is \textit{worse} than the ceiling). \textit{Drift} is $\lVert A\hat{x}-y\rVert/\lVert y\rVert$.
+
+\begin{center}\begin{tabular}{lcccc}
+\toprule
+Model & PSNR (dB) & Gain over ceiling & Null share & Record drift \\
+\midrule
+TSA-Net & $31.67$ & $+12.63$ & $101\%$ & $5.3\%$ \\
+GAP-Net & $29.57$ & $+10.52$ & $93\%$ & $11.9\%$ \\
+DGSMP & $32.68$ & $+13.64$ & $101\%$ & $5.9\%$ \\
+HDNet & $35.06$ & $+16.02$ & $101\%$ & $3.2\%$ \\
+MST-S & $34.38$ & $+15.33$ & $101\%$ & $3.8\%$ \\
+MST-M & $35.04$ & $+16.00$ & $101\%$ & $3.1\%$ \\
+MST-L & $35.33$ & $+16.29$ & $101\%$ & $2.9\%$ \\
+DAUHST-2stg & $35.31$ & $+16.27$ & $101\%$ & $2.8\%$ \\
+CST-L & $35.94$ & $+16.90$ & $101\%$ & $2.6\%$ \\
+MST++ & $36.10$ & $+17.06$ & $101\%$ & $2.6\%$ \\
+BIRNAT & $37.73$ & $+18.69$ & $100\%$ & $1.3\%$ \\
+$\lambda$-Net & $28.65$ & $+9.61$ & $101\%$ & $5.3\%$ \\
+DAUHST-9stg & $38.18$ & $+19.14$ & $100\%$ & $0.9\%$ \\
+\bottomrule
+\end{tabular}\end{center}
+
+The reading is near-uniform: twelve of the thirteen models supply $100$--$101\%$ of their PSNR gain over the $19.04$ dB ceiling from the null space, with the row-effect slightly \textbf{negative} --- the models mildly corrupt the measured component rather than repairing it. GAP-Net is the sole exception ($93\%$ null, a positive row-effect, and the largest drift, $11.9\%$). The entire decade of CASSI progress (TSA-Net $31.67\to$ DAUHST-9stg $38.18$, $+6.5$ dB of SOTA) happens \textit{entirely} in the null ledger, and the models are $0.9$--$12\%$ record-inconsistent throughout.
+
+\textbf{The tautology defense, stated where it bites hardest.} At $m\ll n$ the null-dominance of a record-consistent estimator's error is definitional ($AP_0=0$ plus the orthogonal split), not a finding, and we do not present it as one (main §5, §6.3). What is \textit{contingent} --- not entailed by undersampling, and therefore the content --- is fourfold: (i) the measured record-inconsistency of the published models ($0.9$--$12\%$), which a data-consistent estimator would not have; (ii) the slightly \textit{negative} row-effect, models moving the measured component away from $A^\dagger y$; (iii) the specific $528\times$ non-uniform CASSI spectrum; and (iv) the cross-model agreement of the split over a whole zoo. The ledger is accounting, not accusation: the null content these models supply is largely truth-aligned. Its \textit{location} --- entirely in the uncertifiable ledger, on the field's own operator --- is the finding.
 
 \medskip\hrule\medskip
 
