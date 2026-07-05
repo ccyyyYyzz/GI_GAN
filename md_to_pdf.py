@@ -72,7 +72,7 @@ def convert(md: str) -> str:
         if mfig:
             close_list()
             fname, width, cap = mfig.group(1).strip(), mfig.group(2).strip(), mfig.group(3).strip()
-            out.append(r"\begin{figure}[t]\centering")
+            out.append(r"\begin{figure}[H]\centering")
             out.append(rf"\includegraphics[width={width}\linewidth]{{{fname}}}")
             out.append(r"\caption{" + inline(cap) + "}")
             out.append(r"\end{figure}")
@@ -95,13 +95,28 @@ def convert(md: str) -> str:
             out.append(r"\bottomrule")
             out.append(r"\end{tabular}\end{center}")
             continue
+        # blockquote box (scope/protocol boxes): consecutive '>' lines -> framed parbox
+        if s.startswith(">"):
+            close_list()
+            qlines = []
+            while i < n and lines[i].strip().startswith(">"):
+                qlines.append(lines[i].strip().lstrip(">").strip())
+                i += 1
+            body = r"\par\smallskip ".join(inline(q) for q in qlines if q)
+            out.append(r"\medskip\noindent\fbox{\parbox{0.96\linewidth}{" + body + r"}}\medskip")
+            continue
         # headings
         m = re.match(r"^(#{1,4})\s+(.*)$", s)
         if m:
             close_list()
             level, txt = len(m.group(1)), inline(m.group(2))
             if level == 1:
-                title = m.group(2)
+                if title == "Paper":
+                    title = m.group(2)          # only the FIRST h1 is the title
+                else:
+                    out.append(r"\clearpage\section*{" + txt + "}")
+                    if "appendices" in m.group(2).lower():
+                        out.append(r"\setcounter{figure}{0}\renewcommand{\thefigure}{S\arabic{figure}}")
             elif level == 2:
                 out.append(r"\section*{" + txt + "}")
             elif level == 3:
@@ -146,6 +161,7 @@ def convert(md: str) -> str:
         r"\usepackage{amsmath,amssymb}",
         r"\usepackage{graphicx}",
         r"\usepackage{booktabs}",
+        r"\usepackage{float}",
         r"\usepackage{array}",
         r"\usepackage[hidelinks]{hyperref}",
         r"\usepackage{parskip}",
