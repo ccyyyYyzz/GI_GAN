@@ -1,0 +1,110 @@
+[
+  {
+    "pair": [
+      0,
+      3
+    ],
+    "relerr_witness": 1.5179120974445408e-16,
+    "relerr_box_witness": 3.721534668199401e-05,
+    "null_match": 1.9059781010569235e-16,
+    "psnr_wit_to_target": 18.83025053185411,
+    "psnr_wit_to_donor": 21.20087239248764,
+    "box_oob": 0.0749991312623024
+  },
+  {
+    "pair": [
+      1,
+      4
+    ],
+    "relerr_witness": 2.520947253979249e-16,
+    "relerr_box_witness": 0.0018915833727954762,
+    "null_match": 1.5433949260786756e-16,
+    "psnr_wit_to_target": 16.20278489704048,
+    "psnr_wit_to_donor": 19.212535530455433,
+    "box_oob": 0.13420160114765167
+  },
+  {
+    "pair": [
+      2,
+      5
+    ],
+    "relerr_witness": 1.6875769690044634e-16,
+    "relerr_box_witness": 0.0008019667018644298,
+    "null_match": 2.0708877622062112e-16,
+    "psnr_wit_to_target": 14.140218520430444,
+    "psnr_wit_to_donor": 17.214119416948904,
+    "box_oob": 0.11367743462324142
+  },
+  {
+    "pair": [
+      3,
+      6
+    ],
+    "relerr_witness": 2.7831619437551113e-16,
+    "relerr_box_witness": 0.00751167178084313,
+    "null_match": 1.4421231821535665e-16,
+    "psnr_wit_to_target": 17.495616217456337,
+    "psnr_wit_to_donor": 19.976865526037187,
+    "box_oob": 0.22048786282539368
+  },
+  {
+    "pair": [
+      4,
+      7
+    ],
+    "relerr_witness": 1.493859142551738e-16,
+    "relerr_box_witness": 5.057739083886238e-05,
+    "null_match": 2.1709822838731089e-16,
+    "psnr_wit_to_target": 15.805674705977882,
+    "psnr_wit_to_donor": 18.325359128400166,
+    "box_oob": 0.034216199070215225
+  },
+  {
+    "pair": [
+      5,
+      8
+    ],
+    "relerr_witness": 1.7930403585530546e-16,
+    "relerr_box_witness": 0.0019996609999080464,
+    "null_match": 1.4832671006685178e-16,
+    "psnr_wit_to_target": 16.042406627593323,
+    "psnr_wit_to_donor": 21.29271547527434,
+    "box_oob": 0.18749019503593445
+  },
+  {
+    "pair": [
+      6,
+      9
+    ],
+    "relerr_witness": 1.6910658181314847e-16,
+    "relerr_box_witness": 1.7105702570790324e-06,
+    "null_match": 1.7097239420993942e-16,
+    "psnr_wit_to_target": 17.206091389313354,
+    "psnr_wit_to_donor": 19.522324713701966,
+    "box_oob": 0.07691138237714767
+  },
+  {
+    "pair": [
+      7,
+      0
+    ],
+    "relerr_witness": 1.8931362826095683e-16,
+    "relerr_box_witness": 0.0030552368669689114,
+    "null_match": 1.938066058940455e-16,
+    "psnr_wit_to_target": 17.260164083625533,
+    "psnr_wit_to_donor": 19.51168015111812,
+    "box_oob": 0.15255138278007507
+  },
+  {
+    "pair": [
+      8,
+      1
+    ],
+    "relerr_witness": 1.604037196539195e-16,
+    "relerr_box_witness": 0.002523031437045795,
+    "null_match": 1.7342746043298135e-16,
+    "psnr_wit_to_target": 16.021362321298636,
+    "psnr_wit_to_donor": 21.81300884946743,
+    "box_oob": 0.10489273071289062
+  }
+]

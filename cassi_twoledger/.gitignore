@@ -1,0 +1,4 @@
+scenes/
+mask.mat
+__pycache__/
+*.pyc
