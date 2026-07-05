@@ -96,7 +96,7 @@ def main(accel=4, cf=0.08, n_vol=30, seed=0, mask_type="random"):
 
     def stats(a): a = np.array(a); return float(np.mean(a)), float(np.std(a))
     ceil_m, ceil_s = stats(rec["ceiling"])
-    summary = {"accel": 1 / op.sampling_rate, "sampling_rate": op.sampling_rate,
+    summary = {"accel_nominal": accel, "accel_effective": 1 / op.sampling_rate, "sampling_rate": op.sampling_rate,
                "n_vol": len(pick), "lambda": lam,
                "range_ceiling_psnr": [ceil_m, ceil_s]}
     log("\n===== FORENSICS SUMMARY =====")
@@ -125,7 +125,7 @@ def main(accel=4, cf=0.08, n_vol=30, seed=0, mask_type="random"):
         f"(ratio {np.median(audit['ratio']):.2e}, target {lam/(lam+1):.2e}, "
         f"max dev {np.max(audit['contra_dev']):.1e})")
 
-    json.dump(summary, open(os.path.join(OUT, f"forensics_{int(round(1/op.sampling_rate))}x.json"), "w"), indent=2)
+    json.dump(summary, open(os.path.join(OUT, f"forensics_{accel}x.json"), "w"), indent=2)
 
     # figure: (a) PSNR bars vs ceiling with null/row split ; (b) U-Net record-drift contraction
     fig, ax = plt.subplots(1, 2, figsize=(11, 3.8))
@@ -138,7 +138,7 @@ def main(accel=4, cf=0.08, n_vol=30, seed=0, mask_type="random"):
     ax[0].bar(xpos, rows_, 0.5, bottom=nulls, color="#3a6ea5", label="row-effect (measured)")
     ax[0].set_xticks(xpos); ax[0].set_xticklabels(["wavelet-CS", "U-Net\n(raw SOTA)", "U-Net\n(governed DC)"])
     ax[0].set_ylabel("PSNR gain over range ceiling (dB)")
-    ax[0].set_title(f"(a) Headline gain is null-supplied  ({1/op.sampling_rate:.0f}$\\times$)")
+    ax[0].set_title(f"(a) Headline gain is null-supplied  ({accel}$\\times$ nominal)")
     ax[0].legend(fontsize=8)
     for sp in ("top", "right"): ax[0].spines[sp].set_visible(False)
 
@@ -154,7 +154,7 @@ def main(accel=4, cf=0.08, n_vol=30, seed=0, mask_type="random"):
     for sp in ("top", "right"): ax[1].spines[sp].set_visible(False)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(os.path.join(OUT, f"FORENSICS_MRI_{int(round(1/op.sampling_rate))}x.{ext}"), dpi=170, bbox_inches="tight")
+        fig.savefig(os.path.join(OUT, f"FORENSICS_MRI_{accel}x.{ext}"), dpi=170, bbox_inches="tight")
     log("wrote forensics json + FORENSICS_MRI figure")
 
 

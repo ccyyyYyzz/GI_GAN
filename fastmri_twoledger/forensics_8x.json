@@ -1,37 +1,50 @@
 {
-  "accel": 7.829787234042552,
-  "sampling_rate": 0.12771739130434784,
+  "accel_nominal": 8,
+  "accel_effective": 6.943396226415095,
+  "sampling_rate": 0.14402173913043478,
   "n_vol": 19,
   "lambda": 0.001,
   "range_ceiling_psnr": [
-    23.918351470504824,
-    1.5330940378270221
+    24.324595843529774,
+    1.4538974307001418
   ],
   "wavelet_cs": {
     "psnr": [
-      23.804625211687505,
-      1.5278408669616055
+      24.310364123117896,
+      1.45083476444679
     ],
-    "total_gain_db": -0.11372625881731935,
-    "null_supply_db": -0.11372625881731935,
-    "row_effect_db": 0.0,
+    "total_gain_db": -0.014231720411878257,
+    "null_supply_db": -0.014231720411881062,
+    "row_effect_db": -1.8698493046318425e-16,
     "null_share_pct": NaN
   },
   "unet": {
     "psnr": [
-      24.794203227634892,
-      1.6473671772906302
+      25.417346300196407,
+      1.5766166165155484
     ],
-    "total_gain_db": 0.8758517571300679,
-    "null_supply_db": 0.7762931071438632,
-    "row_effect_db": 0.09955864998620899,
-    "null_share_pct": 88.63293369274821
+    "total_gain_db": 1.0927504566666322,
+    "null_supply_db": 1.0023372290933228,
+    "row_effect_db": 0.09041322757330929,
+    "null_share_pct": 91.72608649836583,
+    "record_drift_median": 0.0328777268409654
+  },
+  "unet_dc": {
+    "psnr": [
+      25.326933072623103,
+      1.5190899865913496
+    ],
+    "total_gain_db": 1.0023372290933281,
+    "null_supply_db": 1.0023372290933228,
+    "row_effect_db": 0.0,
+    "null_share_pct": 99.99999999999946,
+    "record_drift_median": 3.1631324506682694e-16
   },
   "audit": {
-    "unet_record_drift_pre_median": 0.025677001237247178,
-    "unet_record_drift_post_median": 2.5651349887357564e-05,
-    "contraction_ratio_median": 0.0009990009990009112,
-    "contraction_dev_max": 8.350525132483355e-16,
+    "unet_record_drift_pre_median": 0.0328777268409654,
+    "unet_record_drift_post_median": 3.284488195900394e-05,
+    "contraction_ratio_median": 0.0009990009990009283,
+    "contraction_dev_max": 6.85649453879833e-16,
     "target_ratio": 0.0009990009990009992
   }
 }

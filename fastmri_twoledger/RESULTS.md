@@ -37,10 +37,13 @@ not a complex-vector-space artifact. → `WITNESS_MRI_8x.*`, `witness_certificat
 `P_R x_gt` exactly, so its magnitude PSNR is the *range ceiling*. Decomposing the official
 single-coil U-Net's gain over that ceiling:
 
-| accel | range ceiling | U-Net (raw) | gain | **null share** | U-Net record drift |
+(accel is the nominal fastMRI R used to generate the random mask; effective sampling is
+higher because of the ACS block — R=4→3.7×, R=8→6.9× effective. Numbers match `forensics_Rx.json`.)
+
+| accel (nominal) | range ceiling | U-Net (raw) | gain | **null share** | U-Net record drift |
 |---|---|---|---|---|---|
-| 4× | 26.70 dB | 29.68 dB | +2.98 dB | **91 %** | 5.9 % |
-| 8× | 24.32 dB | 25.42 dB | +1.09 dB | **92 %** | 3.3 % |
+| 4× (eff 3.7×) | 26.70 dB | 29.68 dB | +2.98 dB | **91 %** | 5.9 % |
+| 8× (eff 6.9×) | 24.32 dB | 25.42 dB | +1.09 dB | **92 %** | 3.3 % |
 
 91–92 % of the "SOTA" PSNR gain is prior-invented null content the k-space never certified
 — extending the paper's 39–95 % ghost-imaging finding to real clinical MRI. The raw U-Net

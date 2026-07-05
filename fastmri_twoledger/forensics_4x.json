@@ -1,5 +1,6 @@
 {
-  "accel": 3.7171717171717176,
+  "accel_nominal": 4,
+  "accel_effective": 3.7171717171717176,
   "sampling_rate": 0.26902173913043476,
   "n_vol": 19,
   "lambda": 0.001,
