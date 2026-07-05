@@ -43,6 +43,15 @@ toward natural grayscale images.
 
 ## File Tree
 
+> ⚠️ **Outdated — early-phase snapshot only.** This tree reflects the original
+> per-phase reproduction layout; it does **not** show the current repo (50+ root
+> `.py` modules, plus `src/`, `configs/`, `scripts/`, `HANDOFF/`,
+> `research_lines/`, `paper/`, `eval/`, `colab/`, …). For the current, accurate
+> layout and entry points, start at
+> [`HANDOFF/00_START_HERE.md`](HANDOFF/00_START_HERE.md) and
+> [`research_lines/00_program_overview/INDEX.md`](research_lines/00_program_overview/INDEX.md).
+> The tree below is kept as-is for early-phase reproduction detail.
+
 ```text
 ns_mc_gan_gi/
   README.md
