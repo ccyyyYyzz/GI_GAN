@@ -1,0 +1,110 @@
+[
+  {
+    "pair": [
+      "file1000389.h5",
+      "file1001566.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 2.5138338859763185e-16,
+    "relerr_box_witness": 2.4900305452572676e-16,
+    "null_match": 2.1118562738188364e-15,
+    "psnr_wit_to_target": 19.28785533645225,
+    "psnr_wit_to_donor": 17.234170817749707
+  },
+  {
+    "pair": [
+      "file1000593.h5",
+      "file1002159.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 2.896445757474322e-16,
+    "relerr_box_witness": 2.454856829591751e-16,
+    "null_match": 1.2578830793555337e-15,
+    "psnr_wit_to_target": 20.257649091020316,
+    "psnr_wit_to_donor": 15.556704653415839
+  },
+  {
+    "pair": [
+      "file1000033.h5",
+      "file1001930.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 3.426776631893734e-16,
+    "relerr_box_witness": 2.526790848927865e-16,
+    "null_match": 1.4711652354959546e-15,
+    "psnr_wit_to_target": 20.91078184970229,
+    "psnr_wit_to_donor": 16.382477921157367
+  },
+  {
+    "pair": [
+      "file1000858.h5",
+      "file1002546.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 1.1294941361258453e-15,
+    "relerr_box_witness": 3.122869625486072e-16,
+    "null_match": 1.2027856848864537e-15,
+    "psnr_wit_to_target": 18.611903745059646,
+    "psnr_wit_to_donor": 18.109274202685427
+  },
+  {
+    "pair": [
+      "file1001221.h5",
+      "file1001077.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 3.504317957593691e-16,
+    "relerr_box_witness": 2.413882658490747e-16,
+    "null_match": 1.4161343092913874e-15,
+    "psnr_wit_to_target": 16.103852669431568,
+    "psnr_wit_to_donor": 15.58118600688255
+  },
+  {
+    "pair": [
+      "file1002436.h5",
+      "file1002389.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 3.368393262342151e-16,
+    "relerr_box_witness": 2.4405842395980974e-16,
+    "null_match": 9.698222422871163e-16,
+    "psnr_wit_to_target": 23.252272522762546,
+    "psnr_wit_to_donor": 19.354852735326038
+  },
+  {
+    "pair": [
+      "file1001262.h5",
+      "file1001850.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 2.716884662181913e-16,
+    "relerr_box_witness": 2.4630298497585256e-16,
+    "null_match": 1.0777143608528658e-15,
+    "psnr_wit_to_target": 20.543232670502476,
+    "psnr_wit_to_donor": 17.719143500839746
+  },
+  {
+    "pair": [
+      "file1001144.h5",
+      "file1002067.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 2.8776289817496234e-16,
+    "relerr_box_witness": 2.643197273353463e-16,
+    "null_match": 9.583319929748684e-16,
+    "psnr_wit_to_target": 20.292113361789287,
+    "psnr_wit_to_donor": 18.286753471616024
+  },
+  {
+    "pair": [
+      "file1001289.h5",
+      "file1000196.h5"
+    ],
+    "relerr_true": 0.0,
+    "relerr_witness": 2.4911429190856764e-16,
+    "relerr_box_witness": 2.579990548537918e-16,
+    "null_match": 1.4902555050982567e-15,
+    "psnr_wit_to_target": 20.886395468611575,
+    "psnr_wit_to_donor": 18.994245627909805
+  }
+]

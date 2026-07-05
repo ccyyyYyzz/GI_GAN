@@ -1,0 +1,49 @@
+{
+  "accel": 3.7171717171717176,
+  "sampling_rate": 0.26902173913043476,
+  "n_vol": 19,
+  "lambda": 0.001,
+  "range_ceiling_psnr": [
+    26.70373080316958,
+    1.2192049454851048
+  ],
+  "wavelet_cs": {
+    "psnr": [
+      26.689617037740376,
+      1.2297861273513984
+    ],
+    "total_gain_db": -0.014113765429204506,
+    "null_supply_db": -0.014113765429206188,
+    "row_effect_db": 0.0,
+    "null_share_pct": NaN
+  },
+  "unet": {
+    "psnr": [
+      29.681163065401233,
+      2.095432291310644
+    ],
+    "total_gain_db": 2.977432262231652,
+    "null_supply_db": 2.715396568047879,
+    "row_effect_db": 0.2620356941837693,
+    "null_share_pct": 91.19927269185392,
+    "record_drift_median": 0.05860427273323825
+  },
+  "unet_dc": {
+    "psnr": [
+      29.419127371217456,
+      2.0910308614924893
+    ],
+    "total_gain_db": 2.7153965680478755,
+    "null_supply_db": 2.715396568047879,
+    "row_effect_db": 0.0,
+    "null_share_pct": 100.00000000000013,
+    "record_drift_median": 3.4978453637566136e-16
+  },
+  "audit": {
+    "unet_record_drift_pre_median": 0.05860427273323825,
+    "unet_record_drift_post_median": 5.8545727006231335e-05,
+    "contraction_ratio_median": 0.0009990009990008047,
+    "contraction_dev_max": 5.37330596683816e-16,
+    "target_ratio": 0.0009990009990009992
+  }
+}
