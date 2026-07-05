@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.9.25)  5 JUL 2026 02:15
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.9.25)  5 JUL 2026 02:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -433,107 +433,111 @@ File: WITNESS_GEOMETRY.pdf Graphic file (type pdf)
  [4] [5]
 File: CERT_SEPARATION.pdf Graphic file (type pdf)
 <use CERT_SEPARATION.pdf>
- [6]
+ [6] [7]
 File: DIAL_MECHANISM.pdf Graphic file (type pdf)
 <use DIAL_MECHANISM.pdf>
-
-Overfull \hbox (9.11423pt too wide) in paragraph at lines 181--191
+ [8]
+Overfull \hbox (9.11423pt too wide) in paragraph at lines 189--199
  [] 
  []
 
-[7]
 File: PARETO_FIGURE.pdf Graphic file (type pdf)
 <use PARETO_FIGURE.pdf>
+[9]
 File: QUALITATIVE_GRID.pdf Graphic file (type pdf)
 <use QUALITATIVE_GRID.pdf>
- [8] [9] [10]
-File: FORENSICS_CROSS_TARGET.pdf Graphic file (type pdf)
-<use FORENSICS_CROSS_TARGET.pdf>
-
-Overfull \hbox (286.7658pt too wide) in paragraph at lines 265--275
+ [10] [11]
+Overfull \hbox (119.75525pt too wide) in paragraph at lines 268--276
  [] 
  []
 
-[11] [12]
-Overfull \hbox (1.83514pt too wide) in paragraph at lines 311--312
+File: FORENSICS_CROSS_TARGET.pdf Graphic file (type pdf)
+<use FORENSICS_CROSS_TARGET.pdf>
+[12]
+Overfull \hbox (286.7658pt too wide) in paragraph at lines 289--299
+ [] 
+ []
+
+[13]
+Overfull \hbox (1.83514pt too wide) in paragraph at lines 335--336
 \TU/lmr/m/n/10.95 hyayula, S., Romano, Y. Image-to-Image Regression with Distri
 bution-Free Uncertainty Quan-
  []
 
-[13]
-Overfull \hbox (46.52647pt too wide) in paragraph at lines 320--321
+[14]
+Overfull \hbox (46.52647pt too wide) in paragraph at lines 344--345
 \TU/lmr/m/n/10.95 Conference on Computer Vision and Pattern Recognition (CVPR),
  6228-6237 (2018). arXiv:1711.06077. 
  []
 
-
-Overfull \hbox (5.76065pt too wide) in paragraph at lines 331--332
+[15]
+Overfull \hbox (5.76065pt too wide) in paragraph at lines 355--356
 \TU/lmr/m/n/10.95 bracio, M. A Survey on Diffusion Models for Inverse Problems.
  arXiv preprint arXiv:2410.00083
  []
 
-[14] [15] [16]
-Overfull \hbox (31.27312pt too wide) in paragraph at lines 363--364
+[16] [17]
+Overfull \hbox (31.27312pt too wide) in paragraph at lines 387--388
 \TU/lmr/m/n/10.95 vances in Neural Information Processing Systems 31 (NeurIPS),
  8507-8516 (2018). arXiv:1805.11572. 
  []
 
 
-Overfull \hbox (27.05739pt too wide) in paragraph at lines 368--369
+Overfull \hbox (27.05739pt too wide) in paragraph at lines 392--393
 \TU/lmr/m/n/10.95 ference on Computer Vision and Pattern Recognition (CVPR), 24
 37-2445 (2020). arXiv:2003.03808. 
  []
 
-[17]
-Overfull \hbox (14.55249pt too wide) in paragraph at lines 389--390
+[18] [19]
+Overfull \hbox (14.55249pt too wide) in paragraph at lines 413--414
 \TU/lmr/m/n/10.95 ence on Computer Vision and Pattern Recognition (CVPR), 9446-
 9454 (2018). arXiv:1711.10925. 
  []
 
-[18] [19] [20
+[20] [21] [22
 
-] [21] [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32]
+] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34]
 File: B_CURVE.pdf Graphic file (type pdf)
 <use B_CURVE.pdf>
 
-[33] [34]
-Overfull \hbox (62.8921pt too wide) in paragraph at lines 727--735
+[35] [36]
+Overfull \hbox (62.8921pt too wide) in paragraph at lines 751--759
  [] 
  []
 
 File: rate_generalization_figure.pdf Graphic file (type pdf)
 <use rate_generalization_figure.pdf>
-[35]
+[37]
 File: NOISE_ROBUSTNESS.pdf Graphic file (type pdf)
 <use NOISE_ROBUSTNESS.pdf>
- [36] [37] [38]
-Overfull \hbox (2.98056pt too wide) in paragraph at lines 807--808
+ [38] [39] [40]
+Overfull \hbox (2.98056pt too wide) in paragraph at lines 831--832
 \TU/lmr/m/n/10.95 tics, so ”matches the reference” and ”looks real” are formall
 y at odds; their rate-distortion-perception
  []
 
-[39] [40]
-Overfull \hbox (5.91733pt too wide) in paragraph at lines 827--828
+[41] [42]
+Overfull \hbox (5.91733pt too wide) in paragraph at lines 851--852
 \TU/lmr/m/n/10.95 at calibration (RCPS, conformal risk control, task-conformal)
 , and they operate in output/pixel/label
  []
 
-[41] [42]
-Overfull \hbox (79.09789pt too wide) in paragraph at lines 853--861
+[43] [44]
+Overfull \hbox (79.09789pt too wide) in paragraph at lines 877--885
  [] 
  []
 
 
-Overfull \hbox (653.05061pt too wide) in paragraph at lines 865--873
+Overfull \hbox (653.05061pt too wide) in paragraph at lines 889--897
  [] 
  []
 
-[43]
-Overfull \hbox (466.86537pt too wide) in paragraph at lines 890--898
+[45]
+Overfull \hbox (466.86537pt too wide) in paragraph at lines 914--922
  [] 
  []
 
-[44] [45] (./UNIFIED_PAPER_DRAFT.aux)
+[46] [47] (./UNIFIED_PAPER_DRAFT.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -550,4 +554,4 @@ Here is how much of TeX's memory you used:
  36 hyphenation exceptions out of 8191
  72i,9n,79p,2342b,400s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on UNIFIED_PAPER_DRAFT.pdf (45 pages).
+Output written on UNIFIED_PAPER_DRAFT.pdf (47 pages).
