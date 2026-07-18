@@ -4,10 +4,27 @@ import torch
 
 from src.gauge_geometry import GaugeGeometry
 from src.projector_gated_fiber_gan import (
+    ComplementaryDCTBucketDiscriminator,
     FiberConditionalDiscriminator,
     ProjectorGatedFiberGenerator,
     parameter_count,
 )
+
+
+def test_complementary_dct_bucket_critic_masks_acquired_coefficients() -> None:
+    critic = ComplementaryDCTBucketDiscriminator(img_size=8, acquired_non_dc=7)
+    assert critic.complement.shape == (1, 1, 8, 8)
+    assert int((critic.complement == 0).sum()) == 8
+    probe = torch.randn(2, 1, 8, 8)
+    coeff = critic._dct2(probe)
+    assert torch.allclose(
+        coeff.square().sum(dim=(1, 2, 3)),
+        probe.square().sum(dim=(1, 2, 3)),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+    logits = critic(probe, probe)
+    assert logits.shape[0] == probe.shape[0]
 
 
 def _geometry(seed: int = 1) -> GaugeGeometry:

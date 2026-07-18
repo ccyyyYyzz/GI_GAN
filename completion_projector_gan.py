@@ -31,6 +31,7 @@ from src.gauge_geometry import (
 from src.losses import charbonnier_loss, differentiable_ssim_loss, gradient_difference_loss
 from src.metrics import ssim as ssim_metric
 from src.projector_gated_fiber_gan import (
+    ComplementaryDCTBucketDiscriminator,
     FiberConditionalDiscriminator,
     ProjectorGatedFiberGenerator,
     parameter_count,
@@ -762,6 +763,20 @@ def _set_requires_grad(module: nn.Module, enabled: bool) -> None:
         parameter.requires_grad_(bool(enabled))
 
 
+def build_stage_b_discriminator(
+    config: Mapping[str, Any], device: torch.device
+) -> nn.Module:
+    domain = str(config["training"].get("adversarial_domain", "image")).lower()
+    if domain == "image":
+        return FiberConditionalDiscriminator().to(device)
+    if domain == "complementary_dct":
+        return ComplementaryDCTBucketDiscriminator(
+            img_size=int(config["data"]["img_size"]),
+            acquired_non_dc=int(config["operator"]["dct_rows"]),
+        ).to(device)
+    raise PQBFGANError(f"UNKNOWN_ADVERSARIAL_DOMAIN:{domain}")
+
+
 def _tail_parameters(generator: ProjectorGatedFiberGenerator) -> list[nn.Parameter]:
     layer = generator.shared_step.correction_head[-1]
     return [parameter for parameter in layer.parameters() if parameter.requires_grad]
@@ -792,7 +807,7 @@ def train_stage_b(
     config: Mapping[str, Any],
     device: torch.device,
     output_dir: Path,
-) -> tuple[hq.ModelEMA, FiberConditionalDiscriminator, list[dict[str, Any]], dict[str, Any]]:
+) -> tuple[hq.ModelEMA, nn.Module, list[dict[str, Any]], dict[str, Any]]:
     cfg = dict(config["training"])
     steps = int(cfg["stage_b_steps"])
     batch_size = int(config["data"]["batch_size"])
@@ -804,7 +819,7 @@ def train_stage_b(
         betas=tuple(float(v) for v in cfg.get("betas", [0.5, 0.9])),
     )
     set_seed(int(config["seeds"]["discriminator"]))
-    discriminator = FiberConditionalDiscriminator().to(device)
+    discriminator = build_stage_b_discriminator(config, device)
     optimizer_d = torch.optim.Adam(
         discriminator.parameters(),
         lr=float(cfg.get("stage_b_lr_d", 2e-4)),
@@ -1432,7 +1447,7 @@ def run(config_path: Path) -> dict[str, Any]:
         stage_b_ema = hq.ModelEMA(
             generator, decay=float(config["training"].get("ema_decay", 0.999))
         )
-        discriminator = FiberConditionalDiscriminator().to(device)
+        discriminator = build_stage_b_discriminator(config, device)
         discriminator.load_state_dict(payload["discriminator"])
         stage_b_log = []
         stage_b_manifest = {
