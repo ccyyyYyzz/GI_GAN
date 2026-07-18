@@ -2,6 +2,8 @@
 
 > **🧭 New here? Start with [`HANDOFF/00_START_HERE.md`](HANDOFF/00_START_HERE.md).**
 >
+> **For a one-page reproducibility route, start with [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md), then use [`repro/EXPERIMENT_INDEX.md`](repro/EXPERIMENT_INDEX.md) and [`repro/PAPER_EVIDENCE_MAP.md`](repro/PAPER_EVIDENCE_MAP.md).**
+>
 > This repository is one working copy of a larger **undersampled ghost-imaging range/null-space research program**. The [`HANDOFF/`](HANDOFF/) directory is the authoritative, chronological guide to the whole work — theory, code map, reproducibility, evidence, papers, and red lines — written so a fresh session or a new reader can follow the research **in order**, reuse the code, and reproduce every result.
 
 ## How this repository is organized
@@ -740,3 +742,4 @@ E:/ns_mc_gan_gi/outputs/
 - Use AMP mixed precision for faster CUDA training.
 - Cache the fixed measurement operator per sampling ratio for reproducibility.
 - Add a learned denoising prior or diffusion-style residual sampler.
+
