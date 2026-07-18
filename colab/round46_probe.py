@@ -6,7 +6,7 @@ processes = subprocess.run(
     [
         "bash",
         "-lc",
-        "ps -eo pid,etime,cmd | grep -E 'run_fiber_rate_campaign|prepare_fiber_rate_caches|train_fiber_residual_phase_gan|diagnose_fiber_residual_frequency_fusion|PID' | grep -v grep",
+        "ps -eo pid,etime,cmd | grep -E 'run_fiber_rate_campaign|prepare_fiber_rate_caches|train_fiber_residual_phase_gan|diagnose_fiber_residual_frequency_fusion|round48_eq_worker|diagnose_box_fiber_endpoint_fohi|PID' | grep -v grep",
     ],
     capture_output=True,
     text=True,
@@ -30,5 +30,16 @@ for directory in sorted(root.glob("seed*")) if root.exists() else []:
         if log.exists():
             lines = log.read_text(errors="replace").splitlines()
             print("LOG_TAIL", log_name)
+            print("\n".join(lines[-10:]))
+eq_root = Path("/content/gan_r48_results/eq_fohi")
+for directory in sorted(eq_root.glob("*")) if eq_root.exists() else []:
+    print("EQ_RESULT_DIR", directory)
+    summary = directory / "summary.json"
+    print("EQ_SUMMARY", summary.exists(), summary.stat().st_size if summary.exists() else -1)
+    for log_name in ("queue.log", "driver.log"):
+        log = directory / log_name
+        if log.exists():
+            lines = log.read_text(errors="replace").splitlines()
+            print("EQ_LOG_TAIL", log_name)
             print("\n".join(lines[-10:]))
 

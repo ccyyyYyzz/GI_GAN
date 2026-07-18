@@ -11,6 +11,12 @@ subprocess.run(["git", "fetch", "origin", branch], cwd=repo, check=True)
 subprocess.run(["git", "checkout", branch], cwd=repo, check=True)
 subprocess.run(["git", "pull", "--ff-only", "origin", branch], cwd=repo, check=True)
 worker = repo / "colab/round48_eq_worker.py"
+subprocess.run(
+    ["pkill", "-f", "/content/GI_GAN/colab/[r]ound48_eq_worker.py"],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+    check=False,
+)
 with open(os.devnull, "r") as null, open("/content/gan_r48_queue_launcher.log", "a") as log:
     subprocess.run(
         ["setsid", "-f", sys.executable, "-u", str(worker)],

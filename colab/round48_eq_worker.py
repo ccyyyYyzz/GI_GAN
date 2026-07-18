@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os
 import subprocess
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 
@@ -12,26 +14,28 @@ repo = Path("/content/GI_GAN")
 seed1_root = Path("/content/gan_r43_results/seed1_primary_seed2_control")
 seed2_root = Path("/content/gan_r43_results/seed2_primary_seed0_control")
 if seed1_root.exists():
-    rate_seed = 1
     label = "seed1_primary_seed2_control"
     primary_val = "/content/data_control/seed1_val.pt"
     control_val = "/content/data_seed2/seed2_val.pt"
     control_checkpoint = str(seed1_root / "control/checkpoint_vqae_control_rot0.5_adv0.pt")
     proposal_checkpoint = str(seed1_root / "gan/checkpoint_gan_rot0.5_adv0.0015.pt")
 elif seed2_root.exists():
-    rate_seed = 2
     label = "seed2_primary_seed0_control"
     primary_val = "/content/data_seed2/seed2_val.pt"
     control_val = "/content/data_primary/seed0_val.pt"
     control_checkpoint = str(seed2_root / "control/checkpoint_vqae_control_rot0.5_adv0.pt")
     proposal_checkpoint = str(seed2_root / "gan/checkpoint_gan_rot0.5_adv0.0015.pt")
 else:
-    rate_seed = 0
     label = "seed0_primary_seed1_control"
     primary_val = "/content/data_primary/seed0_val.pt"
     control_val = "/content/data_control/seed1_val.pt"
     control_checkpoint = "/content/gan_r40_results/gan_r38_vqae/checkpoint_vqae_control_rot0.5_adv0.pt"
     proposal_checkpoint = "/content/gan_r41_inputs/checkpoint_gan_rot0.5_adv0.0015.pt"
+
+# The current rate-campaign seed is carried by the uploaded bundle and is
+# independent of which historical 5% pairing happens to live on this VM.
+with zipfile.ZipFile("/content/gan_rate_bundle.zip") as archive:
+    rate_seed = int(json.loads(archive.read("manifest.json").decode("utf-8"))["seed"])
 
 output = Path("/content/gan_r48_results/eq_fohi") / label
 output.mkdir(parents=True, exist_ok=True)
@@ -105,4 +109,3 @@ with (output / "driver.log").open("w", encoding="utf-8") as log, open(os.devnull
     datetime.datetime.now(datetime.timezone.utc).isoformat() + "\n" + " ".join(command) + "\n",
     encoding="utf-8",
 )
-
