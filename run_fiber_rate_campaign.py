@@ -102,6 +102,46 @@ def main() -> None:
         candidate = fusion["exact_candidates"][0]
         if float(candidate["cutoff"]) != 0.18 or float(candidate["alpha"]) != 0.58:
             raise RuntimeError(f"FROZEN_PARAMETER_DRIFT:{rate}")
+        fohi_dir = rate_output / "fohi"
+        run(
+            [
+                sys.executable,
+                "-u",
+                str(root / "diagnose_fiber_orthogonal_highpass_innovation.py"),
+                "--primary-val",
+                str(val),
+                "--control-val",
+                str(val),
+                "--config",
+                str(config),
+                "--control-checkpoint",
+                str(rate_output / "control/checkpoint_vqae_control_rot0.5_adv0.pt"),
+                "--gan-checkpoint",
+                str(rate_output / "gan/checkpoint_gan_rot0.5_adv0.0015.pt"),
+                "--cutoff",
+                "0.12",
+                "--transition",
+                "0.03",
+                "--alpha",
+                "0.5",
+                "--batch-size",
+                "32",
+                "--bootstrap-reps",
+                "10000",
+                "--seed",
+                str(int(args.training_seed) + 1000 * int(args.seed) + int(rate)),
+                "--output-dir",
+                str(fohi_dir),
+            ],
+            cwd=root,
+            log_path=args.output_dir / f"rate{rate}_fohi_driver.log",
+        )
+        fohi_path = fohi_dir / "summary.json"
+        fohi = json.loads(fohi_path.read_text(encoding="utf-8"))
+        if fohi.get("test_split_opened") is not False:
+            raise RuntimeError(f"FOHI_TEST_SPLIT_OPENED_AT_RATE:{rate}")
+        if float(fohi["cutoff"]) != 0.12 or float(fohi["alpha"]) != 0.5:
+            raise RuntimeError(f"FOHI_FROZEN_PARAMETER_DRIFT:{rate}")
         rate_results[rate] = {
             "operator_sha256": fusion["operator_sha256"],
             "base_means": fusion["base_means"],
@@ -112,14 +152,27 @@ def main() -> None:
             "dominates_control": candidate["dominates_control"],
             "projection_audit": candidate["projection_audit"],
             "fusion_summary": str(fusion_path),
+            "fohi_means": fohi["fohi_means"],
+            "fohi_vs_structural": fohi["fohi_vs_structural"],
+            "fohi_vs_fixed": fohi["fohi_vs_fixed"],
+            "fohi_triple_ci_favorable_vs_structural": fohi[
+                "fohi_triple_ci_favorable_vs_structural"
+            ],
+            "parallel_energy_fraction": fohi["parallel_energy_fraction"],
+            "fohi_projection_audit": fohi["fohi_projection_audit"],
+            "fohi_summary": str(fohi_path),
         }
     payload = {
         "status": "FIBER_RATE_ROBUSTNESS_CAMPAIGN_COMPLETE",
         "seed": int(args.seed),
         "training_seed": int(args.training_seed),
         "steps": int(args.steps),
-        "frozen_cutoff": 0.18,
-        "frozen_alpha": 0.58,
+        "main_method": "fiber-orthogonal high-pass innovation",
+        "frozen_cutoff": 0.12,
+        "frozen_transition": 0.03,
+        "frozen_alpha": 0.5,
+        "legacy_frequency_fusion_cutoff": 0.18,
+        "legacy_frequency_fusion_alpha": 0.58,
         "matched_control_uses_same_seed_cache": True,
         "validation_only": True,
         "test_split_opened": False,

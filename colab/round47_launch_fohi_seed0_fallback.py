@@ -6,6 +6,10 @@ import sys
 
 
 repo = Path("/content/GI_GAN")
+branch = "codex/gan-gi-journal-poc-20260718"
+subprocess.run(["git", "fetch", "origin", branch], cwd=repo, check=True)
+subprocess.run(["git", "checkout", branch], cwd=repo, check=True)
+subprocess.run(["git", "pull", "--ff-only", "origin", branch], cwd=repo, check=True)
 output = Path("/content/gan_r47_results/seed0_primary_seed1_control")
 output.mkdir(parents=True, exist_ok=True)
 command = [

@@ -22,7 +22,9 @@ for directory in sorted(root.glob("seed*")) if root.exists() else []:
         "driver.log",
         "cache_driver.log",
         "rate02_pipeline_driver.log",
+        "rate02_fohi_driver.log",
         "rate10_pipeline_driver.log",
+        "rate10_fohi_driver.log",
     ):
         log = directory / log_name
         if log.exists():
