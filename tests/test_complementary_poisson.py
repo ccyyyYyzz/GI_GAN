@@ -72,6 +72,29 @@ def test_image_shaped_reference_is_accepted_as_one_object() -> None:
     assert schedule.reference_flux.shape == (1,)
 
 
+def test_appending_one_pair_shortens_old_exposures_at_fixed_total_photons() -> None:
+    old_rows = torch.tensor(
+        [[1.0, 1.0, -1.0, -1.0], [1.0, -1.0, 1.0, -1.0]],
+        dtype=torch.float64,
+    ) / 2.0
+    new_row = torch.tensor([[1.0, -1.0, -1.0, 1.0]], dtype=torch.float64) / 2.0
+    reference = torch.tensor([0.2, 0.7, 0.5, 0.9], dtype=torch.float64)
+    old = compile_equal_reference_photon_schedule(
+        old_rows, reference, total_signal_photons=1.0e5
+    )
+    augmented = compile_equal_reference_photon_schedule(
+        torch.cat([old_rows, new_row]),
+        reference,
+        total_signal_photons=1.0e5,
+    )
+    assert torch.allclose(
+        augmented.exposure[: old_rows.shape[0]],
+        old.exposure * (old_rows.shape[0] / (old_rows.shape[0] + 1)),
+        rtol=1.0e-12,
+        atol=0.0,
+    )
+
+
 def test_sample_mean_variance_and_seed_are_correct() -> None:
     rows = torch.tensor([[0.5, -0.5, 0.5, -0.5]], dtype=torch.float64)
     image = torch.tensor([[0.2, 0.4, 0.8, 0.1]], dtype=torch.float64)
