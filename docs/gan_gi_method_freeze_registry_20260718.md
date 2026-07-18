@@ -4,10 +4,10 @@ This registry separates the frozen scientific method from later evidence and
 exploratory successors.  Later commits must not silently change the identity of
 the Round-31 positive method.
 
-## F1 — frozen primary method
+## F1 — frozen positive engineering baseline
 
 **Name:** one-bucket physical adjudication of VQGAN--VQAE disagreement  
-**Status:** `FROZEN_POSITIVE_PRIMARY_CANDIDATE`  
+**Status:** `FROZEN_POSITIVE_FORMAL_NO_GO_FOR_JOURNAL_NOVELTY`  
 **First immutable commit:** `385656e` on
 `codex/gan-gi-journal-poc-20260718`  
 **Script:** `diagnose_vqgan_vqae_disagreement_bucket.py`  
@@ -29,6 +29,24 @@ Frozen identity:
 Frozen result: PSNR `23.430561`, SSIM `0.673880`, LPIPS `0.283278`.
 Result SHA-256:
 `ec341d10a68c13dffca360e0e12e02465f58fc4451f927380d29b8a0ad3c8c27`.
+
+The method and result remain immutable, but F1 is no longer the journal-method
+candidate.  GPT Pro Round 31 returned `FORMAL_NO_GO`: the balanced row is the
+two-member query-by-committee/T-optimal/rank-one posterior-variance objective,
+and the segment update is a clipped scalar likelihood/least-squares estimate.
+The perception--distortion-opposed VQAE/VQGAN pair is empirically useful but
+does not change that acquisition mathematics.
+
+**Theory response commit:** `6f9dccd` in `ccyyyYyzz/GAN_FCC` branch
+`codex/gan-gi-quality-round31-20260718`  
+**Response SHA-256:**
+`929ce107552ec6b53632775d3dee3777fa1b4d9973961f2165c4325938324776`
+
+Round 31 proposed a discriminator-gradient tangent as the minimum changed
+premise.  That premise is already experimentally closed by Round 25
+(`KILL_FIBER_CRITIC_SCORE_REFINEMENT`): every tested null-space critic step
+increased the discriminator score while worsening LPIPS.  It must not be
+re-run or presented as the successor.
 
 ## E1 — causal evidence, not a method change
 
@@ -69,9 +87,10 @@ atom whose amplitude is measured by its own complementary bucket.  It is under
 GPT Pro prior-art and theory review.  It has not replaced F1 and has no claimed
 experimental result.
 
-## Promotion rule
+## Successor promotion rule
 
-F1 remains the primary method until a successor simultaneously:
+F1 remains the immutable positive benchmark, not the journal claim.  A
+successor becomes the journal method only if it simultaneously:
 
 1. beats F1 and the strongest same-photon non-GAN adaptive control on PSNR,
    SSIM, and LPIPS;
