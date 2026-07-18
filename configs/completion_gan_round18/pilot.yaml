@@ -37,11 +37,11 @@ model:
   step_scale: 0.25
 
 training:
-  stage_a_steps: 750
-  stage_b_steps: 500
+  stage_a_steps: 2000
+  stage_b_steps: 1500
   stage_a_lr: 2.0e-4
   stage_a_min_lr: 5.0e-5
-  stage_a_warmup_steps: 100
+  stage_a_warmup_steps: 200
   stage_b_lr_g: 1.0e-4
   stage_b_lr_d: 2.0e-4
   betas: [0.5, 0.9]
