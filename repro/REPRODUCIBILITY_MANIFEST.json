@@ -1,0 +1,39 @@
+{
+  "schema": "gi_gan_reproducibility_manifest_v1",
+  "repository": "ccyyyYyzz/GI_GAN",
+  "documented_base_ref": "main",
+  "documented_base_commit": "e3deaa68c35d46d4054756c8d86488580612b78f",
+  "entry_points": {
+    "program_map": "HANDOFF/00_START_HERE.md",
+    "reproduction_guide": "HANDOFF/04_REPRODUCIBILITY_GUIDE.md",
+    "evidence_index": "HANDOFF/05_EXPERIMENTS_AND_EVIDENCE.md",
+    "claim_boundary": "HANDOFF/07_RED_LINES_AND_WORKING_RULES.md",
+    "experiment_index": "repro/EXPERIMENT_INDEX.md",
+    "data_inventory": "repro/DATA_AND_ARTIFACTS.md",
+    "paper_evidence_map": "repro/PAPER_EVIDENCE_MAP.md",
+    "results_status": "repro/RESULTS_STATUS.md"
+  },
+  "quick_checks": [
+    "python repro/verify_reproducibility.py",
+    "python -m pytest tests/test_exact_projections.py tests/test_train_checkpoint_wiring.py -q",
+    "python vqgan_detail_fusion.py validate --seeds 0 1 2 --device cuda",
+    "python inspect_gate.py",
+    "python paper/build_variant.py OPTICS_DRAFT"
+  ],
+  "required_external_roots": [
+    "E:/GAN_FCC_WORK/datasets",
+    "E:/GAN_FCC_WORK/data_warehouse/ns_mc_gan_gi"
+  ],
+  "locked_do_not_rerun": [
+    "vqgan_detail_fusion_locked.py",
+    "the Stage 8 locked split scorer"
+  ],
+  "claim_classes": [
+    "LOCKED",
+    "RERUNNABLE",
+    "EXTERNAL_WAREHOUSE",
+    "DEVELOPMENT",
+    "NEGATIVE/DORMANT"
+  ]
+}
+
