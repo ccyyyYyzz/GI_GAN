@@ -9,4 +9,3 @@ paths = [
 ]
 for path in paths:
     print("PRESENT" if path.exists() else "MISSING", path, path.stat().st_size if path.exists() else -1)
-

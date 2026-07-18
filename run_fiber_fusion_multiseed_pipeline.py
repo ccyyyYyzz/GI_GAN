@@ -30,6 +30,10 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--label", required=True)
     parser.add_argument("--seed", type=int, default=20260718)
+    parser.add_argument("--steps", type=int, default=1500)
+    parser.add_argument("--cutoffs", default="0.12,0.18")
+    parser.add_argument("--alphas", default="0.5,0.75")
+    parser.add_argument("--top-exact", type=int, default=4)
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -46,7 +50,7 @@ def main() -> None:
         "--lpips-weight",
         "0.003",
         "--steps",
-        "1500",
+        str(int(args.steps)),
         "--batch-size",
         "32",
         "--bootstrap-reps",
@@ -109,11 +113,11 @@ def main() -> None:
             "--proposal-checkpoints",
             str(gan_dir / "checkpoint_gan_rot0.5_adv0.0015.pt"),
             "--cutoffs",
-            "0.12,0.18",
+            str(args.cutoffs),
             "--alphas",
-            "0.5,0.75",
+            str(args.alphas),
             "--top-exact",
-            "4",
+            str(int(args.top_exact)),
             "--batch-size",
             "32",
             "--bootstrap-reps",
@@ -130,6 +134,9 @@ def main() -> None:
         "status": "FIBER_FUSION_MULTISEED_PIPELINE_COMPLETE",
         "label": args.label,
         "seed": int(args.seed),
+        "steps": int(args.steps),
+        "cutoffs": str(args.cutoffs),
+        "alphas": str(args.alphas),
         "primary_dev": str(args.primary_dev),
         "primary_val": str(args.primary_val),
         "control_dev": str(args.control_dev),
