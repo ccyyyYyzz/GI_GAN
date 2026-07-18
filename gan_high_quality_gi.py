@@ -459,8 +459,16 @@ def image_losses(xhat: torch.Tensor, x: torch.Tensor, cfg: Mapping[str, Any]) ->
     }
 
 
-def prep_lpips(x: torch.Tensor) -> torch.Tensor:
-    x = x.detach().clamp(0, 1)
+def prep_lpips(x: torch.Tensor, *, detach: bool = False) -> torch.Tensor:
+    """Map grayscale images to LPIPS input space without silently cutting gradients.
+
+    Evaluation callers already run under ``torch.no_grad()``.  Training callers
+    need gradients through the prediction, so detaching is an explicit opt-in
+    instead of an unconditional preprocessing side effect.
+    """
+    if detach:
+        x = x.detach()
+    x = x.clamp(0, 1)
     if x.shape[1] == 1:
         x = x.repeat(1, 3, 1, 1)
     return x * 2.0 - 1.0
