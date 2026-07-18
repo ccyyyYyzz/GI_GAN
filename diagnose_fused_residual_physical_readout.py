@@ -25,7 +25,6 @@ from src.factorial_moment_dithered_residual import (
     clip_to_line_box,
     compile_dithered_phase_bank,
     estimate_factorial_moments,
-    line_box_interval,
     positive_part_risk_shrink,
 )
 from src.gauge_geometry import GaugeGeometry
@@ -156,8 +155,13 @@ def main() -> None:
     )
     error = truth.flatten(1) - structural_flat
     true_beta = (phase * error).sum(dim=1)
-    lower, upper = line_box_interval(structural_flat, phase)
-    fixed_beta = clip_to_line_box(direction_norm, lower, upper)
+    # Both endpoints are already exact members of the convex box-fiber set.
+    # Restrict the physical coefficient to their convex segment.  Recomputing
+    # the interval pixel-by-pixel in float32 can spuriously shorten an endpoint
+    # that lies on a box face by a few ulps.
+    lower = torch.zeros_like(direction_norm)
+    upper = direction_norm
+    fixed_beta = direction_norm
     oracle_beta = clip_to_line_box(true_beta, lower, upper)
 
     lpips_model = hq.load_lpips(device)
