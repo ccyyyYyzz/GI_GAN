@@ -251,7 +251,7 @@ def build_fiber_cache(
             diagnostics = FiberCacheDiagnostics(**payload["diagnostics"])
             return cached, diagnostics
 
-    loader = DataLoader(dataset, batch_size=int(batch_size), shuffle=False, num_workers=0)
+    partial_path = cache_path.with_suffix(cache_path.suffix + ".partial")
     truth_chunks: list[torch.Tensor] = []
     anchor_chunks: list[torch.Tensor] = []
     intrinsic_chunks: list[torch.Tensor] = []
@@ -266,6 +266,70 @@ def build_fiber_cache(
     max_complementarity = 0.0
     img_size = int(round(math.sqrt(geometry.n)))
     processed = 0
+    if reuse and partial_path.exists():
+        partial = torch.load(partial_path, map_location="cpu")
+        if partial.get("identity") == identity:
+            tensors = partial["tensors"]
+            prefix = tensors["source_index"].to(torch.int64).tolist()
+            if prefix == dataset.indices[: len(prefix)]:
+                truth_chunks.append(tensors["truth"])
+                anchor_chunks.append(tensors["anchor"])
+                intrinsic_chunks.append(tensors["intrinsic"])
+                measurement_chunks.append(tensors["measurement"])
+                label_chunks.append(tensors["label"])
+                index_chunks.append(tensors["source_index"])
+                processed = len(prefix)
+                progress = dict(partial.get("progress", {}))
+                max_record = float(progress.get("max_record", 0.0))
+                max_box = float(progress.get("max_box", 0.0))
+                max_iterations = int(progress.get("max_iterations", 0))
+                max_infinity = float(progress.get("max_infinity", 0.0))
+                max_proximal = float(progress.get("max_proximal", 0.0))
+                max_complementarity = float(progress.get("max_complementarity", 0.0))
+
+    remaining_dataset = hq.IndexedTensorDataset(
+        dataset.base, dataset.indices[processed:], dataset.transform
+    )
+    loader = DataLoader(
+        remaining_dataset, batch_size=int(batch_size), shuffle=False, num_workers=0
+    )
+
+    def consolidate_chunks() -> dict[str, torch.Tensor]:
+        return {
+            "truth": torch.cat(truth_chunks),
+            "anchor": torch.cat(anchor_chunks),
+            "intrinsic": torch.cat(intrinsic_chunks),
+            "measurement": torch.cat(measurement_chunks),
+            "label": torch.cat(label_chunks),
+            "source_index": torch.cat(index_chunks),
+        }
+
+    def save_partial() -> None:
+        tensors = consolidate_chunks()
+        payload = {
+            "identity": identity,
+            "tensors": tensors,
+            "progress": {
+                "processed": int(processed),
+                "max_record": float(max_record),
+                "max_box": float(max_box),
+                "max_iterations": int(max_iterations),
+                "max_infinity": float(max_infinity),
+                "max_proximal": float(max_proximal),
+                "max_complementarity": float(max_complementarity),
+            },
+        }
+        hq.ensure_dir(partial_path.parent)
+        temporary = partial_path.with_suffix(partial_path.suffix + ".tmp")
+        torch.save(payload, temporary)
+        os.replace(temporary, partial_path)
+        truth_chunks[:] = [tensors["truth"]]
+        anchor_chunks[:] = [tensors["anchor"]]
+        intrinsic_chunks[:] = [tensors["intrinsic"]]
+        measurement_chunks[:] = [tensors["measurement"]]
+        label_chunks[:] = [tensors["label"]]
+        index_chunks[:] = [tensors["source_index"]]
+
     for truth, label, source_index in loader:
         truth = truth.to(device=device, dtype=torch.float32, non_blocking=True)
         flat64 = truth.reshape(truth.shape[0], -1).to(torch.float64)
@@ -300,15 +364,11 @@ def build_fiber_cache(
             max_complementarity, projection.max_complementarity_residual
         )
         processed += int(truth.shape[0])
+        if processed % max(1, int(batch_size) * 8) == 0:
+            save_partial()
 
-    cached = FiberCacheDataset(
-        truth=torch.cat(truth_chunks),
-        anchor=torch.cat(anchor_chunks),
-        intrinsic=torch.cat(intrinsic_chunks),
-        measurement=torch.cat(measurement_chunks),
-        label=torch.cat(label_chunks),
-        source_index=torch.cat(index_chunks),
-    )
+    final_tensors = consolidate_chunks()
+    cached = FiberCacheDataset(**final_tensors)
     diagnostics = FiberCacheDiagnostics(
         split=str(split),
         count=len(cached),
@@ -336,6 +396,8 @@ def build_fiber_cache(
         },
         cache_path,
     )
+    if partial_path.exists():
+        partial_path.unlink()
     return cached, diagnostics
 
 
@@ -662,6 +724,15 @@ def train_stage_b(
     ramp_steps = int(cfg.get("adversarial_ramp_steps", 300))
     r1_interval = int(cfg.get("r1_interval", 16))
     r1_gamma = float(cfg.get("r1_gamma", 1.0))
+    checkpoint_steps = {
+        int(value) for value in cfg.get("stage_b_checkpoint_steps", [])
+    }
+    checkpoint_steps.add(steps)
+    if any(value <= 0 or value > steps for value in checkpoint_steps):
+        raise PQBFGANError(
+            f"INVALID_STAGE_B_CHECKPOINT_STEPS:{sorted(checkpoint_steps)}:{steps}"
+        )
+    checkpoint_paths: list[Path] = []
     log: list[dict[str, Any]] = []
     generator.train()
     discriminator.train()
@@ -694,11 +765,15 @@ def train_stage_b(
             d_hinge = F.relu(1.0 - real_logits).mean() + F.relu(1.0 + fake_logits).mean()
         r1 = torch.zeros((), device=device)
         if do_r1:
+            real_scores_per_sample = real_logits.flatten(1).mean(dim=1)
             real_gradient = torch.autograd.grad(
-                real_logits.sum(), real_for_d, create_graph=True, retain_graph=True
+                real_scores_per_sample.sum(),
+                real_for_d,
+                create_graph=True,
+                retain_graph=True,
             )[0]
             r1 = real_gradient.float().square().reshape(truth.shape[0], -1).sum(dim=1).mean()
-        d_loss = d_hinge + (0.5 * r1_gamma * r1_interval * r1 if do_r1 else 0.0)
+        d_loss = d_hinge + (0.5 * r1_gamma * r1 if do_r1 else 0.0)
         if not torch.isfinite(d_loss):
             raise PQBFGANError(f"NONFINITE_STAGE_B_D_LOSS:{step + 1}")
         scaler_d.scale(d_loss).backward()
@@ -794,27 +869,38 @@ def train_stage_b(
         log.append(row)
         if (step + 1) == steps or (step + 1) % max(1, int(cfg.get("log_every", 20))) == 0:
             hq.write_csv(output_dir / "stage_b_train_log.csv", log)
+        if (step + 1) in checkpoint_steps:
+            checkpoint = output_dir / "checkpoints" / f"stage_b_step{step + 1:06d}.pt"
+            hq.ensure_dir(checkpoint.parent)
+            torch.save(
+                {
+                    "stage": "B",
+                    "step": step + 1,
+                    "generator": generator.state_dict(),
+                    "ema": ema.module.state_dict(),
+                    "discriminator": discriminator.state_dict(),
+                    "optimizer_g": optimizer_g.state_dict(),
+                    "optimizer_d": optimizer_d.state_dict(),
+                    "config": hq.json_safe(config),
+                },
+                checkpoint,
+            )
+            checkpoint_paths.append(checkpoint)
 
-    checkpoint = output_dir / "checkpoints" / f"stage_b_step{steps:06d}.pt"
-    hq.ensure_dir(checkpoint.parent)
-    torch.save(
-        {
-            "stage": "B",
-            "step": steps,
-            "generator": generator.state_dict(),
-            "ema": ema.module.state_dict(),
-            "discriminator": discriminator.state_dict(),
-            "optimizer_g": optimizer_g.state_dict(),
-            "optimizer_d": optimizer_d.state_dict(),
-            "config": hq.json_safe(config),
-        },
-        checkpoint,
-    )
+    checkpoint = checkpoint_paths[-1]
     return ema, discriminator, log, {
         "generator_updates": steps,
         "discriminator_updates": steps,
         "batch_order_sha256": order_hash.hexdigest(),
         "checkpoint": str(checkpoint),
+        "checkpoints": [
+            {
+                "step": int(path.stem.rsplit("step", 1)[-1]),
+                "path": str(path),
+                "sha256": hq.sha256_file(path),
+            }
+            for path in checkpoint_paths
+        ],
         "runtime_seconds": time.time() - started,
     }
 
@@ -1014,7 +1100,20 @@ def evaluate_methods(
     comparisons: list[dict[str, Any]] = []
     bootstrap_reps = int(config["eval"].get("bootstrap_reps", 500))
     bootstrap_seed = int(config["seeds"]["bootstrap"])
-    for method, reference in [("pqbf_content", "box_fiber_lmmse"), ("pqbf_gan", "box_fiber_lmmse"), ("pqbf_gan", "pqbf_content")]:
+    comparison_pairs = [
+        ("pqbf_content", "box_fiber_lmmse"),
+        ("pqbf_gan", "box_fiber_lmmse"),
+        ("pqbf_gan", "pqbf_content"),
+    ]
+    for method in methods:
+        if method.startswith("pqbf_gan_step"):
+            comparison_pairs.extend(
+                [
+                    (method, "box_fiber_lmmse"),
+                    (method, "pqbf_content"),
+                ]
+            )
+    for method, reference in comparison_pairs:
         if method not in by_method or reference not in by_method:
             continue
         for metric in ["psnr", "ssim", "lpips"]:
@@ -1142,7 +1241,9 @@ def run(config_path: Path) -> dict[str, Any]:
         img_size=int(config["data"]["img_size"]),
         device=device,
     )
-    cache_dir = output_dir / "cache"
+    cache_dir = Path(str(config["data"].get("cache_dir", output_dir / "cache")))
+    if not cache_dir.is_absolute():
+        cache_dir = ROOT / cache_dir
     caches: dict[str, FiberCacheDataset] = {}
     cache_diagnostics: dict[str, Any] = {}
     for split, dataset in [("train", train_ds), ("val", val_ds), ("test", test_ds)]:
@@ -1176,18 +1277,35 @@ def run(config_path: Path) -> dict[str, Any]:
     lpips_input_gradient_norm = float(probe_gradient.norm().detach().cpu())
     if not math.isfinite(lpips_input_gradient_norm) or lpips_input_gradient_norm <= 0:
         raise PQBFGANError(f"LPIPS_INPUT_GRADIENT_ZERO:{lpips_input_gradient_norm}")
-    stage_a_ema, stage_a_log, stage_a_manifest = train_stage_a(
-        generator=generator,
-        geometry=geometry,
-        uncertainty=uncertainty,
-        train_data=caches["train"],
-        lpips_fn=lpips_fn,
-        config=config,
-        device=device,
-        output_dir=output_dir,
-    )
-    content_model = copy.deepcopy(stage_a_ema.module).to(device).eval()
-    generator.load_state_dict(stage_a_ema.module.state_dict())
+    resume_stage_a = str(config["training"].get("resume_stage_a_checkpoint", "")).strip()
+    if resume_stage_a:
+        checkpoint_path = Path(resume_stage_a)
+        if not checkpoint_path.is_absolute():
+            checkpoint_path = ROOT / checkpoint_path
+        payload = torch.load(checkpoint_path, map_location=device)
+        if str(payload.get("stage")) != "A":
+            raise PQBFGANError(f"RESUME_CHECKPOINT_NOT_STAGE_A:{checkpoint_path}")
+        generator.load_state_dict(payload["ema"])
+        stage_a_log = []
+        stage_a_manifest = {
+            "steps": int(payload.get("step", -1)),
+            "checkpoint": str(checkpoint_path),
+            "checkpoint_sha256": hq.sha256_file(checkpoint_path),
+            "reused_without_retraining": True,
+        }
+    else:
+        stage_a_ema, stage_a_log, stage_a_manifest = train_stage_a(
+            generator=generator,
+            geometry=geometry,
+            uncertainty=uncertainty,
+            train_data=caches["train"],
+            lpips_fn=lpips_fn,
+            config=config,
+            device=device,
+            output_dir=output_dir,
+        )
+        generator.load_state_dict(stage_a_ema.module.state_dict())
+    content_model = copy.deepcopy(generator).to(device).eval()
     stage_b_ema, discriminator, stage_b_log, stage_b_manifest = train_stage_b(
         generator=generator,
         geometry=geometry,
@@ -1199,12 +1317,29 @@ def run(config_path: Path) -> dict[str, Any]:
         output_dir=output_dir,
     )
     gan_model = stage_b_ema.module.to(device).eval()
+    methods: dict[str, ProjectorGatedFiberGenerator | None] = {
+        "box_fiber_lmmse": None,
+        "pqbf_content": content_model,
+        "pqbf_gan": gan_model,
+    }
+    for requested_step in config["eval"].get("stage_b_checkpoint_sweep", []):
+        checkpoint_step = int(requested_step)
+        checkpoint_path = output_dir / "checkpoints" / f"stage_b_step{checkpoint_step:06d}.pt"
+        if not checkpoint_path.is_file():
+            raise PQBFGANError(f"MISSING_STAGE_B_SWEEP_CHECKPOINT:{checkpoint_path}")
+        payload = torch.load(checkpoint_path, map_location=device)
+        if str(payload.get("stage")) != "B" or int(payload.get("step", -1)) != checkpoint_step:
+            raise PQBFGANError(f"INVALID_STAGE_B_SWEEP_CHECKPOINT:{checkpoint_path}")
+        checkpoint_model = ProjectorGatedFiberGenerator(
+            geometry,
+            steps=int(config["model"].get("steps", 3)),
+            step_scale=float(config["model"].get("step_scale", 0.25)),
+        ).to(device)
+        checkpoint_model.load_state_dict(payload["ema"])
+        methods[f"pqbf_gan_step{checkpoint_step:04d}"] = checkpoint_model.eval()
+        del payload
     method_rows, _per_image, evaluation = evaluate_methods(
-        methods={
-            "box_fiber_lmmse": None,
-            "pqbf_content": content_model,
-            "pqbf_gan": gan_model,
-        },
+        methods=methods,
         data=caches["val"],
         geometry=geometry,
         rows64=rows64,
@@ -1213,6 +1348,28 @@ def run(config_path: Path) -> dict[str, Any]:
         config=config,
         device=device,
         output_dir=output_dir / "reports" / "validation",
+    )
+    metric_by_method = {str(row["method"]): row for row in method_rows}
+    content_metrics = metric_by_method["pqbf_content"]
+    eligible_checkpoints = []
+    for name, metrics in metric_by_method.items():
+        if not name.startswith("pqbf_gan_step"):
+            continue
+        psnr_delta = float(metrics["psnr_mean"]) - float(content_metrics["psnr_mean"])
+        ssim_delta = float(metrics["ssim_mean"]) - float(content_metrics["ssim_mean"])
+        if psnr_delta >= -0.10 and ssim_delta >= -0.002:
+            eligible_checkpoints.append(
+                {
+                    "method": name,
+                    "psnr_delta_vs_content": psnr_delta,
+                    "ssim_delta_vs_content": ssim_delta,
+                    "lpips": float(metrics["lpips_mean"]),
+                }
+            )
+    selected_checkpoint = (
+        min(eligible_checkpoints, key=lambda row: float(row["lpips"]))
+        if eligible_checkpoints
+        else None
     )
     game = summarize_game(stage_b_log)
     mode = str(config.get("mode", "smoke"))
@@ -1238,6 +1395,14 @@ def run(config_path: Path) -> dict[str, Any]:
         "gan_game": game,
         "validation_metrics": method_rows,
         "validation_comparisons": evaluation["comparisons"],
+        "stage_b_checkpoint_selection": {
+            "constraints": {
+                "psnr_delta_vs_content_min": -0.10,
+                "ssim_delta_vs_content_min": -0.002,
+            },
+            "eligible": eligible_checkpoints,
+            "selected": selected_checkpoint,
+        },
         "test_opened": False,
         "runtime_seconds": time.time() - started,
         "scientific_scope": (

@@ -10,6 +10,9 @@ import torch
 from torch import nn
 
 
+_PIQP_MATRIX_CACHE: dict[str, Any] = {}
+
+
 class GaugeGeometryError(RuntimeError):
     pass
 
@@ -253,7 +256,8 @@ def _lbfgs_box_fiber_projection(
                 options={
                     "gtol": 1e-14,
                     "ftol": 0.0,
-                    "maxiter": 20000,
+                    "maxiter": 3000,
+                    "maxfun": 5000,
                     "maxls": 200,
                     "maxcor": 100,
                 },
@@ -303,6 +307,83 @@ def _lbfgs_box_fiber_projection(
         device=proposal.device, dtype=torch.float64
     )
     return tensor, dual_tensor
+
+
+def _piqp_box_fiber_projection(
+    proposal: torch.Tensor,
+    target: torch.Tensor,
+    geometry: GaugeGeometry,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Rare certified interior-point fallback for degenerate box corners."""
+    try:
+        import piqp  # type: ignore
+        from scipy import sparse
+        from scipy.optimize import least_squares
+    except Exception as exc:  # pragma: no cover - environment guard
+        raise GaugeGeometryError(f"PIQP_FALLBACK_UNAVAILABLE:{exc!r}") from exc
+
+    q_np = geometry.Q.detach().cpu().numpy().astype(np.float64, copy=False)
+    key = geometry.info.rows_sha256
+    cached = _PIQP_MATRIX_CACHE.get(key)
+    if cached is None:
+        cached = (
+            sparse.eye(geometry.n, format="csc", dtype=np.float64),
+            sparse.csc_matrix(q_np),
+            np.zeros(geometry.n, dtype=np.float64),
+            np.ones(geometry.n, dtype=np.float64),
+        )
+        _PIQP_MATRIX_CACHE[key] = cached
+    p_matrix, equality_matrix, lower_box, upper_box = cached
+    proposal_np = proposal.detach().cpu().numpy().astype(np.float64, copy=False)
+    target_np = target.detach().cpu().numpy().astype(np.float64, copy=False)
+    outputs: list[np.ndarray] = []
+    dual_outputs: list[np.ndarray] = []
+    for vector, record in zip(proposal_np, target_np):
+        solver = piqp.SparseSolver()
+        solver.settings.eps_abs = 1e-9
+        solver.settings.eps_rel = 1e-9
+        solver.settings.check_duality_gap = False
+        solver.settings.max_iter = 250
+        solver.settings.verbose = False
+        solver.setup(
+            p_matrix,
+            -vector,
+            equality_matrix,
+            record,
+            None,
+            None,
+            None,
+            lower_box,
+            upper_box,
+        )
+        solver.solve()
+        dual_start = np.asarray(solver.result.y, dtype=np.float64)
+
+        def root_residual(dual_vector: np.ndarray) -> np.ndarray:
+            return np.clip(vector - dual_vector @ q_np, 0.0, 1.0) @ q_np.T - record
+
+        def root_jacobian(dual_vector: np.ndarray) -> np.ndarray:
+            preclip = vector - dual_vector @ q_np
+            free = ((preclip > 0.0) & (preclip < 1.0)).astype(np.float64)
+            return -np.einsum("rn,n,sn->rs", q_np, free, q_np, optimize=True)
+
+        polished = least_squares(
+            root_residual,
+            dual_start,
+            jac=root_jacobian,
+            method="trf",
+            ftol=1e-15,
+            xtol=1e-15,
+            gtol=1e-15,
+            max_nfev=1000,
+        )
+        dual_value = np.asarray(polished.x, dtype=np.float64)
+        outputs.append(np.clip(vector - dual_value @ q_np, 0.0, 1.0))
+        dual_outputs.append(dual_value)
+    return (
+        torch.from_numpy(np.stack(outputs)).to(proposal.device, torch.float64),
+        torch.from_numpy(np.stack(dual_outputs)).to(proposal.device, torch.float64),
+    )
 
 
 def project_box_fiber_exact_dual(
@@ -432,20 +513,20 @@ def project_box_fiber_exact_dual(
             (lower_multiplier * image).abs().amax(dim=1),
             (upper_multiplier * (1.0 - image)).abs().amax(dim=1),
         ) / (1.0 + stationarity.abs().amax(dim=1))
-        finite = bool(
-            torch.isfinite(image).all()
-            and torch.isfinite(active_dual).all()
-            and torch.isfinite(residual_value).all()
+        finite = (
+            torch.isfinite(image).all(dim=1)
+            & torch.isfinite(active_dual).all(dim=1)
+            & torch.isfinite(residual_value).all(dim=1)
         )
-        passed = bool(
+        passed_mask = (
             finite
-            and (relative_value <= float(record_tolerance)).all()
-            and (infinity_value <= 1e-11).all()
-            and (box_residual <= 1e-12).all()
-            and (prox_residual <= 1e-11).all()
-            and (complementarity <= 1e-10).all()
+            & (relative_value <= float(record_tolerance))
+            & (infinity_value <= 1e-11)
+            & (box_residual <= 1e-12)
+            & (prox_residual <= 1e-11)
+            & (complementarity <= 1e-10)
         )
-        return image, passed, {
+        return image, passed_mask, {
             "relative": float(relative_value.max().detach().cpu()),
             "infinity": float(infinity_value.max().detach().cpu()),
             "box": float(box_residual.max().detach().cpu()),
@@ -453,12 +534,24 @@ def project_box_fiber_exact_dual(
             "complementarity": float(complementarity.max().detach().cpu()),
         }
 
-    current, converged, certificate_values = certificate(dual)
-    if not converged:
-        _fallback_image, dual = _lbfgs_box_fiber_projection(
-            proposal, target, geometry, dual
+    current, passed_mask, certificate_values = certificate(dual)
+    if not bool(passed_mask.all()):
+        failed = ~passed_mask
+        _fallback_image, fallback_dual = _lbfgs_box_fiber_projection(
+            proposal[failed], target[failed], geometry, dual[failed]
         )
-        current, converged, certificate_values = certificate(dual)
+        dual = dual.clone()
+        dual[failed] = fallback_dual
+        current, passed_mask, certificate_values = certificate(dual)
+    if not bool(passed_mask.all()):
+        failed = ~passed_mask
+        _reference_image, reference_dual = _piqp_box_fiber_projection(
+            proposal[failed], target[failed], geometry
+        )
+        dual = dual.clone()
+        dual[failed] = reference_dual
+        current, passed_mask, certificate_values = certificate(dual)
+    converged = bool(passed_mask.all())
     return GaugeDykstraResult(
         image_flat=current,
         iterations=completed,

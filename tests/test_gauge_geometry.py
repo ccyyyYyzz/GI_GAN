@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import torch
 
 from src.gauge_geometry import (
     GaugeEmpiricalAnchor,
     GaugeGeometry,
+    _piqp_box_fiber_projection,
     project_box_fiber_exact_dual,
     project_box_fiber_q,
 )
@@ -68,3 +70,22 @@ def test_exact_dual_projection_handles_boundary_active_solution() -> None:
     assert result.max_relative_record_error <= 1e-10
     assert result.max_box_violation == 0.0
     assert result.iterations <= 64
+
+
+def test_piqp_reference_projection_passes_primal_kkt_on_small_problem() -> None:
+    pytest.importorskip("piqp")
+    torch.manual_seed(29)
+    geometry = GaugeGeometry(torch.randn(5, 25, dtype=torch.float64))
+    feasible = torch.rand(2, 25, dtype=torch.float64)
+    z = feasible @ geometry.Q.T
+    proposal = geometry.affine_project_flat(
+        feasible + 0.9 * torch.randn_like(feasible), z
+    )
+
+    image, dual = _piqp_box_fiber_projection(proposal, z, geometry)
+    fixed_point = (proposal - dual @ geometry.Q).clamp(0.0, 1.0)
+
+    torch.testing.assert_close(image, fixed_point, atol=1e-10, rtol=1e-10)
+    assert geometry.relative_record_error(image, z).max().item() <= 1e-10
+    assert image.min().item() >= 0.0
+    assert image.max().item() <= 1.0

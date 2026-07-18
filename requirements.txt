@@ -4,5 +4,8 @@ numpy<2
 tqdm
 matplotlib
 scikit-image
+scipy
 PyYAML
 tensorboard
+lpips
+piqp==0.6.2
