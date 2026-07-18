@@ -89,3 +89,45 @@ def test_piqp_reference_projection_passes_primal_kkt_on_small_problem() -> None:
     assert geometry.relative_record_error(image, z).max().item() <= 1e-10
     assert image.min().item() >= 0.0
     assert image.max().item() <= 1.0
+
+
+def test_qr_constructor_matches_svd_geometry() -> None:
+    generator = torch.Generator().manual_seed(91)
+    rows = torch.randn(7, 31, generator=generator, dtype=torch.float64)
+    flat = torch.randn(5, 31, generator=generator, dtype=torch.float64)
+    record = flat @ rows.T
+    svd_geometry = GaugeGeometry(rows)
+    qr_geometry = GaugeGeometry.from_rows_qr(rows)
+
+    assert qr_geometry.info.rank == svd_geometry.info.rank == 7
+    assert qr_geometry.info.rows_sha256 == svd_geometry.info.rows_sha256
+    torch.testing.assert_close(
+        qr_geometry.row_project_flat(flat),
+        svd_geometry.row_project_flat(flat),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+    qr_intrinsic = qr_geometry.intrinsic_record(record)
+    torch.testing.assert_close(
+        qr_geometry.affine_project_flat(flat, qr_intrinsic),
+        flat,
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )
+
+
+def test_qr_constructor_handles_redundant_rows() -> None:
+    generator = torch.Generator().manual_seed(92)
+    independent = torch.randn(5, 29, generator=generator, dtype=torch.float64)
+    rows = torch.cat([independent, independent[:1]], dim=0)
+    flat = torch.randn(3, 29, generator=generator, dtype=torch.float64)
+    svd_geometry = GaugeGeometry(rows)
+    qr_geometry = GaugeGeometry.from_rows_qr(rows)
+
+    assert qr_geometry.info.rank == svd_geometry.info.rank == 5
+    torch.testing.assert_close(
+        qr_geometry.null_project_flat(flat),
+        svd_geometry.null_project_flat(flat),
+        atol=1.0e-10,
+        rtol=1.0e-10,
+    )

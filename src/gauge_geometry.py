@@ -65,6 +65,46 @@ class GaugeGeometry(nn.Module):
             singular_min_all=float(singular.min()),
         )
 
+    @classmethod
+    def from_rows_qr(
+        cls, rows: torch.Tensor, *, relative_cutoff: float = 1e-12
+    ) -> "GaugeGeometry":
+        """Build the same row-space geometry without a direct wide-matrix SVD."""
+
+        if rows.ndim != 2:
+            raise GaugeGeometryError(f"ROWS_MUST_BE_2D:{tuple(rows.shape)}")
+        if rows.shape[0] > rows.shape[1]:
+            raise GaugeGeometryError("QR_CONSTRUCTOR_REQUIRES_ROWS_NOT_EXCEED_COLUMNS")
+        rows64 = rows.detach().to(dtype=torch.float64, device="cpu").contiguous()
+        q_columns, triangular = torch.linalg.qr(rows64.T, mode="reduced")
+        u_small, singular, vh_small = torch.linalg.svd(
+            triangular.T, full_matrices=False
+        )
+        threshold = float(relative_cutoff) * float(singular.max())
+        keep = singular > threshold
+        rank = int(keep.sum())
+        if rank < 1:
+            raise GaugeGeometryError("OPERATOR_HAS_ZERO_NUMERICAL_RANK")
+        instance = cls.__new__(cls)
+        nn.Module.__init__(instance)
+        u_r = u_small[:, keep].contiguous()
+        s_r = singular[keep].contiguous()
+        q = (vh_small[keep] @ q_columns.T).contiguous()
+        instance.register_buffer("U_r", u_r, persistent=True)
+        instance.register_buffer("singular", s_r, persistent=True)
+        instance.register_buffer("Q", q, persistent=True)
+        instance.info = GaugeGeometryInfo(
+            rows_sha256=_tensor_sha256(rows.detach().to(dtype=torch.float32)),
+            m=int(rows.shape[0]),
+            n=int(rows.shape[1]),
+            rank=rank,
+            relative_cutoff=float(relative_cutoff),
+            singular_max=float(singular.max()),
+            singular_min_retained=float(s_r.min()),
+            singular_min_all=float(singular.min()),
+        )
+        return instance
+
     @property
     def m(self) -> int:
         return int(self.info.m)
