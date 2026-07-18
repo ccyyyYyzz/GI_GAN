@@ -147,6 +147,7 @@ def main() -> None:
         control_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
+        exact_iterations=1024,
     )
 
     base = gan_split["base"].to(device)
@@ -176,12 +177,14 @@ def main() -> None:
         gan_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
+        exact_iterations=1024,
     )
     fohi, fohi_projection_audit = project_predictions(
         fohi_proposal.reshape_as(base),
         gan_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
+        exact_iterations=1024,
     )
 
     lpips_model = hq.load_lpips(device)

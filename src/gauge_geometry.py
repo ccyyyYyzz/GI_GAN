@@ -613,6 +613,7 @@ def project_box_fiber_q(
     *,
     iterations: int = 12,
     exact: bool = False,
+    exact_iterations: int = 256,
     record_tolerance: float = 1e-7,
     step_tolerance: float = 1e-8,
 ) -> GaugeDykstraResult:
@@ -624,7 +625,7 @@ def project_box_fiber_q(
         raise GaugeGeometryError(
             f"INTRINSIC_SHAPE_MISMATCH:{tuple(z.shape)}:{proposal_flat.shape[0]}:{geometry.rank}"
         )
-    max_iterations = 256 if exact else int(iterations)
+    max_iterations = int(exact_iterations) if exact else int(iterations)
     if max_iterations < 1:
         raise ValueError("iterations must be positive")
     dtype = torch.float64 if exact else torch.float32

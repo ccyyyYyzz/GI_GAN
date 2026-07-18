@@ -139,6 +139,7 @@ def project_predictions(
     geometry: GaugeGeometry,
     *,
     batch_size: int,
+    exact_iterations: int = 256,
 ) -> tuple[torch.Tensor, dict[str, float | bool | int]]:
     chunks = []
     audits = []
@@ -149,6 +150,7 @@ def project_predictions(
             intrinsic[start:stop],
             geometry,
             exact=True,
+            exact_iterations=int(exact_iterations),
             record_tolerance=1.0e-7,
             step_tolerance=1.0e-8,
         )
