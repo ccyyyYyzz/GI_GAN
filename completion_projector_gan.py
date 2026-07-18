@@ -1306,16 +1306,40 @@ def run(config_path: Path) -> dict[str, Any]:
         )
         generator.load_state_dict(stage_a_ema.module.state_dict())
     content_model = copy.deepcopy(generator).to(device).eval()
-    stage_b_ema, discriminator, stage_b_log, stage_b_manifest = train_stage_b(
-        generator=generator,
-        geometry=geometry,
-        uncertainty=uncertainty,
-        train_data=caches["train"],
-        lpips_fn=lpips_fn,
-        config=config,
-        device=device,
-        output_dir=output_dir,
-    )
+    resume_stage_b = str(config["training"].get("resume_stage_b_checkpoint", "")).strip()
+    if resume_stage_b:
+        stage_b_checkpoint = Path(resume_stage_b)
+        if not stage_b_checkpoint.is_absolute():
+            stage_b_checkpoint = ROOT / stage_b_checkpoint
+        payload = torch.load(stage_b_checkpoint, map_location=device)
+        if str(payload.get("stage")) != "B":
+            raise PQBFGANError(f"RESUME_CHECKPOINT_NOT_STAGE_B:{stage_b_checkpoint}")
+        generator.load_state_dict(payload["ema"])
+        stage_b_ema = hq.ModelEMA(
+            generator, decay=float(config["training"].get("ema_decay", 0.999))
+        )
+        discriminator = FiberConditionalDiscriminator().to(device)
+        discriminator.load_state_dict(payload["discriminator"])
+        stage_b_log = []
+        stage_b_manifest = {
+            "generator_updates": int(payload.get("step", -1)),
+            "discriminator_updates": int(payload.get("step", -1)),
+            "checkpoint": str(stage_b_checkpoint),
+            "checkpoint_sha256": hq.sha256_file(stage_b_checkpoint),
+            "reused_without_retraining": True,
+        }
+        del payload
+    else:
+        stage_b_ema, discriminator, stage_b_log, stage_b_manifest = train_stage_b(
+            generator=generator,
+            geometry=geometry,
+            uncertainty=uncertainty,
+            train_data=caches["train"],
+            lpips_fn=lpips_fn,
+            config=config,
+            device=device,
+            output_dir=output_dir,
+        )
     gan_model = stage_b_ema.module.to(device).eval()
     methods: dict[str, ProjectorGatedFiberGenerator | None] = {
         "box_fiber_lmmse": None,
@@ -1338,16 +1362,19 @@ def run(config_path: Path) -> dict[str, Any]:
         checkpoint_model.load_state_dict(payload["ema"])
         methods[f"pqbf_gan_step{checkpoint_step:04d}"] = checkpoint_model.eval()
         del payload
+    evaluation_split = str(config["eval"].get("split", "val"))
+    if evaluation_split not in {"val", "test"}:
+        raise PQBFGANError(f"INVALID_EVALUATION_SPLIT:{evaluation_split}")
     method_rows, _per_image, evaluation = evaluate_methods(
         methods=methods,
-        data=caches["val"],
+        data=caches[evaluation_split],
         geometry=geometry,
         rows64=rows64,
         uncertainty=uncertainty,
         lpips_fn=lpips_fn,
         config=config,
         device=device,
-        output_dir=output_dir / "reports" / "validation",
+        output_dir=output_dir / "reports" / evaluation_split,
     )
     metric_by_method = {str(row["method"]): row for row in method_rows}
     content_metrics = metric_by_method["pqbf_content"]
@@ -1393,8 +1420,13 @@ def run(config_path: Path) -> dict[str, Any]:
         "stage_a": stage_a_manifest,
         "stage_b": stage_b_manifest,
         "gan_game": game,
-        "validation_metrics": method_rows,
-        "validation_comparisons": evaluation["comparisons"],
+        "evaluation_split": evaluation_split,
+        "evaluation_metrics": method_rows,
+        "evaluation_comparisons": evaluation["comparisons"],
+        "validation_metrics": method_rows if evaluation_split == "val" else [],
+        "validation_comparisons": (
+            evaluation["comparisons"] if evaluation_split == "val" else []
+        ),
         "stage_b_checkpoint_selection": {
             "constraints": {
                 "psnr_delta_vs_content_min": -0.10,
@@ -1403,7 +1435,7 @@ def run(config_path: Path) -> dict[str, Any]:
             "eligible": eligible_checkpoints,
             "selected": selected_checkpoint,
         },
-        "test_opened": False,
+        "test_opened": evaluation_split == "test",
         "runtime_seconds": time.time() - started,
         "scientific_scope": (
             "The GAN learns a deterministic prior-supported null-space correction. "
