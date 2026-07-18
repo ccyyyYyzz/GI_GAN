@@ -413,8 +413,8 @@ class GhostMeasurementOperator:
             self._chol = torch.linalg.cholesky(self.K)
         except RuntimeError:
             self._use_cholesky = False
-        # float64 shadow of the solver cache, used only by
-        # assert_solver_cache_fresh to detect stale caches at 1e-10 precision.
+        # Float64 shadow of the solver cache, used only by
+        # assert_solver_cache_fresh to detect stale caches.
         A64 = self.A.detach().to(torch.float64)
         eye64 = torch.eye(self.m, device=self.device, dtype=torch.float64)
         self._K64 = A64 @ A64.T + self.lambda_dc * eye64
@@ -427,11 +427,15 @@ class GhostMeasurementOperator:
         """Assert the cached K/Cholesky matches the CURRENT A.
 
         A fresh float64 solve of (A A^T + lambda I) z = b is compared against a
-        solve using the cached float64 Cholesky factor on a random vector; the
-        two must agree within ``tol`` (1e-10). The float32 runtime cache is
-        also checked against the fresh K at float32 rounding accuracy. Raises
-        StaleSolverCacheError on violation. Guards against the historical
-        exact-A override incident that left a stale Cholesky/solver cache.
+        solve using the cached float64 Cholesky factor on a random vector.
+        Cache freshness is decided from (i) the cached-vs-current K mismatch
+        and (ii) the cached solution's backward residual.  We report the
+        forward difference between two solvers for diagnostics, but do not use
+        it as a freshness gate: for an ill-conditioned but fresh K, two stable
+        solvers may legitimately differ by more than 1e-10 in forward error.
+        The float32 runtime cache is checked at float32 rounding accuracy.
+        Raises StaleSolverCacheError on violation. Guards against the
+        historical exact-A override incident that left a stale cache.
         """
         if self.K is None or getattr(self, "_K64", None) is None:
             raise StaleSolverCacheError(
@@ -456,15 +460,34 @@ class GhostMeasurementOperator:
         rel_solve = float(
             (torch.linalg.norm(z_fresh - z_cached) / torch.linalg.norm(z_fresh).clamp_min(1e-300)).item()
         )
+        rel_K64 = float(
+            (
+                torch.linalg.norm(self._K64 - K_fresh)
+                / torch.linalg.norm(K_fresh).clamp_min(1e-300)
+            ).item()
+        )
+        rel_cached_residual = float(
+            (
+                torch.linalg.norm(K_fresh @ z_cached - b)
+                / torch.linalg.norm(b).clamp_min(1e-300)
+            ).item()
+        )
         rel_K32 = float(
             (
                 torch.linalg.norm(self.K.detach().to(torch.float64) - K_fresh)
                 / torch.linalg.norm(K_fresh).clamp_min(1e-300)
             ).item()
         )
-        if rel_solve > float(tol):
+        if rel_K64 > float(tol):
             raise StaleSolverCacheError(
-                f"Stale solver cache: fresh vs cached solve disagree (rel={rel_solve:.3e} > {tol:.1e}). "
+                f"Stale solver cache: cached K disagrees with current A "
+                f"(rel={rel_K64:.3e} > {tol:.1e}). "
+                "A was changed without rebuilding K = A A^T + lambda I and its Cholesky cache."
+            )
+        if rel_cached_residual > float(tol):
+            raise StaleSolverCacheError(
+                f"Stale solver cache: cached solve has excessive backward residual "
+                f"(rel={rel_cached_residual:.3e} > {tol:.1e}). "
                 "A was changed without rebuilding K = A A^T + lambda I and its Cholesky cache."
             )
         # float32 cache only needs to match to float32 rounding, but a stale
@@ -473,7 +496,12 @@ class GhostMeasurementOperator:
             raise StaleSolverCacheError(
                 f"Stale float32 solver cache: ||K_cached - K_fresh||/||K_fresh|| = {rel_K32:.3e} > 1e-4."
             )
-        return {"rel_solve_fresh_vs_cached": rel_solve, "rel_K32_vs_fresh": rel_K32}
+        return {
+            "rel_solve_fresh_vs_cached": rel_solve,
+            "rel_K64_vs_fresh": rel_K64,
+            "rel_cached_backward_residual": rel_cached_residual,
+            "rel_K32_vs_fresh": rel_K32,
+        }
 
     def set_A_override(
         self,

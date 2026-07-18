@@ -24,6 +24,8 @@ def op():
 def test_init_asserts_cache_fresh(op):
     checks = op.assert_solver_cache_fresh()
     assert checks["rel_solve_fresh_vs_cached"] <= 1e-10
+    assert checks["rel_K64_vs_fresh"] <= 1e-10
+    assert checks["rel_cached_backward_residual"] <= 1e-10
     assert checks["rel_K32_vs_fresh"] <= 1e-4
 
 
@@ -34,6 +36,19 @@ def test_violation_stale_cache_after_raw_A_swap_detected(op):
     op.A = torch.randn(op.m, op.n, generator=gen)
     with pytest.raises(StaleSolverCacheError):
         op.assert_solver_cache_fresh()
+
+
+def test_fresh_ill_conditioned_cache_is_judged_by_backward_error(op):
+    # A fresh ill-conditioned system can make LU and Cholesky solutions differ
+    # in forward error even though both solve the current K.  Freshness must be
+    # based on K identity and backward residual, not cross-solver forward error.
+    gen = torch.Generator().manual_seed(123)
+    A = torch.randn(op.m, op.n, generator=gen)
+    A[1] = A[0] + 1e-5 * A[1]
+    op.set_A_override(A)
+    checks = op.assert_solver_cache_fresh()
+    assert checks["rel_K64_vs_fresh"] <= 1e-10
+    assert checks["rel_cached_backward_residual"] <= 1e-10
 
 
 def test_violation_rebuild_cache_false_is_forbidden(op):

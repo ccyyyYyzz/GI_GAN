@@ -69,7 +69,10 @@ def main() -> None:
     parser.add_argument("--control-val", type=Path, required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--control-checkpoint", type=Path, required=True)
-    parser.add_argument("--gan-checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--proposal-checkpoint", "--gan-checkpoint", dest="proposal_checkpoint", type=Path, required=True
+    )
+    parser.add_argument("--filter-mode", choices=("highpass", "lowpass"), default="highpass")
     parser.add_argument("--cutoff", type=float, default=0.12)
     parser.add_argument("--transition", type=float, default=0.03)
     parser.add_argument("--alpha", type=float, default=0.5)
@@ -125,7 +128,7 @@ def main() -> None:
             raise RuntimeError(f"PREPARED_SPLIT_MISMATCH:{key}")
     indices = torch.arange(len(gan_split["truth"]))
     control_model, control_manifest = load_generator(args.control_checkpoint, device)
-    gan_model, gan_manifest = load_generator(args.gan_checkpoint, device)
+    proposal_model, proposal_manifest = load_generator(args.proposal_checkpoint, device)
     control_prediction, control_correction, control_model_audit = predict_all(
         control_model,
         control_split,
@@ -134,9 +137,12 @@ def main() -> None:
         batch_size=int(args.batch_size),
         device=device,
     )
-    _, gan_correction, gan_model_audit = predict_all(
-        gan_model,
-        gan_split,
+    proposal_split = (
+        gan_split if proposal_manifest["source_arm"] == "gan" else control_split
+    )
+    _, proposal_correction, proposal_model_audit = predict_all(
+        proposal_model,
+        proposal_split,
         geometry,
         indices=indices,
         batch_size=int(args.batch_size),
@@ -156,14 +162,17 @@ def main() -> None:
         control_correction.to(device).flatten(1)
     )
     difference = geometry.null_project_flat(
-        (gan_correction.to(device) - control_correction.to(device)).flatten(1)
+        (proposal_correction.to(device) - control_correction.to(device)).flatten(1)
     ).reshape_as(base)
     high_difference = smooth_radial_high_pass(
         difference,
         cutoff=float(args.cutoff),
         transition=float(args.transition),
     )
-    innovation = geometry.null_project_flat(high_difference.flatten(1))
+    filtered_difference = (
+        high_difference if args.filter_mode == "highpass" else difference - high_difference
+    )
+    innovation = geometry.null_project_flat(filtered_difference.flatten(1))
     orthogonal, beta, orthogonal_audit = fiber_orthogonal_innovation(
         structural_direction, innovation
     )
@@ -239,10 +248,13 @@ def main() -> None:
         "cutoff": float(args.cutoff),
         "transition": float(args.transition),
         "alpha": float(args.alpha),
+        "filter_mode": str(args.filter_mode),
         "control_manifest": control_manifest,
-        "gan_manifest": gan_manifest,
+        "proposal_manifest": proposal_manifest,
+        "gan_manifest": proposal_manifest,
         "control_model_audit": control_model_audit,
-        "gan_model_audit": gan_model_audit,
+        "proposal_model_audit": proposal_model_audit,
+        "gan_model_audit": proposal_model_audit,
         "structural_means": metric_means(structural_vectors),
         "fixed_means": metric_means(fixed_vectors),
         "fohi_means": metric_means(fohi_vectors),
