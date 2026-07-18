@@ -1,0 +1,212 @@
+{
+  "decision": {
+    "claim": "FOHI is robust at the moderate 10% rate and has a documented perceptual limit at the ultra-low 2% rate.",
+    "rate02": "TWO_OF_THREE_SEEDS; LPIPS FAILURE_AT_SEED2",
+    "rate10": "ROBUST_ALL_THREE_SEEDS"
+  },
+  "rates": {
+    "02": {
+      "all_projection_certified": true,
+      "all_seeds_triple_ci_favorable": false,
+      "cells": [
+        {
+          "exact_iterations": 1024,
+          "lpips": {
+            "ci95_high": -0.004306933694169857,
+            "ci95_low": -0.007032827964576427,
+            "mean_delta": -0.005647402198519558,
+            "median_delta": -0.003533393144607544,
+            "sample_improved_fraction": 0.61328125
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.09304739004001021,
+            "ci95_low": 0.08166375327855349,
+            "mean_delta": 0.08733856491744518,
+            "median_delta": 0.07825374603271484,
+            "sample_improved_fraction": 0.958984375
+          },
+          "seed": 0,
+          "sha256": "a1d88d119c2df942ed1365494c00de51ef8a2c2493763869df1e4de9a54cf9aa",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed0\\rate02\\fohi\\summary.json",
+          "ssim": {
+            "ci95_high": 0.006040287593792055,
+            "ci95_low": 0.005205252293526198,
+            "mean_delta": 0.005624384293346163,
+            "median_delta": 0.005192455084252617,
+            "sample_improved_fraction": 0.90625
+          },
+          "triple_ci_favorable": true
+        },
+        {
+          "exact_iterations": 1024,
+          "lpips": {
+            "ci95_high": -0.01693958781834226,
+            "ci95_low": -0.02113869058448472,
+            "mean_delta": -0.019043808773858473,
+            "median_delta": -0.015638887882232666,
+            "sample_improved_fraction": 0.783203125
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.0836752618663013,
+            "ci95_low": 0.07290393738076091,
+            "mean_delta": 0.07816796004772186,
+            "median_delta": 0.07081031799316406,
+            "sample_improved_fraction": 0.947265625
+          },
+          "seed": 1,
+          "sha256": "b41d1f9499283e7ed139d2c0a57e7a4886ba5ac41bd6a9df97e8a9d7f50f4d86",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed1\\rate02\\fohi\\summary.json",
+          "ssim": {
+            "ci95_high": 0.005414672997095461,
+            "ci95_low": 0.00469269619601822,
+            "mean_delta": 0.005051464647827951,
+            "median_delta": 0.004840826564408679,
+            "sample_improved_fraction": 0.8984375
+          },
+          "triple_ci_favorable": true
+        },
+        {
+          "exact_iterations": 1024,
+          "lpips": {
+            "ci95_high": 0.002687732555205002,
+            "ci95_low": 0.00014448489891947256,
+            "mean_delta": 0.001403659101924859,
+            "median_delta": 0.001588389277458191,
+            "sample_improved_fraction": 0.4453125
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.1245985607150942,
+            "ci95_low": 0.11197255714796484,
+            "mean_delta": 0.11826898530125618,
+            "median_delta": 0.10760974884033203,
+            "sample_improved_fraction": 0.9765625
+          },
+          "seed": 2,
+          "sha256": "7c603dde42814917c27766902567386378ae2d705e6e7440da5d084cdb4ac9f0",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed2\\rate02\\fohi\\summary.json",
+          "ssim": {
+            "ci95_high": 0.007889742017951515,
+            "ci95_low": 0.00704770758175453,
+            "mean_delta": 0.007470278875841722,
+            "median_delta": 0.006979119384330351,
+            "sample_improved_fraction": 0.95703125
+          },
+          "triple_ci_favorable": false
+        }
+      ],
+      "decision": "LIMITED",
+      "mean_across_seeds": {
+        "lpips": -0.007762517290151057,
+        "psnr": 0.0945918367554744,
+        "ssim": 0.006048709272338612
+      },
+      "positive_seed_count": 2
+    },
+    "10": {
+      "all_projection_certified": true,
+      "all_seeds_triple_ci_favorable": true,
+      "cells": [
+        {
+          "exact_iterations": 1024,
+          "lpips": {
+            "ci95_high": -0.012469533718103776,
+            "ci95_low": -0.013901912161054497,
+            "mean_delta": -0.01317546530481195,
+            "median_delta": -0.012666448950767517,
+            "sample_improved_fraction": 0.970703125
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.23494469355791808,
+            "ci95_low": 0.2159251466393471,
+            "mean_delta": 0.22528204694390297,
+            "median_delta": 0.212005615234375,
+            "sample_improved_fraction": 0.99609375
+          },
+          "seed": 0,
+          "sha256": "2616d7f91498231142d47c286c2ccca62b53a281c61d2a36bfb3e2eb93f23948",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed0\\rate10\\fohi\\summary.json",
+          "ssim": {
+            "ci95_high": 0.011262558643472762,
+            "ci95_low": 0.01025511323720866,
+            "mean_delta": 0.010750599150439574,
+            "median_delta": 0.010140704842645287,
+            "sample_improved_fraction": 0.998046875
+          },
+          "triple_ci_favorable": true
+        },
+        {
+          "exact_iterations": 4096,
+          "lpips": {
+            "ci95_high": -0.01762242678723851,
+            "ci95_low": -0.01941787072119041,
+            "mean_delta": -0.018507889057218563,
+            "median_delta": -0.017114922404289246,
+            "sample_improved_fraction": 0.994140625
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.21867962600663304,
+            "ci95_low": 0.1996408887207508,
+            "mean_delta": 0.20915721356868744,
+            "median_delta": 0.1977081298828125,
+            "sample_improved_fraction": 0.9921875
+          },
+          "seed": 1,
+          "sha256": "fcc1f4fb7940eac5a064f043659ddd0494991d0555382aff63a361420c1e6aae",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed1\\rate10\\fohi_reprojected_4096\\summary.json",
+          "ssim": {
+            "ci95_high": 0.010656563316414973,
+            "ci95_low": 0.009706043158545964,
+            "mean_delta": 0.010172106401916278,
+            "median_delta": 0.009614771593713156,
+            "sample_improved_fraction": 0.9921875
+          },
+          "triple_ci_favorable": true
+        },
+        {
+          "exact_iterations": 4096,
+          "lpips": {
+            "ci95_high": -0.017313235936853744,
+            "ci95_low": -0.019152353356184905,
+            "mean_delta": -0.01822802629612852,
+            "median_delta": -0.017118260264396667,
+            "sample_improved_fraction": 0.994140625
+          },
+          "projection_certified": true,
+          "psnr": {
+            "ci95_high": 0.2339495351538062,
+            "ci95_low": 0.21497365925461054,
+            "mean_delta": 0.224409069865942,
+            "median_delta": 0.21181201934814453,
+            "sample_improved_fraction": 0.998046875
+          },
+          "seed": 2,
+          "sha256": "0669ddb0045b6387650d29ca6e1e20910375166685fd3b50e42dece6c121287f",
+          "source": "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round46\\colab_results\\seed2\\rate10\\fohi_reprojected_4096\\summary.json",
+          "ssim": {
+            "ci95_high": 0.011090497746230025,
+            "ci95_low": 0.010107177575007542,
+            "mean_delta": 0.01060268041685486,
+            "median_delta": 0.009815033642059101,
+            "sample_improved_fraction": 0.994140625
+          },
+          "triple_ci_favorable": true
+        }
+      ],
+      "decision": "ROBUST_ALL_SEEDS",
+      "mean_across_seeds": {
+        "lpips": -0.01663712688605301,
+        "psnr": 0.21961611012617746,
+        "ssim": 0.010508461989736905
+      },
+      "positive_seed_count": 3
+    }
+  },
+  "status": "FOHI_CROSS_RATE_VALIDATION_DECISION",
+  "test_split_opened": false,
+  "validation_only": true
+}

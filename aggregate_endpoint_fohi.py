@@ -54,6 +54,36 @@ def direct_ci_favorable(paired: dict[str, Any]) -> bool:
     )
 
 
+def favorable_means(paired: dict[str, Any]) -> bool:
+    return bool(
+        paired["psnr"]["mean_delta"] > 0.0
+        and paired["ssim"]["mean_delta"] > 0.0
+        and paired["lpips"]["mean_delta"] < 0.0
+    )
+
+
+def paired_image_bootstrap(
+    candidate: dict[str, np.ndarray],
+    reference: dict[str, np.ndarray],
+    *,
+    reps: int,
+    seed: int,
+) -> dict[str, Any]:
+    rng = np.random.default_rng(int(seed))
+    n = len(candidate["psnr"])
+    indices = rng.integers(0, n, size=(int(reps), n))
+    result = {}
+    for metric in METRICS:
+        delta = candidate[metric] - reference[metric]
+        bootstrap = delta[indices].mean(axis=1)
+        result[metric] = {
+            "mean_delta": float(delta.mean()),
+            "ci95_low": float(np.quantile(bootstrap, 0.025)),
+            "ci95_high": float(np.quantile(bootstrap, 0.975)),
+        }
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dirs", type=Path, nargs="+", required=True)
@@ -66,6 +96,7 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     summaries = []
+    seed_vectors = []
     input_hashes = {}
     deltas = {metric: [] for metric in METRICS}
     for directory in args.input_dirs:
@@ -77,11 +108,19 @@ def main() -> None:
         if summary.get("validation_only") is not True or summary.get("test_split_opened") is not False:
             raise RuntimeError(f"SPLIT_PROTOCOL_VIOLATION:{directory}")
         vectors = np.load(vectors_path)
+        arm_vectors = {
+            arm: {
+                metric: np.asarray(vectors[f"{arm}_{metric}"], dtype=np.float64)
+                for metric in METRICS
+            }
+            for arm in ("structural", "raw_fohi", "eq_fohi")
+        }
         for metric in METRICS:
             deltas[metric].append(
-                np.asarray(vectors[f"eq_fohi_{metric}"] - vectors[f"raw_fohi_{metric}"], dtype=np.float64)
+                arm_vectors["eq_fohi"][metric] - arm_vectors["raw_fohi"][metric]
             )
         summaries.append(summary)
+        seed_vectors.append(arm_vectors)
         input_hashes[directory.name] = {
             "summary_sha256": sha256(summary_path),
             "metric_vectors_sha256": sha256(vectors_path),
@@ -90,13 +129,37 @@ def main() -> None:
     direct = crossed_bootstrap(
         deltas, reps=int(args.bootstrap_reps), seed=int(args.seed)
     )
-    per_seed_gate = all(
-        summary["all_projection_certificates_pass"]
-        and summary["eq_fohi_mean_signs_favorable_vs_structural"]
-        and summary["eq_fohi_mean_signs_favorable_vs_raw_fohi"]
-        and summary["eq_fohi_triple_ci_favorable_vs_structural"]
-        for summary in summaries
-    )
+    per_seed_results = []
+    for index, (directory, summary, vectors) in enumerate(
+        zip(args.input_dirs, summaries, seed_vectors)
+    ):
+        eq_vs_structural = paired_image_bootstrap(
+            vectors["eq_fohi"],
+            vectors["structural"],
+            reps=10000,
+            seed=int(args.seed) + index,
+        )
+        eq_vs_raw = paired_image_bootstrap(
+            vectors["eq_fohi"],
+            vectors["raw_fohi"],
+            reps=10000,
+            seed=int(args.seed) + 100 + index,
+        )
+        gate = bool(
+            summary["all_projection_certificates_pass"]
+            and favorable_means(eq_vs_structural)
+            and favorable_means(eq_vs_raw)
+            and direct_ci_favorable(eq_vs_structural)
+        )
+        per_seed_results.append(
+            {
+                "pairing": directory.name,
+                "eq_fohi_vs_structural": eq_vs_structural,
+                "eq_fohi_vs_raw_fohi": eq_vs_raw,
+                "gate": gate,
+            }
+        )
+    per_seed_gate = all(item["gate"] for item in per_seed_results)
     crossed_gate = direct_ci_favorable(direct)
     replace = bool(per_seed_gate and crossed_gate)
     payload = {
@@ -107,6 +170,7 @@ def main() -> None:
         "bootstrap_reps": int(args.bootstrap_reps),
         "bootstrap_seed": int(args.seed),
         "input_hashes": input_hashes,
+        "per_seed_results": per_seed_results,
         "per_seed_gate": per_seed_gate,
         "crossed_eq_fohi_vs_raw_fohi": direct,
         "crossed_direct_triple_ci_favorable": crossed_gate,
