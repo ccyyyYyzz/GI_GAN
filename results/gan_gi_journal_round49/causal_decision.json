@@ -1,0 +1,393 @@
+{
+  "adapter_discriminator_essential": false,
+  "cell_positive_counts": {
+    "A_gan_adv_highpass": 3,
+    "B_gan_adv0_highpass": 3,
+    "C_vqae2_highpass": 0,
+    "D_gan_adv_lowpass": 3
+  },
+  "crossed_direct": {
+    "A_minus_B_gan_adv0_highpass": {
+      "lpips": {
+        "ci95_high": 0.0027023067172801014,
+        "ci95_low": -1.0272034463317443e-05,
+        "mean_delta": 0.0009225319712034737
+      },
+      "psnr": {
+        "ci95_high": 0.0017209748427073149,
+        "ci95_low": -0.0007478551318248112,
+        "mean_delta": 0.0002800797422726949
+      },
+      "ssim": {
+        "ci95_high": 0.0001269264893926103,
+        "ci95_low": -4.197251558953126e-05,
+        "mean_delta": 2.4519905086774056e-05
+      }
+    },
+    "A_minus_C_vqae2_highpass": {
+      "lpips": {
+        "ci95_high": -0.0069491045567701805,
+        "ci95_low": -0.008027348000905477,
+        "mean_delta": -0.007491984409474147
+      },
+      "psnr": {
+        "ci95_high": 0.016787774084756773,
+        "ci95_low": 0.010368940544625123,
+        "mean_delta": 0.013735836992661158
+      },
+      "ssim": {
+        "ci95_high": 0.0010541069012925325,
+        "ci95_low": 0.0006174870334146109,
+        "mean_delta": 0.0008310711122338724
+      }
+    },
+    "A_minus_D_gan_adv_lowpass": {
+      "lpips": {
+        "ci95_high": -0.002198198408829437,
+        "ci95_low": -0.004932684540957174,
+        "mean_delta": -0.003678674853290431
+      },
+      "psnr": {
+        "ci95_high": 0.023507719580084085,
+        "ci95_low": 0.014554441285630068,
+        "mean_delta": 0.019496881713469822
+      },
+      "ssim": {
+        "ci95_high": 0.0014390251651851405,
+        "ci95_low": 0.001115773188050499,
+        "mean_delta": 0.0012717787659865267
+      }
+    }
+  },
+  "gan_source_distinct_from_second_vqae": true,
+  "highpass_exclusive": false,
+  "input_hashes": {
+    "seed0_primary_seed1_control/A_gan_adv_highpass": {
+      "metric_vectors_sha256": "4e1f1cedb7d03235027e4248772115b2096c1d35df374ebf9578cf0ee7551f60",
+      "summary_sha256": "b488010470996fd148cd8ff64f12733359f69975237f095c6f10e65bd58923f1"
+    },
+    "seed0_primary_seed1_control/B_gan_adv0_highpass": {
+      "metric_vectors_sha256": "a66951a22b93322eac807544ba122fc87ac5c269efa0ea4fe1eb66dfc84e0bda",
+      "summary_sha256": "f210270799e09eb18d958052262e54907ed6c8bd4d4637819dcad677a06042bc"
+    },
+    "seed0_primary_seed1_control/C_vqae2_highpass": {
+      "metric_vectors_sha256": "c8fc5b7958837a860f991026663e38fe3b2ef43cb78890814c6b6b81dab3187d",
+      "summary_sha256": "34500940cf32baf7027ed9c7d0f1a70a6c04ab9dd418970f7418e2741fac2763"
+    },
+    "seed0_primary_seed1_control/D_gan_adv_lowpass": {
+      "metric_vectors_sha256": "242738f5895dab2db0d786b29309fc75b2c9deb016c917a4848138d60d9c9831",
+      "summary_sha256": "750d47792e7ca355115118a70b59913b0bc77e33ec6cd9ee6d3c044e697c4379"
+    },
+    "seed1_primary_seed2_control/A_gan_adv_highpass": {
+      "metric_vectors_sha256": "4c3ded0990eb55007067e854289a31dc5d2e02233bb89ce65976ec2ede8ef68b",
+      "summary_sha256": "01782ca439a08460ef939869b7f51be0c78d143f60667025c325819c08e2b77e"
+    },
+    "seed1_primary_seed2_control/B_gan_adv0_highpass": {
+      "metric_vectors_sha256": "899f536328f0ff5e043a3056c019f7c9b0257b31714fe6ed90f84f1c436d2b46",
+      "summary_sha256": "c9538f4e25daa57036cd819f1566197e7958416c7f885819b6915b65b7c5bb5a"
+    },
+    "seed1_primary_seed2_control/C_vqae2_highpass": {
+      "metric_vectors_sha256": "c7482b00bdb0fd2e890b79d7397f1e3a20e1f75b004e224f8f9c860cfb014ff2",
+      "summary_sha256": "305c4e870605ab911c1a50c9423b11690e7736cc96fc2c1c267110d563ee8adb"
+    },
+    "seed1_primary_seed2_control/D_gan_adv_lowpass": {
+      "metric_vectors_sha256": "837779da13806b4337ac3809d59560f7d81003ef66515bdd128d808b8764adb8",
+      "summary_sha256": "fa29bdb8273cfc5212b6a90e100fa4bc8c604f0c162c824768f749b9fa78007b"
+    },
+    "seed2_primary_seed0_control/A_gan_adv_highpass": {
+      "metric_vectors_sha256": "d7aacd4e57ce93b81226fbc2eb6fad1100975610e9b95c224fad1326e773a16a",
+      "summary_sha256": "ee1d8b21f436b34ac4ceebd7cea77f9ba44e8eb6c252e1cac2f65e7bb37f6ee8"
+    },
+    "seed2_primary_seed0_control/B_gan_adv0_highpass": {
+      "metric_vectors_sha256": "791e26b535f0a545493eb4295c249df0ac23b1b320b6b20869c95656f6a94852",
+      "summary_sha256": "0bcafe5787e246656ab6a80dfcfe1686f0e3dd902f29792b3e1fafc3a7707f63"
+    },
+    "seed2_primary_seed0_control/C_vqae2_highpass": {
+      "metric_vectors_sha256": "ac3fdef9080de3c4bf1ad13d63ebccbeb6ad8f3b6bbb5350b5e9e59b1658dc1a",
+      "summary_sha256": "50587253a45f71ab1e0611ac4ea6474f819e9cc8c813c11643a2538e31693463"
+    },
+    "seed2_primary_seed0_control/D_gan_adv_lowpass": {
+      "metric_vectors_sha256": "78a4568c6ab6f9d15890c1a09f43608619b99256f825fdcaa0f5d86f6cbfeca0",
+      "summary_sha256": "06ba9d0536999330379ccec22e631b714c5fabbede5500a7e1d054a754a64afb"
+    }
+  },
+  "interpretation": "VQGAN proposal alignment; the added adapter discriminator is unnecessary",
+  "pairings": [
+    "seed0_primary_seed1_control",
+    "seed1_primary_seed2_control",
+    "seed2_primary_seed0_control"
+  ],
+  "per_seed": [
+    {
+      "cells": {
+        "A_gan_adv_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0037482543975784215,
+              "ci95_low": -0.005190397272235714,
+              "mean_delta": -0.004458467898075469
+            },
+            "psnr": {
+              "ci95_high": 0.03075744854286313,
+              "ci95_low": 0.022552400548011064,
+              "mean_delta": 0.026601191610097885
+            },
+            "ssim": {
+              "ci95_high": 0.00196926016511607,
+              "ci95_low": 0.0014530370398104456,
+              "mean_delta": 0.0017100243819458088
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "B_gan_adv0_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.006314357208975707,
+              "ci95_low": -0.008169800724135711,
+              "mean_delta": -0.007230502713355236
+            },
+            "psnr": {
+              "ci95_high": 0.030256150662899016,
+              "ci95_low": 0.02137504508718848,
+              "mean_delta": 0.025715935975313187
+            },
+            "ssim": {
+              "ci95_high": 0.0018741330926790296,
+              "ci95_low": 0.001395482582942094,
+              "mean_delta": 0.0016336785986030763
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "C_vqae2_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.003520497966746916,
+              "ci95_low": 0.0030006755543581674,
+              "mean_delta": 0.0032567073067184538
+            },
+            "psnr": {
+              "ci95_high": 0.013607760332524777,
+              "ci95_low": 0.010006901994347572,
+              "mean_delta": 0.011814828962087631
+            },
+            "ssim": {
+              "ci95_high": 0.0010002692741022169,
+              "ci95_low": 0.0007650311239537511,
+              "mean_delta": 0.0008813398866663661
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": false
+        },
+        "D_gan_adv_lowpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0003612175463786116,
+              "ci95_low": -0.0004794942986336537,
+              "mean_delta": -0.0004197260132059455
+            },
+            "psnr": {
+              "ci95_high": 0.004974862653762102,
+              "ci95_low": 0.0036389150656759737,
+              "mean_delta": 0.004292987287044525
+            },
+            "ssim": {
+              "ci95_high": 0.0003628856855376366,
+              "ci95_low": 0.00025810924761653743,
+              "mean_delta": 0.00030987323170511116
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        }
+      },
+      "pairing": "seed0_primary_seed1_control"
+    },
+    {
+      "cells": {
+        "A_gan_adv_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.001872249520602054,
+              "ci95_low": -0.0034126635022403208,
+              "mean_delta": -0.0026322354387957603
+            },
+            "psnr": {
+              "ci95_high": 0.02966350158676505,
+              "ci95_low": 0.02187132304534316,
+              "mean_delta": 0.025782980024814606
+            },
+            "ssim": {
+              "ci95_high": 0.0016062627082140731,
+              "ci95_low": 0.001161847400585058,
+              "mean_delta": 0.0013853239474221567
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "B_gan_adv0_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0018307683974853716,
+              "ci95_low": -0.0033844123026938178,
+              "mean_delta": -0.0026208321360172704
+            },
+            "psnr": {
+              "ci95_high": 0.029784408677369357,
+              "ci95_low": 0.021907724160701036,
+              "mean_delta": 0.02580951526761055
+            },
+            "ssim": {
+              "ci95_high": 0.0016119725957514882,
+              "ci95_low": 0.00116326025316096,
+              "mean_delta": 0.001388313301852686
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "C_vqae2_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.004847507918020711,
+              "ci95_low": 0.004293089749626233,
+              "mean_delta": 0.004571934128762223
+            },
+            "psnr": {
+              "ci95_high": 0.011994129233062267,
+              "ci95_low": 0.009129430539906025,
+              "mean_delta": 0.010557763278484344
+            },
+            "ssim": {
+              "ci95_high": 0.0008268486640181734,
+              "ci95_low": 0.0006271402479381407,
+              "mean_delta": 0.0007259359826745076
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": false
+        },
+        "D_gan_adv_lowpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0004382371796964435,
+              "ci95_low": -0.0005900562689930666,
+              "mean_delta": -0.0005145378090674058
+            },
+            "psnr": {
+              "ci95_high": 0.004681714251637458,
+              "ci95_low": 0.0032941977493464946,
+              "mean_delta": 0.003983840346336365
+            },
+            "ssim": {
+              "ci95_high": 0.0002502757031834963,
+              "ci95_low": 0.0001447772793804798,
+              "mean_delta": 0.00019730283983650058
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        }
+      },
+      "pairing": "seed1_primary_seed2_control"
+    },
+    {
+      "cells": {
+        "A_gan_adv_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.004317851031737519,
+              "ci95_low": -0.006069403867513756,
+              "mean_delta": -0.005200077896006405
+            },
+            "psnr": {
+              "ci95_high": 0.022834360785782336,
+              "ci95_low": 0.013781030755490064,
+              "mean_delta": 0.01841108500957489
+            },
+            "ssim": {
+              "ci95_high": 0.001754947887163868,
+              "ci95_low": 0.001221664002169013,
+              "mean_delta": 0.0014894955360353623
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "B_gan_adv0_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0043373216052714275,
+              "ci95_low": -0.006108220359237748,
+              "mean_delta": -0.0052070422971155494
+            },
+            "psnr": {
+              "ci95_high": 0.022909141983836888,
+              "ci95_low": 0.01390197966247797,
+              "mean_delta": 0.01842956617474556
+            },
+            "ssim": {
+              "ci95_high": 0.001754040463262415,
+              "ci95_low": 0.0012185150733115423,
+              "mean_delta": 0.0014892922496872437
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        "C_vqae2_highpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.0025869878496450837,
+              "ci95_low": 0.002125096079907962,
+              "mean_delta": 0.0023565305600641295
+            },
+            "psnr": {
+              "ci95_high": 0.008626394532620905,
+              "ci95_low": 0.005842528492212296,
+              "mean_delta": 0.0072151534259319305
+            },
+            "ssim": {
+              "ci95_high": 0.0005736562368665969,
+              "ci95_low": 0.00039570473108218267,
+              "mean_delta": 0.0004843546593608371
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": false
+        },
+        "D_gan_adv_lowpass": {
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0002533079292334151,
+              "ci95_low": -0.0003881420085235732,
+              "mean_delta": -0.0003204928507329896
+            },
+            "psnr": {
+              "ci95_high": 0.004739749897271395,
+              "ci95_low": 0.0033027738332748412,
+              "mean_delta": 0.0040277838706970215
+            },
+            "ssim": {
+              "ci95_high": 0.00031957902205293566,
+              "ci95_low": 0.00020602049634958094,
+              "mean_delta": 0.00026233149590213596
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        }
+      },
+      "pairing": "seed2_primary_seed0_control"
+    }
+  ],
+  "selected_primary_cell": "B_gan_adv0_highpass",
+  "status": "FOHI_FOUR_CELL_CAUSAL_DECISION",
+  "test_split_opened": false,
+  "validation_only": true
+}

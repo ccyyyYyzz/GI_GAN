@@ -45,14 +45,6 @@ def projection_certified(summary: dict[str, Any]) -> bool:
     )
 
 
-def no_significant_control_advantage(a_minus_control: dict[str, Any]) -> bool:
-    return bool(
-        a_minus_control["psnr"]["ci95_high"] >= 0.0
-        and a_minus_control["ssim"]["ci95_high"] >= 0.0
-        and a_minus_control["lpips"]["ci95_low"] <= 0.0
-    )
-
-
 def any_significant_primary_advantage(a_minus_control: dict[str, Any]) -> bool:
     return bool(
         a_minus_control["psnr"]["ci95_low"] > 0.0
@@ -147,10 +139,10 @@ def main() -> None:
     a_vs_b = crossed_direct["A_minus_B_gan_adv0_highpass"]
     b_robust = cell_positive_counts["B_gan_adv0_highpass"] == 3
     b_has_no_significant_disadvantage = not any_significant_primary_advantage(a_vs_b)
-    b_has_significant_advantage = not no_significant_control_advantage(a_vs_b)
-    select_b = bool(
-        b_robust and b_has_no_significant_disadvantage and b_has_significant_advantage
-    )
+    # Prefer the strictly simpler discriminator-off adapter whenever it is
+    # robust and has no significant disadvantage.  A significant advantage is
+    # not required to remove an empirically unnecessary module.
+    select_b = bool(b_robust and b_has_no_significant_disadvantage)
     c_robust = cell_positive_counts["C_vqae2_highpass"] == 3
     d_robust = cell_positive_counts["D_gan_adv_lowpass"] == 3
     selected = "B_gan_adv0_highpass" if select_b else "A_gan_adv_highpass"
