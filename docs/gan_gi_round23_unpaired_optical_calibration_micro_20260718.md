@@ -52,6 +52,10 @@ Against the stronger moment-matching control, the adversarial game gives
 Therefore the physical-calibration direction is strongly positive, whereas the
 claim that adversarial distribution matching is necessary is not yet complete.
 
+An independent adversarial initialization repeats the result: it estimates
+defocus `1.34403` and reaches PSNR `22.24515 dB`, SSIM `0.606042`, and LPIPS
+`0.348235`.  The two adversarial estimates differ by only `0.00598` pixel.
+
 ## Decision
 
 `DIRECTIONAL_GO_FOR_THEORY_ATTACK_AND_CAUSAL_EXPANSION`.
@@ -75,4 +79,5 @@ estimation.
 - Script: `diagnose_unpaired_optical_calibration.py`
 - Machine-readable summary:
   `E:/GAN_FCC_WORK/experiments/gan_gi_journal_round23/unpaired_optical_calibration_1500/summary.json`
-
+- Independent-seed summary:
+  `E:/GAN_FCC_WORK/experiments/gan_gi_journal_round23/unpaired_optical_calibration_1500_seed1/summary.json`
