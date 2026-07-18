@@ -77,6 +77,7 @@ def main() -> None:
     parser.add_argument("--transition", type=float, default=0.03)
     parser.add_argument("--alpha", type=float, default=0.5)
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--exact-iterations", type=int, default=1024)
     parser.add_argument("--bootstrap-reps", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=20260719)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -153,7 +154,7 @@ def main() -> None:
         control_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
-        exact_iterations=1024,
+        exact_iterations=int(args.exact_iterations),
     )
 
     base = gan_split["base"].to(device)
@@ -186,14 +187,14 @@ def main() -> None:
         gan_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
-        exact_iterations=1024,
+        exact_iterations=int(args.exact_iterations),
     )
     fohi, fohi_projection_audit = project_predictions(
         fohi_proposal.reshape_as(base),
         gan_split["intrinsic"].to(device),
         geometry,
         batch_size=int(args.batch_size),
-        exact_iterations=1024,
+        exact_iterations=int(args.exact_iterations),
     )
 
     lpips_model = hq.load_lpips(device)
@@ -249,6 +250,7 @@ def main() -> None:
         "transition": float(args.transition),
         "alpha": float(args.alpha),
         "filter_mode": str(args.filter_mode),
+        "exact_iterations": int(args.exact_iterations),
         "control_manifest": control_manifest,
         "proposal_manifest": proposal_manifest,
         "gan_manifest": proposal_manifest,
