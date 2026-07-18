@@ -647,6 +647,112 @@ def train_stage_a(
         "steps": steps,
         "batch_order_sha256": order_hash.hexdigest(),
         "checkpoint": str(checkpoint),
+        "checkpoint_sha256": hq.sha256_file(checkpoint),
+        "runtime_seconds": time.time() - started,
+    }
+
+
+def train_matched_supervised_continuation(
+    *,
+    generator: ProjectorGatedFiberGenerator,
+    geometry: GaugeGeometry,
+    uncertainty: torch.Tensor,
+    train_data: FiberCacheDataset,
+    lpips_fn: Any,
+    config: Mapping[str, Any],
+    device: torch.device,
+    output_dir: Path,
+) -> tuple[hq.ModelEMA, list[dict[str, Any]], dict[str, Any]]:
+    """Continue Stage A with the Stage-B optimizer but zero adversarial influence."""
+
+    cfg = dict(config["training"])
+    steps = int(cfg["matched_supervised_continuation_steps"])
+    batch_size = int(config["data"]["batch_size"])
+    workers = int(config["data"].get("num_workers", 0))
+    amp = bool(cfg.get("amp", True) and device.type == "cuda")
+    optimizer = torch.optim.Adam(
+        generator.parameters(),
+        lr=float(cfg.get("stage_b_lr_g", 1e-4)),
+        betas=tuple(float(value) for value in cfg.get("betas", [0.5, 0.9])),
+    )
+    scaler = torch.cuda.amp.GradScaler(enabled=amp)
+    ema = hq.ModelEMA(generator, decay=float(cfg.get("ema_decay", 0.999)))
+    stream = batch_stream(
+        train_data,
+        batch_size=batch_size,
+        workers=workers,
+        seed=int(config["seeds"]["loader"]),
+        device=device,
+    )
+    order_hash = hashlib.sha256()
+    log: list[dict[str, Any]] = []
+    generator.train()
+    started = time.time()
+    for step in range(steps):
+        truth, anchor, intrinsic, _y, _label, source_index, epoch = next(stream)
+        truth = truth.to(device, non_blocking=True)
+        anchor = anchor.to(device, non_blocking=True)
+        intrinsic = intrinsic.to(device, non_blocking=True)
+        sigma = uncertainty.expand(truth.shape[0], -1, -1, -1)
+        order_hash.update(source_index.numpy().astype(np.int64).tobytes())
+        optimizer.zero_grad(set_to_none=True)
+        prediction, raw_prediction, diagnostics = projected_generator_output(
+            generator,
+            anchor=anchor,
+            uncertainty=sigma,
+            intrinsic=intrinsic,
+            geometry=geometry,
+            train_iterations=int(cfg.get("training_dykstra_iterations", 12)),
+            amp=amp,
+        )
+        loss, parts = supervised_loss(
+            prediction=prediction,
+            raw_prediction=raw_prediction,
+            anchor=anchor,
+            truth=truth,
+            geometry=geometry,
+            lpips_fn=lpips_fn,
+        )
+        if not torch.isfinite(loss):
+            raise PQBFGANError(f"NONFINITE_MATCHED_CONTINUATION_LOSS:{step + 1}")
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            generator.parameters(), float(cfg.get("grad_clip", 1.0))
+        )
+        scaler.step(optimizer)
+        scaler.update()
+        ema.update(generator)
+        row = {
+            "stage": "B0",
+            "step": step + 1,
+            "epoch": int(epoch),
+            "loss_sup": float(loss.detach().cpu()),
+            "grad_norm": float(torch.as_tensor(grad_norm).detach().cpu()),
+            "lr": float(optimizer.param_groups[0]["lr"]),
+            "adversarial_bundle_coefficient": 0.0,
+            **{key: float(value.detach().cpu()) for key, value in parts.items()},
+            **{key: float(value.detach().cpu()) for key, value in diagnostics.items()},
+        }
+        log.append(row)
+        if (step + 1) == steps or (step + 1) % max(1, int(cfg.get("log_every", 20))) == 0:
+            hq.write_csv(output_dir / "matched_supervised_train_log.csv", log)
+    checkpoint = output_dir / "checkpoints" / f"matched_supervised_step{steps:06d}.pt"
+    save_generator_checkpoint(
+        checkpoint,
+        generator=generator,
+        ema=ema,
+        optimizer=optimizer,
+        stage="B0",
+        step=steps,
+        config=config,
+    )
+    return ema, log, {
+        "steps": steps,
+        "batch_order_sha256": order_hash.hexdigest(),
+        "checkpoint": str(checkpoint),
+        "checkpoint_sha256": hq.sha256_file(checkpoint),
+        "adversarial_bundle_coefficient": 0.0,
         "runtime_seconds": time.time() - started,
     }
 
@@ -1105,6 +1211,14 @@ def evaluate_methods(
         ("pqbf_gan", "box_fiber_lmmse"),
         ("pqbf_gan", "pqbf_content"),
     ]
+    if "pqbf_supervised_continuation" in methods:
+        comparison_pairs.extend(
+            [
+                ("pqbf_supervised_continuation", "box_fiber_lmmse"),
+                ("pqbf_supervised_continuation", "pqbf_content"),
+                ("pqbf_gan", "pqbf_supervised_continuation"),
+            ]
+        )
     for method in methods:
         if method.startswith("pqbf_gan_step"):
             comparison_pairs.extend(
@@ -1346,6 +1460,25 @@ def run(config_path: Path) -> dict[str, Any]:
         "pqbf_content": content_model,
         "pqbf_gan": gan_model,
     }
+    matched_continuation_manifest: dict[str, Any] | None = None
+    matched_steps = int(
+        config["training"].get("matched_supervised_continuation_steps", 0)
+    )
+    if matched_steps > 0:
+        matched_generator = copy.deepcopy(content_model).to(device).train()
+        matched_ema, _matched_log, matched_continuation_manifest = (
+            train_matched_supervised_continuation(
+                generator=matched_generator,
+                geometry=geometry,
+                uncertainty=uncertainty,
+                train_data=caches["train"],
+                lpips_fn=lpips_fn,
+                config=config,
+                device=device,
+                output_dir=output_dir,
+            )
+        )
+        methods["pqbf_supervised_continuation"] = matched_ema.module.to(device).eval()
     for requested_step in config["eval"].get("stage_b_checkpoint_sweep", []):
         checkpoint_step = int(requested_step)
         checkpoint_path = output_dir / "checkpoints" / f"stage_b_step{checkpoint_step:06d}.pt"
@@ -1365,6 +1498,57 @@ def run(config_path: Path) -> dict[str, Any]:
     evaluation_split = str(config["eval"].get("split", "val"))
     if evaluation_split not in {"val", "test"}:
         raise PQBFGANError(f"INVALID_EVALUATION_SPLIT:{evaluation_split}")
+    test_manifest: dict[str, Any] | None = None
+    if evaluation_split == "test":
+        if matched_continuation_manifest is None:
+            raise PQBFGANError("TEST_REQUIRES_MATCHED_SUPERVISED_CONTINUATION")
+        test_manifest_path = output_dir / "reports" / "frozen_test_manifest.json"
+        if test_manifest_path.exists() or (output_dir / "reports" / "test").exists():
+            raise PQBFGANError(f"TEST_ALREADY_OPENED_OR_ATTEMPTED:{output_dir}")
+        test_manifest = {
+            "status": "FROZEN_BEFORE_ONE_SHOT_TEST",
+            "test_source_indices_sha256": split_manifest["splits"]["test"][
+                "source_indices_sha256"
+            ],
+            "bootstrap_seed": int(config["seeds"]["bootstrap"]),
+            "bootstrap_reps": int(config["eval"].get("bootstrap_reps", 1000)),
+            "selection": "fixed_validation_selected_step_750_no_test_reselection",
+            "gates": {
+                "gan_minus_content_psnr_min_db": -0.10,
+                "gan_minus_content_ssim_min": -0.002,
+                "gan_minus_content_lpips_ci_high_max": 0.0,
+                "gan_minus_matched_lpips_ci_high_max": 0.0,
+                "max_original_measurement_relative_residual": 1e-6,
+            },
+            "methods": {
+                "box_fiber_lmmse": {
+                    "operator_rows_sha256": operator_manifest["rows_sha256"],
+                    "train_source_indices_sha256": split_manifest["splits"]["train"][
+                        "source_indices_sha256"
+                    ],
+                    "lmmse_lambda": float(config["operator"]["lmmse_lambda"]),
+                },
+                "pqbf_content": {
+                    "checkpoint": stage_a_manifest["checkpoint"],
+                    "checkpoint_sha256": stage_a_manifest["checkpoint_sha256"],
+                },
+                "pqbf_supervised_continuation": {
+                    "checkpoint": matched_continuation_manifest["checkpoint"],
+                    "checkpoint_sha256": matched_continuation_manifest["checkpoint_sha256"],
+                    "steps": matched_continuation_manifest["steps"],
+                    "batch_order_sha256": matched_continuation_manifest[
+                        "batch_order_sha256"
+                    ],
+                    "adversarial_bundle_coefficient": 0.0,
+                },
+                "pqbf_gan": {
+                    "checkpoint": stage_b_manifest["checkpoint"],
+                    "checkpoint_sha256": stage_b_manifest["checkpoint_sha256"],
+                    "steps": stage_b_manifest["generator_updates"],
+                },
+            },
+        }
+        hq.write_json(test_manifest_path, test_manifest)
     method_rows, _per_image, evaluation = evaluate_methods(
         methods=methods,
         data=caches[evaluation_split],
@@ -1398,9 +1582,47 @@ def run(config_path: Path) -> dict[str, Any]:
         if eligible_checkpoints
         else None
     )
+    test_gate: dict[str, Any] | None = None
+    if evaluation_split == "test":
+        comparison_index = {
+            (str(row["comparison"]), str(row["metric"])): row
+            for row in evaluation["comparisons"]
+        }
+        gan_content = {
+            metric: comparison_index[("pqbf_gan_minus_pqbf_content", metric)]
+            for metric in ["psnr", "ssim", "lpips"]
+        }
+        gan_matched = {
+            metric: comparison_index[
+                ("pqbf_gan_minus_pqbf_supervised_continuation", metric)
+            ]
+            for metric in ["psnr", "ssim", "lpips"]
+        }
+        feasibility_pass = all(
+            float(row["max_relative_original_measurement_residual"]) <= 1e-6
+            and float(row["pixel_min"]) >= -1e-7
+            and float(row["pixel_max"]) <= 1.0 + 1e-7
+            for row in method_rows
+        )
+        conditions = {
+            "gan_content_psnr": float(gan_content["psnr"]["mean"]) >= -0.10,
+            "gan_content_ssim": float(gan_content["ssim"]["mean"]) >= -0.002,
+            "gan_content_lpips_ci": float(gan_content["lpips"]["ci_high_95"]) < 0.0,
+            "gan_matched_lpips_ci": float(gan_matched["lpips"]["ci_high_95"]) < 0.0,
+            "scored_output_feasibility": feasibility_pass,
+        }
+        test_gate = {
+            "decision": "COMPLETION_TEST_GO" if all(conditions.values()) else "COMPLETION_TEST_NO_GO",
+            "conditions": conditions,
+            "gan_minus_content": gan_content,
+            "gan_minus_matched_supervised_continuation": gan_matched,
+        }
     game = summarize_game(stage_b_log)
     mode = str(config.get("mode", "smoke"))
-    classification = "SMOKE_COMPLETED_DIRECTIONAL_ONLY" if mode != "formal" else "FORMAL_PENDING_TEST_GATE"
+    if test_gate is not None:
+        classification = str(test_gate["decision"])
+    else:
+        classification = "SMOKE_COMPLETED_DIRECTIONAL_ONLY" if mode != "formal" else "FORMAL_PENDING_TEST_GATE"
     summary = {
         "classification": classification,
         "method": "PQBF-GAN",
@@ -1419,6 +1641,7 @@ def run(config_path: Path) -> dict[str, Any]:
         "cache": cache_diagnostics,
         "stage_a": stage_a_manifest,
         "stage_b": stage_b_manifest,
+        "matched_supervised_continuation": matched_continuation_manifest,
         "gan_game": game,
         "evaluation_split": evaluation_split,
         "evaluation_metrics": method_rows,
@@ -1435,6 +1658,8 @@ def run(config_path: Path) -> dict[str, Any]:
             "eligible": eligible_checkpoints,
             "selected": selected_checkpoint,
         },
+        "frozen_test_manifest": test_manifest,
+        "test_gate": test_gate,
         "test_opened": evaluation_split == "test",
         "runtime_seconds": time.time() - started,
         "scientific_scope": (
