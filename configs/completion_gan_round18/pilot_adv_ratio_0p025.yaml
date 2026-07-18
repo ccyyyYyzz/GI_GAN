@@ -1,0 +1,69 @@
+mode: directional_pilot_adv_ratio_0p025
+device: cuda
+output_dir: E:/GAN_FCC_WORK/experiments/gan_gi_journal_round26/pqbf_adv_ratio_0p025
+
+seeds:
+  global_generator: 20260718
+  loader: 20260719
+  discriminator: 20260720
+  bootstrap: 20260721
+
+data:
+  dataset_root: E:/GAN_FCC_WORK/datasets
+  source_split: train+unlabeled
+  img_size: 64
+  train_count: 2048
+  val_count: 128
+  test_count: 128
+  batch_size: 8
+  eval_batch_size: 8
+  matrix_batch_size: 128
+  cache_batch_size: 8
+  num_workers: 0
+  reuse_cache: true
+  cache_dir: E:/GAN_FCC_WORK/experiments/completion_gan_round18/pqbf_pilot_seed0/cache
+
+operator:
+  total_m: 205
+  dct_rows: 128
+  hadamard_rows: 56
+  random_rows: 20
+  seed: 772001
+  svd_relative_cutoff: 1.0e-12
+  expected_rank: 200
+  lmmse_lambda: 1.0e-3
+
+model:
+  steps: 3
+  step_scale: 0.25
+
+training:
+  stage_a_steps: 2000
+  stage_b_steps: 750
+  matched_supervised_continuation_steps: 0
+  resume_stage_a_checkpoint: E:/GAN_FCC_WORK/experiments/completion_gan_round18/pqbf_pilot_seed0/checkpoints/stage_a_step002000.pt
+  stage_b_lr_g: 1.0e-4
+  stage_b_lr_d: 2.0e-4
+  betas: [0.5, 0.9]
+  weight_decay: 1.0e-4
+  amp: true
+  grad_clip: 1.0
+  ema_decay: 0.999
+  training_dykstra_iterations: 12
+  r1_gamma: 1.0
+  r1_interval: 16
+  adversarial_ramp_steps: 300
+  adaptive_target_ratio: 0.025
+  adaptive_update_every: 20
+  adaptive_lambda_initial: 0.0025
+  adaptive_lambda_min: 1.0e-4
+  adaptive_lambda_max: 2.0e-2
+  stage_b_checkpoint_steps: [750]
+  log_every: 20
+
+eval:
+  split: val
+  bootstrap_reps: 1000
+  qualitative_count: 8
+  stage_b_checkpoint_sweep: []
+
