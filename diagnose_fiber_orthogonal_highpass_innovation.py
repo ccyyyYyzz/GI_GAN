@@ -222,6 +222,18 @@ def main() -> None:
         bootstrap_reps=int(args.bootstrap_reps),
         seed=int(args.seed) + 3,
     )
+    np.savez_compressed(
+        args.output_dir / "metric_vectors.npz",
+        **{
+            f"{arm}_{metric}": values
+            for arm, vectors in {
+                "structural": structural_vectors,
+                "fixed": fixed_vectors,
+                "fohi": fohi_vectors,
+            }.items()
+            for metric, values in vectors.items()
+        },
+    )
     structural_mse = (structural - truth).square().flatten(1).mean(dim=1)
     fixed_mse = (fixed - truth).square().flatten(1).mean(dim=1)
     fohi_mse = (fohi - truth).square().flatten(1).mean(dim=1)
