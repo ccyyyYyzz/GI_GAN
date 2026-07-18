@@ -88,7 +88,8 @@ def main() -> None:
     parser.add_argument("--control-val", type=Path, required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--control-checkpoint", type=Path, required=True)
-    parser.add_argument("--gan-checkpoints", type=str, required=True)
+    parser.add_argument("--proposal-checkpoints", type=str)
+    parser.add_argument("--gan-checkpoints", type=str)
     parser.add_argument("--cutoffs", default="0.08,0.12,0.18,0.25,0.35")
     parser.add_argument("--alphas", default="0.1,0.25,0.5,0.75,1.0")
     parser.add_argument("--top-exact", type=int, default=10)
@@ -172,21 +173,29 @@ def main() -> None:
 
     cutoffs = [float(value) for value in args.cutoffs.split(",")]
     alphas = [float(value) for value in args.alphas.split(",")]
-    gan_paths = [Path(value) for value in args.gan_checkpoints.split(",")]
+    checkpoint_text = args.proposal_checkpoints or args.gan_checkpoints
+    if not checkpoint_text:
+        raise ValueError("PROPOSAL_CHECKPOINTS_REQUIRED")
+    proposal_paths = [Path(value) for value in checkpoint_text.split(",")]
     coarse = []
-    cached_gan: list[tuple[Path, dict, torch.Tensor, dict[str, float]]] = []
-    for gan_index, path in enumerate(gan_paths):
-        gan_model, gan_manifest = load_generator(path, device)
-        _, gan_correction, gan_audit = predict_all(
-            gan_model,
-            gan_split,
+    cached_proposals: list[tuple[Path, dict, torch.Tensor, dict[str, float]]] = []
+    for proposal_index, path in enumerate(proposal_paths):
+        proposal_model, proposal_manifest = load_generator(path, device)
+        active_split = (
+            gan_split if proposal_manifest["source_arm"] == "gan" else control_split
+        )
+        _, proposal_correction, proposal_audit = predict_all(
+            proposal_model,
+            active_split,
             geometry,
             indices=indices,
             batch_size=int(args.batch_size),
             device=device,
         )
-        cached_gan.append((path, gan_manifest, gan_correction, gan_audit))
-        difference = gan_correction.to(device) - control_correction.to(device)
+        cached_proposals.append(
+            (path, proposal_manifest, proposal_correction, proposal_audit)
+        )
+        difference = proposal_correction.to(device) - control_correction.to(device)
         for cutoff in cutoffs:
             high_difference = smooth_radial_high_pass(difference, cutoff=float(cutoff))
             for alpha in alphas:
@@ -197,8 +206,9 @@ def main() -> None:
                 means = metric_means(vectors)
                 coarse.append(
                     {
-                        "gan_index": gan_index,
-                        "gan_checkpoint": path.name,
+                        "proposal_index": proposal_index,
+                        "proposal_checkpoint": path.name,
+                        "proposal_arm": proposal_manifest["source_arm"],
                         "cutoff": float(cutoff),
                         "alpha": float(alpha),
                         "means": means,
@@ -209,8 +219,10 @@ def main() -> None:
     coarse.sort(key=lambda row: float(row["score_vs_control"]), reverse=True)
     exact_results = []
     for rank, row in enumerate(coarse[: int(args.top_exact)]):
-        _, gan_manifest, gan_correction, gan_audit = cached_gan[int(row["gan_index"])]
-        difference = gan_correction.to(device) - control_correction.to(device)
+        _, proposal_manifest, proposal_correction, proposal_audit = cached_proposals[
+            int(row["proposal_index"])
+        ]
+        difference = proposal_correction.to(device) - control_correction.to(device)
         high_difference = smooth_radial_high_pass(difference, cutoff=float(row["cutoff"]))
         raw = control_correction.to(device) + float(row["alpha"]) * high_difference
         correction = geometry.null_project_flat(raw.flatten(1)).reshape_as(raw)
@@ -243,8 +255,8 @@ def main() -> None:
                     seed=int(args.seed) + 2003 * rank,
                 ),
                 "projection_audit": projection_audit,
-                "gan_manifest": gan_manifest,
-                "gan_model_audit": gan_audit,
+                "proposal_manifest": proposal_manifest,
+                "proposal_model_audit": proposal_audit,
             }
         )
     exact_results.sort(key=lambda row: float(row["score_vs_control"]), reverse=True)
