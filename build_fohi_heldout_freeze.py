@@ -51,7 +51,16 @@ def main() -> None:
         "validation_only": False,
         "repo_head_at_inventory": next(iter(heads)),
         "source_split": "STL10 test",
-        "expected_test_images": 8000,
+        "expected_test_images": 6740,
+        "dataset_amendment": {
+            "policy": "use every STL-10 test image whose raw SHA-256 is absent from the frozen development/prior prefix",
+            "official_test_images": 8000,
+            "excluded_raw_hash_overlap": 1260,
+            "included_hash_disjoint_images": 6740,
+            "superseded_manifest_sha256": "a1262b961cbcc929c4beec087b7a5d40da36c2386f18216ac645421cbbc9ebd0",
+            "quality_metrics_seen_before_amendment": False,
+            "method_or_artifact_changed": False,
+        },
         "rates": ["05", "10"],
         "excluded_rate": "02",
         "method_parameters": {

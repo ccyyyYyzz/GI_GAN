@@ -93,6 +93,7 @@ def main() -> None:
     if freeze.get("status") != "VQGAN_GUIDED_FOHI_HELDOUT_FROZEN":
         raise RuntimeError("HELDOUT_FREEZE_MANIFEST_INVALID")
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    expected_images = int(freeze["expected_test_images"])
     per_rate: dict[str, Any] = {}
     input_hashes = {}
     split_hashes = set()
@@ -118,10 +119,10 @@ def main() -> None:
                 and complete.get("validation_only") is False
                 and summary.get("evaluation_scope") == "heldout"
                 and summary.get("test_split_opened") is True
-                and summary.get("heldout_images") == 8000
+                and summary.get("heldout_images") == expected_images
                 and cache_manifest.get("source_split") == "test"
-                and cache_manifest.get("test_images") == 8000
-                and cache_manifest.get("test_development_raw_hash_overlap") == 0
+                and cache_manifest.get("test_images") == expected_images
+                and cache_manifest.get("included_development_raw_hash_overlap") == 0
             )
             all_scope_correct = all_scope_correct and scope_correct
             expected_operator = freeze["lanes"][str(lane_index)]["rates"][rate]["operator_sha256"]
@@ -140,7 +141,7 @@ def main() -> None:
             means = {}
             for metric in METRICS:
                 delta = fohi[metric] - structural[metric]
-                if len(delta) != 8000:
+                if len(delta) != expected_images:
                     raise RuntimeError(f"HELDOUT_VECTOR_LENGTH_MISMATCH:{lane_index}:{rate}:{metric}")
                 deltas[metric].append(delta)
                 means[metric] = float(delta.mean())
@@ -195,7 +196,7 @@ def main() -> None:
         "evaluation_scope": "heldout",
         "validation_only": False,
         "test_split_opened": True,
-        "test_images": 8000,
+        "test_images": expected_images,
         "test_raw_hash_sequence_sha256": next(iter(split_hashes)),
         "headline_six_component_gate_passed": headline_pass,
         "all_projection_certificates_passed": all_certified,
@@ -230,7 +231,9 @@ def main() -> None:
     lines.extend(
         [
             "",
-            "All 8000 STL-10 test images are used once. No post-test method change is permitted.",
+            f"All {expected_images} raw-hash-disjoint STL-10 test images are used once. "
+            "The 1260 byte-identical development overlaps are excluded before any quality metric. "
+            "No post-test method change is permitted.",
         ]
     )
     (args.output_dir / "HELDOUT_DECISION.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

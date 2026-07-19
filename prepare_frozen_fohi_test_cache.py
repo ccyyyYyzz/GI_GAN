@@ -16,6 +16,11 @@ import gan_high_quality_gi as hq
 import prepare_fiber_rate_caches as prep
 
 
+EXPECTED_STL10_TEST_IMAGES = 8000
+EXPECTED_DEVELOPMENT_OVERLAP = 1260
+EXPECTED_HASH_DISJOINT_TEST_IMAGES = 6740
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -83,23 +88,33 @@ def main() -> None:
             transforms.ToTensor(),
         ]
     )
-    test_indices = list(range(len(test_base)))
-    test_dataset = hq.IndexedTensorDataset(test_base, test_indices, transform)
+    if len(test_base) != EXPECTED_STL10_TEST_IMAGES:
+        raise RuntimeError(f"UNEXPECTED_STL10_TEST_SIZE:{len(test_base)}")
+    hash_probe = hq.IndexedTensorDataset(test_base, [], transform)
     hash_rows = []
+    excluded_overlap_rows = []
+    test_indices = []
     test_hashes = []
-    for source_index in test_indices:
-        raw_hash = test_dataset.raw_hash(source_index)
-        test_hashes.append(raw_hash)
-        hash_rows.append(
-            {
-                "source_index": int(source_index),
-                "raw_sha256": raw_hash,
-                "label": int(test_base.labels[source_index]),
-            }
+    for source_index in range(len(test_base)):
+        raw_hash = hash_probe.raw_hash(source_index)
+        row = {
+            "source_index": int(source_index),
+            "raw_sha256": raw_hash,
+            "label": int(test_base.labels[source_index]),
+        }
+        if raw_hash in development_hashes:
+            excluded_overlap_rows.append(row)
+        else:
+            test_indices.append(source_index)
+            test_hashes.append(raw_hash)
+            hash_rows.append(row)
+    if len(excluded_overlap_rows) != EXPECTED_DEVELOPMENT_OVERLAP:
+        raise RuntimeError(
+            f"DEVELOPMENT_OVERLAP_COUNT_DRIFT:{len(excluded_overlap_rows)}"
         )
-    overlap = sorted(set(test_hashes) & development_hashes)
-    if overlap:
-        raise RuntimeError(f"TEST_DEVELOPMENT_RAW_HASH_OVERLAP:{len(overlap)}")
+    if len(test_indices) != EXPECTED_HASH_DISJOINT_TEST_IMAGES:
+        raise RuntimeError(f"HASH_DISJOINT_TEST_COUNT_DRIFT:{len(test_indices)}")
+    test_dataset = hq.IndexedTensorDataset(test_base, test_indices, transform)
 
     train_x, _, _ = hq.tensor_dataset_to_matrix(
         train_dataset,
@@ -151,6 +166,7 @@ def main() -> None:
         "validation_only": False,
         "test_split_opened": True,
         "source_split": "test",
+        "all_official_test_images": int(len(test_base)),
         "test_images": int(len(test_indices)),
         "rate": str(args.rate),
         "lane_index": int(args.lane_index),
@@ -163,7 +179,9 @@ def main() -> None:
         },
         "development_manifest": development_manifest,
         "development_raw_hash_count": int(len(development_hashes)),
-        "test_development_raw_hash_overlap": 0,
+        "official_test_development_raw_hash_overlap": int(len(excluded_overlap_rows)),
+        "included_development_raw_hash_overlap": 0,
+        "excluded_overlap_samples": excluded_overlap_rows,
         "test_duplicate_raw_hashes": int(len(test_hashes) - len(set(test_hashes))),
         "test_source_indices_sha256": hashlib.sha256(
             np.asarray(test_indices, dtype=np.int64).tobytes()

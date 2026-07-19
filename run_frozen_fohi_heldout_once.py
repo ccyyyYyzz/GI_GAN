@@ -170,8 +170,11 @@ def main() -> None:
         )
         if summary.get("test_split_opened") is not True or summary.get("validation_only") is not False:
             raise RuntimeError(f"HELDOUT_SCOPE_NOT_RECORDED:{rate}")
-        if cache_manifest.get("test_images") != 8000:
-            raise RuntimeError(f"EXPECTED_ALL_8000_STL10_TEST_IMAGES:{rate}")
+        expected_images = int(manifest["expected_test_images"])
+        if cache_manifest.get("test_images") != expected_images:
+            raise RuntimeError(f"EXPECTED_FROZEN_HASH_DISJOINT_TEST_IMAGES:{rate}")
+        if cache_manifest.get("included_development_raw_hash_overlap") != 0:
+            raise RuntimeError(f"INCLUDED_DEVELOPMENT_OVERLAP:{rate}")
         rate_outputs[rate] = {
             "summary": str(evaluation_dir / "summary.json"),
             "metric_vectors": str(evaluation_dir / "metric_vectors.npz"),
