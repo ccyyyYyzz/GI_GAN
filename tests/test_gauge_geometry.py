@@ -131,3 +131,28 @@ def test_qr_constructor_handles_redundant_rows() -> None:
         atol=1.0e-10,
         rtol=1.0e-10,
     )
+
+
+def test_raw_measurement_certificate_reports_original_row_coordinates() -> None:
+    torch.manual_seed(104)
+    independent = torch.randn(3, 17, dtype=torch.float64)
+    # The duplicate makes the raw row count exceed the numerical rank, matching
+    # the condition under which a float32 cached y can have a tiny range-null
+    # rounding component.
+    rows = torch.cat([independent, independent[:1]], dim=0)
+    geometry = GaugeGeometry.from_rows_qr(rows)
+    image = torch.rand(5, 17, dtype=torch.float32)
+    raw_y = image @ rows.float().T
+
+    direct = geometry.raw_record_from_flat(image)
+    from_intrinsic = geometry.raw_record_from_intrinsic(
+        geometry.intrinsic_record(raw_y)
+    )
+    certificate = geometry.raw_measurement_residual_certificate(image, raw_y)
+
+    assert direct.shape == raw_y.shape
+    assert from_intrinsic.shape == raw_y.shape
+    assert certificate["target"] == "cached_raw_y"
+    assert "numerical_range_component" in certificate
+    assert "projected_vs_numerical_range_component" in certificate
+    assert certificate["passed"]

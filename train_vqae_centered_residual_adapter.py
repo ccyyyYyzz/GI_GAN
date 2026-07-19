@@ -33,6 +33,12 @@ def prepare_split(
             raise RuntimeError(f"CACHE_IDENTITY_MISMATCH:{key}")
     truth = primary["truth"].float().to(device)
     anchor = primary["x0"].float().to(device).clamp(0.0, 1.0)
+    # ``intrinsic`` below is the historical clipped-anchor target used for
+    # adapter feature construction.  Keep the raw record separately so a new
+    # terminal projection can explicitly target cached bucket measurements
+    # without changing trained checkpoints or their inputs.
+    raw_y = primary["y"].to(device)
+    raw_intrinsic = geometry.intrinsic_record(raw_y)
     intrinsic = anchor.flatten(1).to(torch.float64) @ geometry.Q.T
     base_residual = geometry.null_project_flat(
         primary["x_A"].float().to(device).flatten(1) - anchor.flatten(1)
@@ -62,6 +68,8 @@ def prepare_split(
         "base": base.cpu(),
         "direction": direction.cpu(),
         "intrinsic": intrinsic.cpu(),
+        "raw_y": raw_y.cpu(),
+        "raw_intrinsic": raw_intrinsic.cpu(),
         "source_index": primary["source_index"].cpu(),
     }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -63,6 +64,53 @@ def triple_ci_favorable(paired: dict[str, Any]) -> bool:
     )
 
 
+def tensor_sha256(tensor: torch.Tensor) -> str:
+    """Stable byte hash for a cached tensor recorded in a JSON receipt."""
+
+    return hashlib.sha256(
+        tensor.detach().cpu().contiguous().numpy().tobytes()
+    ).hexdigest()
+
+
+def final_projection_target(
+    split: dict[str, torch.Tensor],
+    geometry: GaugeGeometry,
+    *,
+    mode: str,
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    """Select an explicit terminal box-fiber target without altering features.
+
+    ``legacy_clipped_anchor`` exists only to reproduce the pre-correction
+    result.  A new raw-bucket experiment must request ``raw_y`` explicitly.
+    """
+
+    raw_y = split.get("raw_y")
+    if not isinstance(raw_y, torch.Tensor):
+        raise RuntimeError("RAW_CACHED_BUCKET_VECTOR_MISSING")
+    if raw_y.ndim != 2 or raw_y.shape[1] != geometry.m:
+        raise RuntimeError(
+            f"RAW_CACHED_BUCKET_SHAPE_MISMATCH:{tuple(raw_y.shape)}:{geometry.m}"
+        )
+    if mode == "raw_y":
+        intrinsic = geometry.intrinsic_record(raw_y.to(geometry.Q.device))
+        definition = "GaugeGeometry.intrinsic_record(cached raw y)"
+    elif mode == "legacy_clipped_anchor":
+        intrinsic = split["intrinsic"].to(geometry.Q.device)
+        definition = "legacy clipped-anchor intrinsic record (not raw y)"
+    else:
+        raise ValueError(f"UNKNOWN_FINAL_PROJECTION_TARGET:{mode}")
+    if not bool(torch.isfinite(intrinsic).all()):
+        raise RuntimeError("FINAL_PROJECTION_INTRINSIC_NOT_FINITE")
+    return intrinsic, {
+        "mode": str(mode),
+        "definition": definition,
+        "target_is_cached_raw_y": bool(mode == "raw_y"),
+        "raw_cached_y_sha256": tensor_sha256(raw_y),
+        "raw_cached_y_shape": list(raw_y.shape),
+        "raw_cached_y_dtype": str(raw_y.dtype),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--primary-val", type=Path, required=True)
@@ -80,6 +128,17 @@ def main() -> None:
     parser.add_argument("--exact-iterations", type=int, default=1024)
     parser.add_argument("--bootstrap-reps", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=20260719)
+    parser.add_argument(
+        "--final-projection-target",
+        "--final-target",
+        dest="final_projection_target",
+        choices=("raw_y", "legacy_clipped_anchor"),
+        required=True,
+        help=(
+            "raw_y uses cached raw buckets; legacy_clipped_anchor is only for "
+            "explicit reproduction of the pre-correction result."
+        ),
+    )
     parser.add_argument(
         "--evaluation-scope",
         choices=("validation", "heldout"),
@@ -129,9 +188,22 @@ def main() -> None:
         batch_size=int(args.batch_size),
         device=device,
     )
-    for key in ("truth", "anchor", "base", "intrinsic", "source_index"):
+    for key in (
+        "truth",
+        "anchor",
+        "base",
+        "intrinsic",
+        "raw_y",
+        "raw_intrinsic",
+        "source_index",
+    ):
         if not torch.equal(gan_split[key], control_split[key]):
             raise RuntimeError(f"PREPARED_SPLIT_MISMATCH:{key}")
+    projection_intrinsic, projection_target_manifest = final_projection_target(
+        gan_split,
+        geometry,
+        mode=str(args.final_projection_target),
+    )
     indices = torch.arange(len(gan_split["truth"]))
     control_model, control_manifest = load_generator(args.control_checkpoint, device)
     proposal_model, proposal_manifest = load_generator(args.proposal_checkpoint, device)
@@ -156,7 +228,7 @@ def main() -> None:
     )
     structural, structural_projection_audit = project_predictions(
         control_prediction.to(device),
-        control_split["intrinsic"].to(device),
+        projection_intrinsic,
         geometry,
         batch_size=int(args.batch_size),
         exact_iterations=int(args.exact_iterations),
@@ -189,14 +261,14 @@ def main() -> None:
     fohi_proposal = base.flatten(1) + structural_direction + float(args.alpha) * orthogonal
     fixed, fixed_projection_audit = project_predictions(
         fixed_proposal.reshape_as(base),
-        gan_split["intrinsic"].to(device),
+        projection_intrinsic,
         geometry,
         batch_size=int(args.batch_size),
         exact_iterations=int(args.exact_iterations),
     )
     fohi, fohi_projection_audit = project_predictions(
         fohi_proposal.reshape_as(base),
-        gan_split["intrinsic"].to(device),
+        projection_intrinsic,
         geometry,
         batch_size=int(args.batch_size),
         exact_iterations=int(args.exact_iterations),
@@ -271,6 +343,8 @@ def main() -> None:
         "alpha": float(args.alpha),
         "filter_mode": str(args.filter_mode),
         "exact_iterations": int(args.exact_iterations),
+        "final_target": str(args.final_projection_target),
+        "final_projection_target": projection_target_manifest,
         "control_manifest": control_manifest,
         "proposal_manifest": proposal_manifest,
         "gan_manifest": proposal_manifest,
@@ -325,6 +399,17 @@ def main() -> None:
         "structural_projection_audit": structural_projection_audit,
         "fixed_projection_audit": fixed_projection_audit,
         "fohi_projection_audit": fohi_projection_audit,
+        "raw_measurement_residual_certificate": {
+            "structural": geometry.raw_measurement_residual_certificate(
+                structural.flatten(1), gan_split["raw_y"].to(device)
+            ),
+            "fixed": geometry.raw_measurement_residual_certificate(
+                fixed.flatten(1), gan_split["raw_y"].to(device)
+            ),
+            "fohi": geometry.raw_measurement_residual_certificate(
+                fohi.flatten(1), gan_split["raw_y"].to(device)
+            ),
+        },
         "runtime_seconds": time.time() - started,
     }
     output = args.output_dir / "summary.json"

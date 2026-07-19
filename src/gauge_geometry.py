@@ -164,6 +164,119 @@ class GaugeGeometry(nn.Module):
             z_cast, dim=1
         ).clamp_min(1e-12)
 
+    def raw_record_from_flat(self, flat: torch.Tensor) -> torch.Tensor:
+        """Evaluate the original row measurements ``A x`` from an image batch.
+
+        ``GaugeGeometry`` stores the thin factorisation ``A = U S Q``.  This
+        method reconstructs the record in the original row coordinates, rather
+        than returning intrinsic coordinates, so it can directly audit equality
+        to a cached raw bucket vector.
+        """
+
+        if flat.ndim != 2 or flat.shape[1] != self.n:
+            raise GaugeGeometryError(f"EXPECTED_FLAT_BN:{tuple(flat.shape)}:{self.n}")
+        work = flat.to(device=self.Q.device, dtype=torch.float64)
+        q = self.Q.to(dtype=torch.float64)
+        return ((work @ q.T) * self.singular.unsqueeze(0)) @ self.U_r.T
+
+    def raw_record_from_intrinsic(self, z: torch.Tensor) -> torch.Tensor:
+        """Map intrinsic row coordinates back to original row coordinates."""
+
+        if z.ndim != 2 or z.shape[1] != self.rank:
+            raise GaugeGeometryError(f"EXPECTED_INTRINSIC_BR:{tuple(z.shape)}:{self.rank}")
+        work = z.to(device=self.Q.device, dtype=torch.float64)
+        return (work * self.singular.unsqueeze(0)) @ self.U_r.T
+
+    def raw_measurement_residual_certificate(
+        self,
+        flat: torch.Tensor,
+        y: torch.Tensor,
+        *,
+        relative_tolerance: float = 1e-6,
+        absolute_tolerance: float = 1e-5,
+        input_range_relative_tolerance: float = 5e-7,
+        input_range_absolute_tolerance: float = 5e-6,
+    ) -> dict[str, Any]:
+        """Return a direct certificate against a cached raw bucket vector."""
+
+        if y.ndim != 2 or y.shape != (flat.shape[0], self.m):
+            raise GaugeGeometryError(
+                f"EXPECTED_Y_BM:{tuple(y.shape)}:{flat.shape[0]}:{self.m}"
+            )
+        # A float32 cached record may have a tiny component outside the
+        # numerical row range when A is rank deficient.  Do not conceal that
+        # component: report it separately, and require it to remain inside a
+        # declared rounding envelope.  The terminal target is nevertheless
+        # constructed from ``intrinsic_record(y)``.
+        predicted = self.raw_record_from_flat(flat)
+        target = y.to(device=predicted.device, dtype=torch.float64)
+        range_target = self.raw_record_from_intrinsic(self.intrinsic_record(target))
+        direct_residual = predicted - target
+        projection_residual = predicted - range_target
+        input_range_residual = range_target - target
+
+        def residual_stats(residual: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            return (
+                torch.linalg.norm(residual, dim=1)
+                / torch.linalg.norm(target, dim=1).clamp_min(1e-12),
+                residual.abs().amax(dim=1),
+            )
+
+        direct_relative, direct_absolute = residual_stats(direct_residual)
+        projection_relative, projection_absolute = residual_stats(projection_residual)
+        input_range_relative, input_range_absolute = residual_stats(input_range_residual)
+        finite = bool(
+            torch.isfinite(predicted).all()
+            and torch.isfinite(target).all()
+            and torch.isfinite(range_target).all()
+            and torch.isfinite(direct_residual).all()
+        )
+        max_relative = float(direct_relative.max().detach().cpu())
+        max_absolute = float(direct_absolute.max().detach().cpu())
+        range_component_within_tolerance = bool(
+            input_range_relative.max() <= float(input_range_relative_tolerance)
+            and input_range_absolute.max() <= float(input_range_absolute_tolerance)
+        )
+        projected_component_passed = bool(
+            projection_relative.max() <= float(relative_tolerance)
+            and projection_absolute.max() <= float(absolute_tolerance)
+        )
+        return {
+            "target": "cached_raw_y",
+            "max_relative_l2_error": max_relative,
+            "mean_relative_l2_error": float(direct_relative.mean().detach().cpu()),
+            "max_absolute_error": max_absolute,
+            "raw_y_relative_tolerance": float(relative_tolerance),
+            "raw_y_absolute_tolerance": float(absolute_tolerance),
+            "numerical_range_component": {
+                "definition": "U_r U_r^T cached_raw_y",
+                "max_relative_l2_input_error": float(
+                    input_range_relative.max().detach().cpu()
+                ),
+                "max_absolute_input_error": float(
+                    input_range_absolute.max().detach().cpu()
+                ),
+                "relative_tolerance": float(input_range_relative_tolerance),
+                "absolute_tolerance": float(input_range_absolute_tolerance),
+                "within_declared_rounding_envelope": range_component_within_tolerance,
+            },
+            "projected_vs_numerical_range_component": {
+                "max_relative_l2_error": float(
+                    projection_relative.max().detach().cpu()
+                ),
+                "max_absolute_error": float(projection_absolute.max().detach().cpu()),
+                "passed": projected_component_passed,
+            },
+            "finite": finite,
+            "passed": bool(
+                finite
+                and max_relative <= float(relative_tolerance)
+                and max_absolute <= float(absolute_tolerance)
+                and range_component_within_tolerance
+                and projected_component_passed
+            ),
+        }
+
 
 class GaugeEmpiricalAnchor(nn.Module):
     """Gauge-invariant empirical LMMSE anchor with a precomputed n-by-r gain."""
