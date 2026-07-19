@@ -80,6 +80,11 @@ def main() -> None:
     parser.add_argument("--exact-iterations", type=int, default=1024)
     parser.add_argument("--bootstrap-reps", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=20260719)
+    parser.add_argument(
+        "--evaluation-scope",
+        choices=("validation", "heldout"),
+        default="validation",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     if not torch.cuda.is_available():
@@ -254,10 +259,13 @@ def main() -> None:
 
     payload = {
         "status": "FIBER_ORTHOGONAL_HIGHPASS_INNOVATION_DIAGNOSTIC",
-        "validation_only": True,
-        "test_split_opened": False,
+        "evaluation_scope": str(args.evaluation_scope),
+        "validation_only": args.evaluation_scope == "validation",
+        "test_split_opened": args.evaluation_scope == "heldout",
         "operator_sha256": geometry.info.rows_sha256,
-        "validation_images": len(truth),
+        "evaluation_images": len(truth),
+        "validation_images": len(truth) if args.evaluation_scope == "validation" else 0,
+        "heldout_images": len(truth) if args.evaluation_scope == "heldout" else 0,
         "cutoff": float(args.cutoff),
         "transition": float(args.transition),
         "alpha": float(args.alpha),
