@@ -1,0 +1,195 @@
+{
+  "bootstrap": {
+    "reps": 20000,
+    "scheme": "lane-by-image hierarchical paired bootstrap",
+    "seed": 20260719
+  },
+  "code_sha256": {
+    "/content/GI_GAN/anchor_initialized_vqgan_inversion.py": "7b129707070481a850a405cacd72b2c74ab28127ac936baa173a0d9d904c6ec2",
+    "/content/GI_GAN/diagnose_afrb_proposal_headroom.py": "c797e15438738389b7aeed166daf8d212dbe86bf165f2147b059c34c66753ac0",
+    "/content/GI_GAN/diagnose_fiber_orthogonal_highpass_innovation.py": "af799263d37113e3ec1a4b5364ec63ec9ae47b8a94b3b33d78d8504ef5353427",
+    "/content/GI_GAN/diagnose_fiber_residual_frequency_fusion.py": "ee1972b1c65778438815c31dad2f210136cbe2a981818a822a03ec46f15c1f86",
+    "/content/GI_GAN/diagnose_vqgan_causal_disagreement_controls.py": "b0ec78a69ecf560aa369dbddb97469f031c62bf7248e40deeee3d029cd40e1a3",
+    "/content/GI_GAN/gan_high_quality_gi.py": "0cc313db50c53774d901f74abb45ba51dced4a29d6ac09dd90f20476a6edca88",
+    "/content/GI_GAN/prepare_fiber_rate_caches.py": "3810f1ecda766592cee85b415472fbeff51740c124c6cd2f3e884713d2357612",
+    "/content/GI_GAN/prepare_frozen_fohi_test_cache.py": "9306cf81dacd1e919f6e7d391d30031d77bb26ec750bd192c82cb8de6aba8e8c",
+    "/content/GI_GAN/run_frozen_fohi_heldout_once.py": "165fe35f7752c908816629ea328610985224c921ccfce6df0d50ae53acfbf84d",
+    "/content/GI_GAN/src/fiber_orthogonal_innovation.py": "bc8fe224b78ceea9d51cf797541a945ea3b3ee0a01cd4f4aac531e6194c6669b",
+    "/content/GI_GAN/src/gauge_geometry.py": "3722d6a7e843d299a62bb9e6372453f86f72b994e504bef47b8390d84e170114",
+    "/content/GI_GAN/src/metrics.py": "1a705cb2e3e3fae5d152bf1e8a04bf7cbdf2cc05a52554a66e07dfc0bb5781ba",
+    "/content/GI_GAN/src/projections.py": "d40e83ab0b07f783fbe36a55a5ef6772a0629e1b40b49d30d2f3151aebbd9299",
+    "/content/GI_GAN/train_fiber_residual_phase_gan.py": "fced27d9fb158721eb64adb590f53f0cc988fecadcf3300d374c374731925a5d",
+    "/content/GI_GAN/train_vqae_centered_residual_adapter.py": "7dfe542d020b0ab96cfa3d1af018333895d93ffcb39dcd8c758f2e0579a0c646"
+  },
+  "dataset_amendment": {
+    "excluded_raw_hash_overlap": 1260,
+    "included_hash_disjoint_images": 6740,
+    "method_or_artifact_changed": false,
+    "official_test_images": 8000,
+    "policy": "use every STL-10 test image whose raw SHA-256 is absent from the frozen development/prior prefix",
+    "quality_metrics_seen_before_amendment": false,
+    "superseded_manifest_sha256": "a1262b961cbcc929c4beec087b7a5d40da36c2386f18216ac645421cbbc9ebd0"
+  },
+  "decision_rule": {
+    "additional_requirements": [
+      "all_lane_means_favorable",
+      "all_projection_and_hash_gates_pass",
+      "holm_adjusted_one_sided_p_values_reported"
+    ],
+    "components": [
+      "rate05_psnr_ci_low_gt_0",
+      "rate05_ssim_ci_low_gt_0",
+      "rate05_lpips_ci_high_lt_0",
+      "rate10_psnr_ci_low_gt_0",
+      "rate10_ssim_ci_low_gt_0",
+      "rate10_lpips_ci_high_lt_0"
+    ],
+    "headline": "six-component intersection-union gate"
+  },
+  "excluded_rate": "02",
+  "expected_test_images": 6740,
+  "inventory_sha256": {
+    "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round54\\inventories_v2\\lane0.json": "900c7f68ba18010193acbb2b29f97d3d58940b2b297f9aa9e0f93ce02602d702",
+    "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round54\\inventories_v2\\lane1.json": "5a1c8dfc29e31836be7f4ee88aeaee36195a7c5f5da7e43cd841a7c641ee758d",
+    "E:\\GAN_FCC_WORK\\experiments\\gan_gi_journal_round54\\inventories_v2\\lane2.json": "75b284737367fbbde79d6d5c3c1ac8b1cbc420fed193c3e85f795e273bd0b5ce"
+  },
+  "lanes": {
+    "0": {
+      "artifact_sha256": {
+        "/content/gan_operator_assets/config_rate05.yaml": "dabe6d0d8ea5aaef9322c0987331946fc1eafd28f447b672129b8a9066223294",
+        "/content/gan_operator_assets/priors/vqae.pt": "9e0bb903491cf4be93a625e2f7c7a0b534db3ea0b9cdc1571f0a2c1744486e82",
+        "/content/gan_operator_assets/priors/vqgan.pt": "0069abc92861bf0adeb4c389064b61338c559b5da2bc6c7eaf3c10e184c3370b",
+        "/content/gan_operator_assets/rate05/vqae_refiner.pt": "266364c327621076105434acec325b1bd9b413309a5d87bb2914fde3521f7b5c",
+        "/content/gan_operator_assets/rate05/vqgan_refiner.pt": "0ae40b163e4489aa868cc170e6dbf4bfb390f7d300b46645578198c83cbb592f",
+        "/content/gan_r46_results/seed0/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt": "f1e3ea3511a156589d843514b10603585f2a0ac66bbb30a43749113206ecf096",
+        "/content/gan_r50_results/seed1_primary_seed2_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "275c2afd5b8c6bbd3b3533f9298d782222cdae77ee6abac6392e80a85b25904a",
+        "/content/gan_r51_results/operator_seed_772101/control/checkpoint_vqae_control_rot0.5_adv0.pt": "16b5958595081dd6cba18a55678026a7d76590adc79fbceb241f4702d74de63a",
+        "/content/gan_r51_results/operator_seed_772101/gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "f7ecf60236ec4264d4caf8a642268640042c18c3a22715f80d849e9972e01ca3",
+        "/content/gan_rate_bundle_seed0/config_rate10.yaml": "e905efe4fb23eda3ffe5ce259d7325d3fe43718b26531d3297bb12d39946c380",
+        "/content/gan_rate_bundle_seed0/priors/vqae.pt": "9e0bb903491cf4be93a625e2f7c7a0b534db3ea0b9cdc1571f0a2c1744486e82",
+        "/content/gan_rate_bundle_seed0/priors/vqgan.pt": "0069abc92861bf0adeb4c389064b61338c559b5da2bc6c7eaf3c10e184c3370b",
+        "/content/gan_rate_bundle_seed0/rate10/vqae_refiner.pt": "dfa8a086a34b921d6b7b75a3ab01f245646d77684774d75996f6d2f031ae262b",
+        "/content/gan_rate_bundle_seed0/rate10/vqgan_refiner.pt": "1a1b66425683089f2c67d387347ffba01bd7cd3c88af4cd178b11a9a3e2738f1"
+      },
+      "label": "seed1_primary_seed2_control",
+      "rates": {
+        "05": {
+          "bundle_root": "/content/gan_operator_assets",
+          "config": "/content/gan_operator_assets/config_rate05.yaml",
+          "operator_seed": 772101,
+          "operator_sha256": "62305c8e8309f772caa2b1b3601e1c45ded7224830adc667b7f6007bd97e79d6",
+          "proposal_checkpoint": "/content/gan_r51_results/operator_seed_772101/gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "structural_checkpoint": "/content/gan_r51_results/operator_seed_772101/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        },
+        "10": {
+          "bundle_root": "/content/gan_rate_bundle_seed0",
+          "config": "/content/gan_rate_bundle_seed0/config_rate10.yaml",
+          "operator_sha256": "278202ef8489b0e2119bf9de7f32174d26138aa2f4ca6be33493aebb70ffd118",
+          "proposal_checkpoint": "/content/gan_r50_results/seed1_primary_seed2_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "rate_seed": 0,
+          "structural_checkpoint": "/content/gan_r46_results/seed0/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        }
+      }
+    },
+    "1": {
+      "artifact_sha256": {
+        "/content/gan_operator_assets/config_rate05.yaml": "5a29f9fb07c386ab4d3c516d7ca11c31d54686bc6b225ac9b6e1b156e9f39198",
+        "/content/gan_operator_assets/priors/vqae.pt": "9e0bb903491cf4be93a625e2f7c7a0b534db3ea0b9cdc1571f0a2c1744486e82",
+        "/content/gan_operator_assets/priors/vqgan.pt": "0069abc92861bf0adeb4c389064b61338c559b5da2bc6c7eaf3c10e184c3370b",
+        "/content/gan_operator_assets/rate05/vqae_refiner.pt": "266364c327621076105434acec325b1bd9b413309a5d87bb2914fde3521f7b5c",
+        "/content/gan_operator_assets/rate05/vqgan_refiner.pt": "0ae40b163e4489aa868cc170e6dbf4bfb390f7d300b46645578198c83cbb592f",
+        "/content/gan_r46_results/seed1/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt": "e261e09ebc13c5819ff51d8ee68d8a5f9f53cd34bb11250f1912bc85929ef1b8",
+        "/content/gan_r50_results/seed2_primary_seed0_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "23ff7af99811f8e0c859e697870e81d6ca6b15821bf276abe5b39a651b202e34",
+        "/content/gan_r51_results/operator_seed_772102/control/checkpoint_vqae_control_rot0.5_adv0.pt": "6dfbfe51e7bacc0c8f37fe9bcd99362dc2ba7b7fe4ee437ba599447306dd13ac",
+        "/content/gan_r51_results/operator_seed_772102/gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "cf4891b844cae18d5f41e95b5f8d6f4a6dc590f2855342251dc0cf7cf2867500",
+        "/content/gan_rate_bundle_seed1/config_rate10.yaml": "10526bd7cb9f2a8b89c9808c369192294944c0952404dda98bf0216458cca61c",
+        "/content/gan_rate_bundle_seed1/priors/vqae.pt": "af4e0e7f780edea834d04050a6b58117330573aadd28345196a135df3a787ee0",
+        "/content/gan_rate_bundle_seed1/priors/vqgan.pt": "7e519b569cde15e9f97f43db2eb18286f604fad88a223c2de3b3ef70e8b6d984",
+        "/content/gan_rate_bundle_seed1/rate10/vqae_refiner.pt": "022bb588788352a808fd28a870c6775baf723313035a961bba804d23bec7e27b",
+        "/content/gan_rate_bundle_seed1/rate10/vqgan_refiner.pt": "0ac58954ff372f8da73d185e9639b1d9cb490c2b2ee4ad52fcb36456121aefee"
+      },
+      "label": "seed2_primary_seed0_control",
+      "rates": {
+        "05": {
+          "bundle_root": "/content/gan_operator_assets",
+          "config": "/content/gan_operator_assets/config_rate05.yaml",
+          "operator_seed": 772102,
+          "operator_sha256": "01d2b5de859665a5045d707e366db1128f9f2aa4bfa072db28802ac265f4a365",
+          "proposal_checkpoint": "/content/gan_r51_results/operator_seed_772102/gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "structural_checkpoint": "/content/gan_r51_results/operator_seed_772102/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        },
+        "10": {
+          "bundle_root": "/content/gan_rate_bundle_seed1",
+          "config": "/content/gan_rate_bundle_seed1/config_rate10.yaml",
+          "operator_sha256": "278202ef8489b0e2119bf9de7f32174d26138aa2f4ca6be33493aebb70ffd118",
+          "proposal_checkpoint": "/content/gan_r50_results/seed2_primary_seed0_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "rate_seed": 1,
+          "structural_checkpoint": "/content/gan_r46_results/seed1/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        }
+      }
+    },
+    "2": {
+      "artifact_sha256": {
+        "/content/gan_operator_assets/config_rate05.yaml": "3f8d60c45747f451284ee80f7ab1fb439963ff21ce0e5d65b0764136c64501c1",
+        "/content/gan_operator_assets/priors/vqae.pt": "9e0bb903491cf4be93a625e2f7c7a0b534db3ea0b9cdc1571f0a2c1744486e82",
+        "/content/gan_operator_assets/priors/vqgan.pt": "0069abc92861bf0adeb4c389064b61338c559b5da2bc6c7eaf3c10e184c3370b",
+        "/content/gan_operator_assets/rate05/vqae_refiner.pt": "266364c327621076105434acec325b1bd9b413309a5d87bb2914fde3521f7b5c",
+        "/content/gan_operator_assets/rate05/vqgan_refiner.pt": "0ae40b163e4489aa868cc170e6dbf4bfb390f7d300b46645578198c83cbb592f",
+        "/content/gan_r46_results/seed2/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt": "2a085238f39c2146a43bedb06db15d3a63a4f36eb36d6d3d29cf39174a904e33",
+        "/content/gan_r50_results/seed0_primary_seed1_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "2ff7f971476d840c4fcd7a98495247da5995a98f58862765d96c86dd3c909e32",
+        "/content/gan_r51_results/operator_seed_772103/control/checkpoint_vqae_control_rot0.5_adv0.pt": "c8d9858d390c9f6878a54940385f860d209e18e5a64bd377c28d9c47230b5a33",
+        "/content/gan_r51_results/operator_seed_772103/gan_adv0/checkpoint_gan_rot0.5_adv0.pt": "fe698e020195c491e5ed4e17af676a3781e048df6bcb05be18c66b07795b6008",
+        "/content/gan_rate_bundle_seed2/config_rate10.yaml": "a0f5477eb28639e8e5870560c1a1b7fea50a1389dbb793567d370b9791888544",
+        "/content/gan_rate_bundle_seed2/priors/vqae.pt": "7c4b78156f4fdd9682143f51f2f3b7445f509a87bd847453e48879b6160f7ce3",
+        "/content/gan_rate_bundle_seed2/priors/vqgan.pt": "55ab20b1af002a733e6756e9924731349a3b369e2b9c60117ad0702d2c00491b",
+        "/content/gan_rate_bundle_seed2/rate10/vqae_refiner.pt": "faa0a3bd80d695764fdbad8b43b7863912661fb1fc509e04020cd025933eb87a",
+        "/content/gan_rate_bundle_seed2/rate10/vqgan_refiner.pt": "31ea884d389a7ec8e20a3a2544c09fb87cf68ec0cf78c94542a0796cbd46818b"
+      },
+      "label": "seed0_primary_seed1_control",
+      "rates": {
+        "05": {
+          "bundle_root": "/content/gan_operator_assets",
+          "config": "/content/gan_operator_assets/config_rate05.yaml",
+          "operator_seed": 772103,
+          "operator_sha256": "6b85cc4566bf37a430d11d8201860e0037b35228d4100e4cabccaa09f11dc060",
+          "proposal_checkpoint": "/content/gan_r51_results/operator_seed_772103/gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "structural_checkpoint": "/content/gan_r51_results/operator_seed_772103/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        },
+        "10": {
+          "bundle_root": "/content/gan_rate_bundle_seed2",
+          "config": "/content/gan_rate_bundle_seed2/config_rate10.yaml",
+          "operator_sha256": "278202ef8489b0e2119bf9de7f32174d26138aa2f4ca6be33493aebb70ffd118",
+          "proposal_checkpoint": "/content/gan_r50_results/seed0_primary_seed1_control/rate10_train_gan_adv0/checkpoint_gan_rot0.5_adv0.pt",
+          "rate_seed": 2,
+          "structural_checkpoint": "/content/gan_r46_results/seed2/rate10/control/checkpoint_vqae_control_rot0.5_adv0.pt"
+        }
+      }
+    }
+  },
+  "method": "VQGAN-guided fiber-orthogonal high-pass innovation",
+  "method_parameters": {
+    "adapter_adversarial_weight": 0.0,
+    "adapter_lpips_weight": 0.003,
+    "adapter_rotation_scale": 0.5,
+    "adapter_source_arm": "gan",
+    "alpha": 0.5,
+    "cutoff": 0.12,
+    "exact_projection_iterations": 4096,
+    "filter_mode": "highpass",
+    "proposal_source": "pretrained VQGAN",
+    "transition": 0.03
+  },
+  "provenance": {
+    "gpt_pro_round52_commit": "f46c1b65ff7ec42e866f9835d77a06cd0ab6d450",
+    "theory_response_sha256": "3ea6f862ddf8e98c34ac08710770ad256ec3683a3b23dfce3a564e74595f13ab"
+  },
+  "rates": [
+    "05",
+    "10"
+  ],
+  "repo_head_at_inventory": "dd1d474c15a47c98307385e5b291516715ebaa96",
+  "source_split": "STL10 test",
+  "status": "VQGAN_GUIDED_FOHI_HELDOUT_FROZEN",
+  "test_split_opened": false,
+  "validation_only": false
+}
