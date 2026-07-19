@@ -105,6 +105,7 @@ def main() -> None:
             "--exact-iterations", "4096",
             "--bootstrap-reps", "10000",
             "--seed", str(training_seed + 1000),
+            "--final-target", "legacy_clipped_anchor",
             "--output-dir", str(fohi_dir),
         ],
         cwd=root,

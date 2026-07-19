@@ -41,6 +41,7 @@ def diagnostic_command(
         "--exact-iterations", "4096",
         "--bootstrap-reps", "10000",
         "--seed", str(int(seed)),
+        "--final-target", "legacy_clipped_anchor",
         "--output-dir", str(output_dir),
     ]
 

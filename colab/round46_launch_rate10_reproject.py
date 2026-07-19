@@ -47,6 +47,8 @@ command = [
     "10000",
     "--seed",
     str(20260728 + 1000 * seed),
+    "--final-target",
+    "legacy_clipped_anchor",
     "--output-dir",
     str(output),
 ]

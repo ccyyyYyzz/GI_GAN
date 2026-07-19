@@ -96,6 +96,7 @@ def main() -> None:
                 "--exact-iterations", "4096",
                 "--bootstrap-reps", "10000",
                 "--seed", str(int(args.seed) + 100 + index),
+                "--final-target", "legacy_clipped_anchor",
                 "--output-dir", str(cell_dir),
             ],
             cwd=root,

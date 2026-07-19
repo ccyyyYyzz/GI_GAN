@@ -130,6 +130,8 @@ def main() -> None:
                 "10000",
                 "--seed",
                 str(int(args.training_seed) + 1000 * int(args.seed) + int(rate)),
+                "--final-target",
+                "legacy_clipped_anchor",
                 "--output-dir",
                 str(fohi_dir),
             ],

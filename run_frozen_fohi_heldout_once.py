@@ -158,6 +158,8 @@ def main() -> None:
                 str(int(args.bootstrap_seed) + 100 * lane_index + int(rate)),
                 "--evaluation-scope",
                 "heldout",
+                "--final-target",
+                "legacy_clipped_anchor",
                 "--output-dir",
                 str(evaluation_dir),
             ],

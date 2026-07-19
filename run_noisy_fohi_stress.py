@@ -121,6 +121,8 @@ def main() -> None:
                 "10000",
                 "--seed",
                 str(20265000 + int(args.lane_index) + int(round(float(snr_db))) * 10),
+                "--final-target",
+                "legacy_clipped_anchor",
                 "--output-dir",
                 str(fohi_dir),
             ],

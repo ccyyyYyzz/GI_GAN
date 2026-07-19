@@ -59,6 +59,8 @@ command = [
     "10000",
     "--seed",
     "20260719",
+    "--final-target",
+    "legacy_clipped_anchor",
     "--output-dir",
     str(output),
 ]
