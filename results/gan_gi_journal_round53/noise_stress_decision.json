@@ -1,0 +1,244 @@
+{
+  "conditions": {
+    "snr20": {
+      "combined_hierarchical_bootstrap": {
+        "lpips": {
+          "ci95_high": 0.00438212191996475,
+          "ci95_low": 0.002918356890343906,
+          "mean_delta": 0.003646084869008822
+        },
+        "psnr": {
+          "ci95_high": 0.026363114818620165,
+          "ci95_low": 0.013781324215233325,
+          "mean_delta": 0.01916743318239848
+        },
+        "ssim": {
+          "ci95_high": 0.002104730970141311,
+          "ci95_low": 0.0012890066437300802,
+          "mean_delta": 0.001721156892334693
+        }
+      },
+      "operator_positive_count": 0,
+      "per_operator": [
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 21.390226865598905,
+            "mean_db": 20.044246418787047,
+            "min_db": 18.719569410508825
+          },
+          "operator_seed": 772101,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.0047459671710385004,
+              "ci95_low": 0.0022678472410916583,
+              "mean_delta": 0.003515661766869016
+            },
+            "psnr": {
+              "ci95_high": 0.019592768233269452,
+              "ci95_low": 0.0134877905016765,
+              "mean_delta": 0.016566023230552673
+            },
+            "ssim": {
+              "ci95_high": 0.002081220145653917,
+              "ci95_low": 0.0015291923676284825,
+              "mean_delta": 0.0018082657321295097
+            }
+          },
+          "projection_certified": false,
+          "triple_ci_favorable": false
+        },
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 21.144699551698434,
+            "mean_db": 20.01618683330492,
+            "min_db": 18.769025384204852
+          },
+          "operator_seed": 772102,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.0048493858252186325,
+              "ci95_low": 0.002403561912069563,
+              "mean_delta": 0.003638710011728108
+            },
+            "psnr": {
+              "ci95_high": 0.030264915619045495,
+              "ci95_low": 0.023631514259614052,
+              "mean_delta": 0.026867537759244442
+            },
+            "ssim": {
+              "ci95_high": 0.002390839450441243,
+              "ci95_low": 0.0017878966416956814,
+              "mean_delta": 0.002085086006478354
+            }
+          },
+          "projection_certified": false,
+          "triple_ci_favorable": false
+        },
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 21.432401936468956,
+            "mean_db": 20.048611056688305,
+            "min_db": 18.64404286829596
+          },
+          "operator_seed": 772103,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": 0.005040449737862217,
+              "ci95_low": 0.002536166839126963,
+              "mean_delta": 0.0037838828284293413
+            },
+            "psnr": {
+              "ci95_high": 0.017086190916597844,
+              "ci95_low": 0.011084500071592628,
+              "mean_delta": 0.01406873855739832
+            },
+            "ssim": {
+              "ci95_high": 0.001566139235637072,
+              "ci95_low": 0.0009736827546650938,
+              "mean_delta": 0.0012701189383962142
+            }
+          },
+          "projection_certified": false,
+          "triple_ci_favorable": false
+        }
+      ],
+      "stress_robust": false
+    },
+    "snr30": {
+      "combined_hierarchical_bootstrap": {
+        "lpips": {
+          "ci95_high": -0.014640431481772492,
+          "ci95_low": -0.018717178858666254,
+          "mean_delta": -0.016665404856515426
+        },
+        "psnr": {
+          "ci95_high": 0.02932586153037846,
+          "ci95_low": 0.013626129428545634,
+          "mean_delta": 0.02216200220088164
+        },
+        "ssim": {
+          "ci95_high": 0.002506784909803299,
+          "ci95_low": 0.0014854048855659325,
+          "mean_delta": 0.0020187272665723294
+        }
+      },
+      "operator_positive_count": 3,
+      "per_operator": [
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 31.390227412886738,
+            "mean_db": 30.04424704873039,
+            "min_db": 28.719569224479873
+          },
+          "operator_seed": 772101,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.014611749775940553,
+              "ci95_low": -0.01903501239721663,
+              "mean_delta": -0.016790424881037325
+            },
+            "psnr": {
+              "ci95_high": 0.03301664241589605,
+              "ci95_low": 0.019581070495769383,
+              "mean_delta": 0.02633141167461872
+            },
+            "ssim": {
+              "ci95_high": 0.0029002072381076605,
+              "ci95_low": 0.0019047213194156763,
+              "mean_delta": 0.0024067174077175087
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 31.14469999660118,
+            "mean_db": 30.01618748785449,
+            "min_db": 28.769025129961943
+          },
+          "operator_seed": 772102,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.012659316269491683,
+              "ci95_low": -0.017334500162905896,
+              "mean_delta": -0.014970375370467082
+            },
+            "psnr": {
+              "ci95_high": 0.03386741443537175,
+              "ci95_low": 0.019501592963933945,
+              "mean_delta": 0.0267898291349411
+            },
+            "ssim": {
+              "ci95_high": 0.0026367965164843833,
+              "ci95_low": 0.0016204991654336827,
+              "mean_delta": 0.002138386580383631
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        },
+        {
+          "achieved_validation_bucket_snr": {
+            "max_db": 31.43240253259758,
+            "mean_db": 30.048611675975664,
+            "min_db": 28.64404329220025
+          },
+          "operator_seed": 772103,
+          "paired_vs_structural": {
+            "lpips": {
+              "ci95_high": -0.0156965125734132,
+              "ci95_low": -0.020745522834477014,
+              "mean_delta": -0.018235414318041876
+            },
+            "psnr": {
+              "ci95_high": 0.020070511009544132,
+              "ci95_low": 0.006615285482257605,
+              "mean_delta": 0.013364765793085098
+            },
+            "ssim": {
+              "ci95_high": 0.0020181743033996814,
+              "ci95_low": 0.001002061663642549,
+              "mean_delta": 0.0015110778116158487
+            }
+          },
+          "projection_certified": true,
+          "triple_ci_favorable": true
+        }
+      ],
+      "stress_robust": true
+    }
+  },
+  "frozen_clean_checkpoints": true,
+  "input_hashes": {
+    "operator_seed_772101/snr20": {
+      "metric_vectors_sha256": "aa1665a46274bced95d280ac7ce50bd55f976a5cce9a80022ace8b07af1cbed5",
+      "summary_sha256": "c27eec57a86dafcd621759131b7ba361c07c48bacb3c4d1c596576b4d255131d"
+    },
+    "operator_seed_772101/snr30": {
+      "metric_vectors_sha256": "26ba2dd62cf46346fdd5b599a301fa0ff12bd9fb1c8c349c79fe5480a98f955d",
+      "summary_sha256": "f4b32f7a3d07218db11a7453237a944b3ce670889b334ecf95526a21540261bd"
+    },
+    "operator_seed_772102/snr20": {
+      "metric_vectors_sha256": "28f8aec40342c303ecacaf4b84f33f7fa36b5978fe083a472e82d18cbac9fac1",
+      "summary_sha256": "a0a920f570403b6533bfd68c9cdeaf3d406f87d64b436f059f98cf91080b353f"
+    },
+    "operator_seed_772102/snr30": {
+      "metric_vectors_sha256": "6a5e12edf96b9ded2041c767484f57e96f5a54654a651e8e745742c3e2f7412d",
+      "summary_sha256": "0c17419ae67f7376a3c82b430959a0673b17abb7f230aaf144da6ecd2e42b2de"
+    },
+    "operator_seed_772103/snr20": {
+      "metric_vectors_sha256": "5bcddfb9c9b6e180e5ccdcf62095eb99dcf35fe41babc53680d2590a43d7056b",
+      "summary_sha256": "5862f8c15e7375e9cb63777d3ada88319a269e3a8b278b2674bacae1eb720b3d"
+    },
+    "operator_seed_772103/snr30": {
+      "metric_vectors_sha256": "19866a9fbd0c6683dcc69383b0b9dc668517e8d179e76303ccf7724cfac6e043",
+      "summary_sha256": "2f10056f4ad7bd7cec662f720f360fe2eafb05ecf857dada8db0530882dbbebd"
+    }
+  },
+  "interpretation": "algorithmic exact-fit stress only; this is not a statistically calibrated noisy-fiber claim",
+  "selected_method": "discriminator-off VQGAN-source FOHI",
+  "status": "FROZEN_FOHI_NOISY_EQUALITY_STRESS_DECISION",
+  "test_split_opened": false,
+  "validation_only": true
+}
