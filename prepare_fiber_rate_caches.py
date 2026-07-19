@@ -72,6 +72,8 @@ def generate_split(
     priors: dict[str, ai.PriorPack],
     refiners: dict[str, ai.AnchorLatentRefiner],
     device: torch.device,
+    bucket_snr_db: float | None = None,
+    noise_seed: int | None = None,
 ) -> dict[str, torch.Tensor]:
     loader = hq.build_loader(
         dataset,
@@ -105,11 +107,40 @@ def generate_split(
         return prior.model.decode_embeddings(zq)
 
     fields: dict[str, list[torch.Tensor]] = {
-        key: [] for key in ("x0", "x_A", "x_G", "y", "truth", "source_index", "label")
+        key: []
+        for key in (
+            "x0",
+            "x_A",
+            "x_G",
+            "y",
+            "y_clean",
+            "truth",
+            "source_index",
+            "label",
+        )
     }
+    noise_generator = None
+    if bucket_snr_db is not None:
+        if noise_seed is None:
+            raise RuntimeError("NOISE_SEED_REQUIRED_WHEN_BUCKET_SNR_IS_SET")
+        noise_generator = torch.Generator(device=device)
+        noise_generator.manual_seed(int(noise_seed))
     for truth, label, source_index in loader:
         truth = truth.to(device, non_blocking=True)
-        y = measurement.A_forward(measurement.flatten_img(truth))
+        y_clean = measurement.A_forward(measurement.flatten_img(truth))
+        y = y_clean
+        if bucket_snr_db is not None:
+            signal_rms = torch.linalg.vector_norm(y_clean, dim=1, keepdim=True) / np.sqrt(
+                float(y_clean.shape[1])
+            )
+            noise_std = signal_rms / (10.0 ** (float(bucket_snr_db) / 20.0))
+            noise = torch.randn(
+                y_clean.shape,
+                generator=noise_generator,
+                device=y_clean.device,
+                dtype=y_clean.dtype,
+            )
+            y = y_clean + noise_std * noise
         x0 = measurement.unflatten_img(lmmse.anchor(y, measurement, device=device))
         uncertainty = lmmse.uncertainty_map(
             img_size=int(config["data"]["img_size"]),
@@ -121,6 +152,7 @@ def generate_split(
         fields["x_A"].append(refine(ai.VQAE, x0, uncertainty).cpu())
         fields["x_G"].append(refine(ai.VQGAN, x0, uncertainty).cpu())
         fields["y"].append(y.cpu())
+        fields["y_clean"].append(y_clean.cpu())
         fields["truth"].append(truth.cpu())
         fields["source_index"].append(source_index.cpu())
         fields["label"].append(label.cpu())
@@ -134,6 +166,8 @@ def main() -> None:
     parser.add_argument("--rates", default="02,10")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--bucket-snr-db", type=float)
+    parser.add_argument("--noise-seed-base", type=int, default=20264000)
     args = parser.parse_args()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA_REQUIRED")
@@ -198,6 +232,11 @@ def main() -> None:
         rate_dir.mkdir(parents=True, exist_ok=True)
         split_shapes = {}
         for split, dataset in (("dev", dev_dataset), ("val", val_dataset)):
+            split_noise_seed = (
+                int(args.noise_seed_base)
+                + 1000 * int(args.seed)
+                + (0 if split == "dev" else 1)
+            )
             pack = generate_split(
                 dataset=dataset,
                 split=split,
@@ -207,6 +246,8 @@ def main() -> None:
                 priors=priors,
                 refiners=refiners,
                 device=device,
+                bucket_snr_db=args.bucket_snr_db,
+                noise_seed=split_noise_seed,
             )
             output = rate_dir / f"seed{int(args.seed)}_{split}.pt"
             torch.save(pack, output)
@@ -231,6 +272,16 @@ def main() -> None:
         "status": "FIBER_RATE_CACHE_PREPARATION_COMPLETE",
         "seed": int(args.seed),
         "rates": rates,
+        "noise_protocol": {
+            "kind": "per_image_white_gaussian_bucket_noise",
+            "bucket_snr_db": args.bucket_snr_db,
+            "noise_seed_base": int(args.noise_seed_base),
+            "interpretation": (
+                "algorithmic exact-fit stress test; clean truth is not generally in the noisy equality fiber"
+                if args.bucket_snr_db is not None
+                else "noiseless exact-fiber reconstruction"
+            ),
+        },
         "validation_only": True,
         "test_split_opened": False,
         "split_manifest": split_manifest,
