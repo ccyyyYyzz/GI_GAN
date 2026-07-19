@@ -494,6 +494,15 @@ def reconstruct_selected(
         "structural": structural.detach().cpu().numpy(),
         "fixed": fixed.detach().cpu().numpy(),
         "fohi": fohi.detach().cpu().numpy(),
+        # These are the literal intermediate tensors used below to form the
+        # FOHI proposal.  They are retained so the mechanism plate never
+        # relies on a redrawn, synthetic, or post-hoc surrogate image.
+        "vqae_structural_direction": structural_direction.reshape_as(base).detach().cpu().numpy(),
+        "vqgan_conditional_detail": difference.detach().cpu().numpy(),
+        "highpass_conditional_detail": high_difference.detach().cpu().numpy(),
+        "nullspace_highpass_detail": innovation.reshape_as(base).detach().cpu().numpy(),
+        "orthogonal_detail": orthogonal.reshape_as(base).detach().cpu().numpy(),
+        "fohi_proposal_before_projection": fohi_proposal.reshape_as(base).detach().cpu().numpy(),
     }
     arrays["abs_fohi_truth"] = np.abs(arrays["fohi"] - arrays["truth"])
     certificates = {"structural": structural_certificates, "fixed": fixed_certificates, "fohi": fohi_certificates}
@@ -630,6 +639,133 @@ def render_gallery(
     fig.savefig(pdf, bbox_inches="tight")
     plt.close(fig)
     return [png, pdf]
+
+
+def _detail_limits(*images: np.ndarray) -> tuple[float, float]:
+    """Use a common, data-derived symmetric range for signed detail images."""
+
+    maximum = max(float(np.max(np.abs(image2d(image)))) for image in images)
+    maximum = max(maximum, 1.0e-12)
+    return -maximum, maximum
+
+
+def _mechanism_image(
+    axis: plt.Axes,
+    image: np.ndarray,
+    *,
+    signed: bool,
+    title: str,
+    signed_limits: tuple[float, float] | None = None,
+) -> None:
+    if signed:
+        vmin, vmax = signed_limits if signed_limits is not None else _detail_limits(image)
+        axis.imshow(image2d(image), cmap="RdBu_r", vmin=vmin, vmax=vmax)
+    else:
+        axis.imshow(image2d(image), cmap="gray", vmin=0.0, vmax=1.0)
+    axis.set_title(title, fontsize=7.0, pad=2.5)
+    axis.set_axis_off()
+
+
+def _straight_arrow(
+    figure: plt.Figure, start: tuple[float, float], end: tuple[float, float], *, label: str | None = None
+) -> None:
+    """Add a single straight, annotation-free mechanism connector."""
+
+    arrow = mpl.patches.FancyArrowPatch(
+        start,
+        end,
+        transform=figure.transFigure,
+        arrowstyle="-|>",
+        mutation_scale=8.0,
+        linewidth=0.75,
+        color="0.20",
+    )
+    figure.add_artist(arrow)
+    if label is not None:
+        figure.text(
+            (start[0] + end[0]) / 2.0,
+            (start[1] + end[1]) / 2.0 + 0.025,
+            label,
+            ha="center",
+            va="bottom",
+            fontsize=7.0,
+        )
+
+
+def render_mechanism_figures(
+    output_dir: Path,
+    rate: str,
+    selected: list[SelectedRecord],
+    arrays: dict[str, np.ndarray],
+) -> list[Path]:
+    """Render one real-data FOHI mechanism plate for every frozen record.
+
+    The four image panels are deliberately limited to tensors from
+    ``reconstruct_selected``: projected structure, the VQGAN conditional
+    null-space candidate, its orthogonal residual, and the final projected
+    FOHI image.  Connector labels name the actual operations between them.
+    """
+
+    required = {"structural", "vqgan_conditional_detail", "orthogonal_detail", "fohi"}
+    absent = required.difference(arrays)
+    if absent:
+        raise RuntimeError(f"MECHANISM_ARRAYS_MISSING:{sorted(absent)}")
+    destination = output_dir / f"rate{rate}" / "mechanism"
+    destination.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for position, record in enumerate(selected):
+        fig = plt.figure(figsize=(7.16, 2.22), facecolor="white")
+        structural_axis = fig.add_axes((0.035, 0.17, 0.205, 0.58))
+        candidate_axis = fig.add_axes((0.305, 0.52, 0.165, 0.38))
+        orthogonal_axis = fig.add_axes((0.545, 0.52, 0.165, 0.38))
+        fohi_axis = fig.add_axes((0.775, 0.17, 0.205, 0.58))
+        shared_detail_limits = _detail_limits(
+            arrays["vqgan_conditional_detail"][position],
+            arrays["orthogonal_detail"][position],
+        )
+        _mechanism_image(structural_axis, arrays["structural"][position], signed=False, title="VQAE structure")
+        _mechanism_image(
+            candidate_axis,
+            arrays["vqgan_conditional_detail"][position],
+            signed=True,
+            title="VQGAN detail candidate",
+            signed_limits=shared_detail_limits,
+        )
+        _mechanism_image(
+            orthogonal_axis,
+            arrays["orthogonal_detail"][position],
+            signed=True,
+            title="Orthogonal detail",
+            signed_limits=shared_detail_limits,
+        )
+        _mechanism_image(fohi_axis, arrays["fohi"][position], signed=False, title="FOHI output")
+        _straight_arrow(
+            fig,
+            (0.475, 0.71),
+            (0.54, 0.71),
+            label="high-pass  •  null-space  •  remove structure overlap",
+        )
+        _straight_arrow(fig, (0.24, 0.46), (0.735, 0.43), label="structure")
+        _straight_arrow(fig, (0.71, 0.71), (0.735, 0.45))
+        fig.text(0.74, 0.455, "+", ha="center", va="center", fontsize=10.0)
+        _straight_arrow(fig, (0.75, 0.43), (0.77, 0.43))
+        fig.text(0.76, 0.29, "raw-measurement projection", ha="center", va="top", fontsize=7.0)
+        fig.text(0.035, 0.965, "a", fontsize=9.0, fontweight="bold", va="top")
+        fig.text(
+            0.075,
+            0.965,
+            f"STL-10 {record.class_name}  |  record {record.source_index}  |  {int(rate)}% sampling",
+            fontsize=7.0,
+            va="top",
+        )
+        prefix = f"source{record.source_index:04d}_{record.class_name}_fohi_mechanism"
+        png = destination / f"{prefix}.png"
+        pdf = destination / f"{prefix}.pdf"
+        fig.savefig(png, dpi=600, bbox_inches="tight", pad_inches=0.015)
+        fig.savefig(pdf, bbox_inches="tight", pad_inches=0.015)
+        plt.close(fig)
+        written.extend((png, pdf))
+    return written
 
 
 def write_metric_csv(output_dir: Path, rows: list[dict[str, Any]]) -> Path:
@@ -799,6 +935,7 @@ def main() -> None:
 
     selected = select_records_rate05(per_rate["05"]["cache_manifest_payload"]["test_samples"])
     all_certificates: dict[str, Any] = {}
+    mechanism_intermediate_hashes: dict[str, dict[str, str]] = {}
     selected_local_indices: dict[str, list[int]] = {}
     metric_rows: list[dict[str, Any]] = []
     figure_font = configure_matplotlib()
@@ -823,6 +960,22 @@ def main() -> None:
         written.extend(write_arrays(output_dir, rate, selected, arrays))
         written.extend(render_single_images(output_dir, rate, selected, arrays))
         written.extend(render_gallery(output_dir, rate, selected, arrays))
+        written.extend(render_mechanism_figures(output_dir, rate, selected, arrays))
+        mechanism_intermediate_hashes[rate] = {
+            str(path.relative_to(output_dir)): sha256(path)
+            for path in sorted((output_dir / f"rate{rate}" / "arrays").glob("*.npy"))
+            if any(
+                marker in path.name
+                for marker in (
+                    "vqae_structural_direction",
+                    "vqgan_conditional_detail",
+                    "highpass_conditional_detail",
+                    "nullspace_highpass_detail",
+                    "orthogonal_detail",
+                    "fohi_proposal_before_projection",
+                )
+            )
+        }
         write_json(output_dir / f"rate{rate}" / "diagnostic_audit.json", diagnostic_audit)
         written.append(output_dir / f"rate{rate}" / "diagnostic_audit.json")
     selection_payload = {
@@ -855,6 +1008,11 @@ def main() -> None:
         "frozen_artifact_sha256": frozen_artifacts,
         "input_sha256": input_hashes,
         "projection_certificates": "projection_certificates.json",
+        "mechanism_figure": {
+            "claim": "VQGAN conditional detail is null-space filtered, high-pass filtered, and stripped of its VQAE-structural parallel component before addition to the structural reconstruction; the result is projected to the raw cached-y fiber.",
+            "intermediate_array_sha256": mechanism_intermediate_hashes,
+            "rendered_records": "One PNG and PDF mechanism plate per pre-specified car, cat, dog, and horse record at each rate; records are never chosen by metrics or visual quality.",
+        },
         "metrics": "selected_metrics.csv contains only the four pre-specified records at each rate, indexed from hash-checked Round59 raw-y metric vectors. It is descriptive and does not replace the full held-out inference.",
         "output_sha256_excluding_provenance": hashes_for_files(output_files(output_dir), relative_to=output_dir),
         "no_post_test_tuning": True,

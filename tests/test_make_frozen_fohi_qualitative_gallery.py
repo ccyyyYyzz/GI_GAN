@@ -161,3 +161,49 @@ def test_round60_core_reconstruction_code_must_match_round59_receipt(tmp_path):
     changed.write_text("post-round59 mutation\n", encoding="utf-8")
     with pytest.raises(RuntimeError, match="ROUND59_CORE_CODE_HASH_MISMATCH"):
         gallery.verify_round59_reconstruction_core(tmp_path, receipt)
+
+
+def test_mechanism_arrays_are_retained_and_hashed_by_provenance_contract():
+    source = (ROOT / "make_frozen_fohi_qualitative_gallery.py").read_text(encoding="utf-8")
+    for key in (
+        "vqae_structural_direction",
+        "vqgan_conditional_detail",
+        "highpass_conditional_detail",
+        "nullspace_highpass_detail",
+        "orthogonal_detail",
+        "fohi_proposal_before_projection",
+    ):
+        assert f'"{key}"' in source
+    assert '"intermediate_array_sha256": mechanism_intermediate_hashes' in source
+
+
+def test_each_prespecified_record_gets_a_png_and_pdf_mechanism_plate(tmp_path):
+    import numpy as np
+
+    selected = gallery.select_records_rate05(samples())
+    arrays = {
+        "structural": np.linspace(0.0, 1.0, 4 * 1 * 6 * 6).reshape(4, 1, 6, 6),
+        "vqgan_conditional_detail": np.linspace(-1.0, 1.0, 4 * 1 * 6 * 6).reshape(4, 1, 6, 6),
+        "orthogonal_detail": np.linspace(1.0, -1.0, 4 * 1 * 6 * 6).reshape(4, 1, 6, 6),
+        "fohi": np.linspace(1.0, 0.0, 4 * 1 * 6 * 6).reshape(4, 1, 6, 6),
+    }
+
+    written = gallery.render_mechanism_figures(tmp_path, "05", selected, arrays)
+
+    assert len(written) == 8
+    assert {path.suffix for path in written} == {".png", ".pdf"}
+    assert all(path.is_file() and path.stat().st_size > 0 for path in written)
+    names = {path.name for path in written}
+    for record in selected:
+        prefix = f"source{record.source_index:04d}_{record.class_name}_fohi_mechanism"
+        assert f"{prefix}.png" in names
+        assert f"{prefix}.pdf" in names
+
+
+def test_mechanism_renderer_has_no_alpha_label_or_curved_connector():
+    import inspect
+
+    source = inspect.getsource(gallery.render_mechanism_figures)
+    connector = inspect.getsource(gallery._straight_arrow)
+    assert "alpha" not in source.lower()
+    assert "connectionstyle" not in connector
