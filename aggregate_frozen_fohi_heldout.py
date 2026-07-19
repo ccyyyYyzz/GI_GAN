@@ -89,6 +89,9 @@ def main() -> None:
     args = parser.parse_args()
     if len(args.input_dirs) != 3:
         raise ValueError("EXACTLY_THREE_HELDOUT_LANES_REQUIRED")
+    lane_indices = [int(path.name.removeprefix("lane")) for path in args.input_dirs]
+    if sorted(lane_indices) != [0, 1, 2]:
+        raise ValueError(f"HELDOUT_LANES_MUST_BE_EXACTLY_0_1_2:{lane_indices}")
     freeze = json.loads(args.freeze_manifest.read_text(encoding="utf-8"))
     if freeze.get("status") != "VQGAN_GUIDED_FOHI_HELDOUT_FROZEN":
         raise RuntimeError("HELDOUT_FREEZE_MANIFEST_INVALID")
@@ -99,6 +102,7 @@ def main() -> None:
     split_hashes = set()
     all_certified = True
     all_scope_correct = True
+    all_receipt_hashes_match = True
     for rate_index, rate in enumerate(("05", "10")):
         deltas = {metric: [] for metric in METRICS}
         per_lane = []
@@ -114,6 +118,23 @@ def main() -> None:
             complete = json.loads(complete_path.read_text(encoding="utf-8"))
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
             cache_manifest = json.loads(cache_manifest_path.read_text(encoding="utf-8"))
+            if not (
+                complete.get("status") == "VQGAN_GUIDED_FOHI_HELDOUT_LANE_COMPLETE"
+                and complete.get("lane_index") == lane_index
+                and complete.get("evaluation_scope") == "heldout"
+                and complete.get("validation_only") is False
+            ):
+                raise RuntimeError(f"HELDOUT_COMPLETE_RECEIPT_INVALID:{lane_index}")
+            receipt_rate = complete.get("rates", {}).get(rate, {})
+            receipt_hashes_match = bool(
+                receipt_rate.get("summary_sha256") == sha256(summary_path)
+                and receipt_rate.get("metric_vectors_sha256") == sha256(vectors_path)
+                and receipt_rate.get("test_cache_manifest_sha256")
+                == sha256(cache_manifest_path)
+            )
+            if not receipt_hashes_match:
+                raise RuntimeError(f"HELDOUT_RESULT_RECEIPT_HASH_MISMATCH:{lane_index}:{rate}")
+            all_receipt_hashes_match = all_receipt_hashes_match and receipt_hashes_match
             scope_correct = bool(
                 complete.get("test_split_opened") is True
                 and complete.get("validation_only") is False
@@ -140,6 +161,13 @@ def main() -> None:
             }
             means = {}
             for metric in METRICS:
+                if not (
+                    np.all(np.isfinite(structural[metric]))
+                    and np.all(np.isfinite(fohi[metric]))
+                ):
+                    raise RuntimeError(
+                        f"HELDOUT_NONFINITE_METRIC:{lane_index}:{rate}:{metric}"
+                    )
                 delta = fohi[metric] - structural[metric]
                 if len(delta) != expected_images:
                     raise RuntimeError(f"HELDOUT_VECTOR_LENGTH_MISMATCH:{lane_index}:{rate}:{metric}")
@@ -190,7 +218,9 @@ def main() -> None:
         and per_rate[rate]["all_lane_means_favorable"]
         for rate in ("05", "10")
     )
-    headline_pass = bool(six_gate and all_certified and all_scope_correct)
+    headline_pass = bool(
+        six_gate and all_certified and all_scope_correct and all_receipt_hashes_match
+    )
     payload = {
         "status": "VQGAN_GUIDED_FOHI_HELDOUT_FINAL_DECISION",
         "evaluation_scope": "heldout",
@@ -200,7 +230,10 @@ def main() -> None:
         "test_raw_hash_sequence_sha256": next(iter(split_hashes)),
         "headline_six_component_gate_passed": headline_pass,
         "all_projection_certificates_passed": all_certified,
-        "all_scope_and_hash_gates_passed": all_scope_correct,
+        "all_scope_and_hash_gates_passed": bool(
+            all_scope_correct and all_receipt_hashes_match
+        ),
+        "all_result_receipt_hashes_matched": all_receipt_hashes_match,
         "rates": per_rate,
         "one_sided_p_values": p_values,
         "holm_adjusted_p_values": holm,
