@@ -1,0 +1,113 @@
+{
+  "combined_hierarchical_bootstrap": {
+    "lpips": {
+      "ci95_high": -0.009333150408322884,
+      "ci95_low": -0.010575781354539989,
+      "mean_delta": -0.009939535200828686
+    },
+    "psnr": {
+      "ci95_high": 0.08682300200064975,
+      "ci95_low": 0.07905563538273176,
+      "mean_delta": 0.08298310016592343
+    },
+    "ssim": {
+      "ci95_high": 0.005189710798540809,
+      "ci95_low": 0.004757033436873967,
+      "mean_delta": 0.004974078734914004
+    }
+  },
+  "input_hashes": {
+    "operator_seed_772101": {
+      "campaign_sha256": "a8d1f5748e3ee4dc23792b9897e3bdadeea0cecabd6d6eef5f2e48945b9e6d18",
+      "metric_vectors_sha256": "0b09351dc33c737520d44a2c568baded6c8dc763527a5ace14bda5c02296ab45",
+      "summary_sha256": "1b98c7bc0a1fde7ecc68f842baa77d39eaad0fef97afe56b145bf88e3b9a0bd5"
+    },
+    "operator_seed_772102": {
+      "campaign_sha256": "8a3989c32e1b3aefca1a31e7b084e85a1b7f727c9a6fa2adb8ee91619a3bb33d",
+      "metric_vectors_sha256": "b97779b0e515ba76d20b871e8707846ffdb8a7ca82073ee71fbd56af73fe5cdb",
+      "summary_sha256": "93cdcffbd386088b2b789fc26bde833db86d75ed941452e4692a1fc7eaf8640f"
+    },
+    "operator_seed_772103": {
+      "campaign_sha256": "fd9380bce8e602ad294366a09a709d8a299a67b2cc93edfd62bd096b37d3ae5e",
+      "metric_vectors_sha256": "625294c750b64f345c88b548778f1249c8ac8398df348d64cb834893f2f6728e",
+      "summary_sha256": "3bd1e7ce8383d90fc152c45746b19c1601b2eb96d21142bf2a363d2e789575aa"
+    }
+  },
+  "operator_positive_count": 3,
+  "operator_robust": true,
+  "per_operator": [
+    {
+      "operator_seed": 772101,
+      "operator_sha256": "62305c8e8309f772caa2b1b3601e1c45ded7224830adc667b7f6007bd97e79d6",
+      "paired_vs_structural": {
+        "lpips": {
+          "ci95_high": -0.00896110114408657,
+          "ci95_low": -0.010919483147881692,
+          "mean_delta": -0.009929043153533712
+        },
+        "psnr": {
+          "ci95_high": 0.09023373695090413,
+          "ci95_low": 0.07827271688729524,
+          "mean_delta": 0.08421079069375992
+        },
+        "ssim": {
+          "ci95_high": 0.005316469438242964,
+          "ci95_low": 0.004602052192885878,
+          "mean_delta": 0.004959404560413237
+        }
+      },
+      "projection_certified": true,
+      "triple_ci_favorable": true
+    },
+    {
+      "operator_seed": 772102,
+      "operator_sha256": "01d2b5de859665a5045d707e366db1128f9f2aa4bfa072db28802ac265f4a365",
+      "paired_vs_structural": {
+        "lpips": {
+          "ci95_high": -0.008774166649163818,
+          "ci95_low": -0.010544467332147178,
+          "mean_delta": -0.009646044098190032
+        },
+        "psnr": {
+          "ci95_high": 0.09014636622741819,
+          "ci95_low": 0.07810839703306556,
+          "mean_delta": 0.0840301550924778
+        },
+        "ssim": {
+          "ci95_high": 0.005342761086782871,
+          "ci95_low": 0.00458384199881905,
+          "mean_delta": 0.004968250574957117
+        }
+      },
+      "projection_certified": true,
+      "triple_ci_favorable": true
+    },
+    {
+      "operator_seed": 772103,
+      "operator_sha256": "6b85cc4566bf37a430d11d8201860e0037b35228d4100e4cabccaa09f11dc060",
+      "paired_vs_structural": {
+        "lpips": {
+          "ci95_high": -0.009297650113512647,
+          "ci95_low": -0.011221483007830102,
+          "mean_delta": -0.010243518350762315
+        },
+        "psnr": {
+          "ci95_high": 0.08654648717492819,
+          "ci95_low": 0.07503360761329532,
+          "mean_delta": 0.08070835471153259
+        },
+        "ssim": {
+          "ci95_high": 0.005364693079713002,
+          "ci95_low": 0.004633922999831712,
+          "mean_delta": 0.004994581069371655
+        }
+      },
+      "projection_certified": true,
+      "triple_ci_favorable": true
+    }
+  ],
+  "selected_method": "discriminator-off VQGAN-source FOHI",
+  "status": "FOHI_INDEPENDENT_OPERATOR_SEED_DECISION",
+  "test_split_opened": false,
+  "validation_only": true
+}
