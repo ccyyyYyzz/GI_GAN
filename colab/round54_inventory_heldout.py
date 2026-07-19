@@ -21,6 +21,10 @@ def require(path: str | Path) -> Path:
 
 
 repo = Path("/content/GI_GAN")
+branch = "codex/gan-gi-journal-poc-20260718"
+subprocess.run(["git", "fetch", "origin", branch], cwd=repo, check=True)
+subprocess.run(["git", "checkout", branch], cwd=repo, check=True)
+subprocess.run(["git", "pull", "--ff-only", "origin", branch], cwd=repo, check=True)
 with zipfile.ZipFile("/content/gan_rate_bundle.zip") as archive:
     lane_index = int(json.loads(archive.read("manifest.json").decode("utf-8"))["seed"])
 operator_seed = 772101 + lane_index
