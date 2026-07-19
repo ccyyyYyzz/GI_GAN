@@ -3,6 +3,7 @@
   "all_result_receipt_hashes_matched": true,
   "all_scope_and_hash_gates_passed": true,
   "evaluation_scope": "heldout",
+  "freeze_manifest_canonical_json_sha256": "3cef6b6c0daff1dd87d40056ac26689449b4d07ae1072bd0c1024decfd769c4c",
   "freeze_manifest_sha256": "1504562f3a5144e7e1d38d684849d5e3b5ccb8cb119ab366bd19965076f8f033",
   "headline_six_component_gate_passed": true,
   "holm_adjusted_p_values": {

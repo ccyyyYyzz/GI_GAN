@@ -19,6 +19,44 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def canonical_json_sha256(payload: dict[str, Any]) -> str:
+    """Hash parsed JSON independently of checkout newline conventions."""
+    encoded = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def resolve_lane_input(path: Path) -> tuple[int, Path, Path]:
+    """Resolve either an original lane tree or an extracted release tree.
+
+    Returns ``(lane_index, result_root, receipt_root)``.  Release archives keep
+    immutable receipts separate from result arrays; original Colab trees keep
+    both at the lane root.
+    """
+    release_root = None
+    if (path / "RELEASE_MANIFEST.json").is_file():
+        release_root = path
+    elif path.name == "results" and (path.parent / "RELEASE_MANIFEST.json").is_file():
+        release_root = path.parent
+    if release_root is not None:
+        release = json.loads(
+            (release_root / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")
+        )
+        if release.get("status") != "FROZEN_FOHI_LANE_RELEASE_COMPLETE":
+            raise RuntimeError(f"INVALID_FOHI_RELEASE_STATUS:{release_root}")
+        lane_index = int(release["lane_index"])
+        result_root = release_root / "results"
+        receipt_root = release_root / "receipts"
+        if not result_root.is_dir() or not receipt_root.is_dir():
+            raise FileNotFoundError(f"INCOMPLETE_FOHI_RELEASE_LAYOUT:{release_root}")
+        return lane_index, result_root, receipt_root
+    name = path.name
+    if not (len(name) == 5 and name.startswith("lane") and name[-1] in "012"):
+        raise ValueError(f"UNRECOGNIZED_HELDOUT_LANE_LAYOUT:{path}")
+    return int(name[-1]), path, path
+
+
 def projection_certified(summary: dict[str, Any]) -> bool:
     return all(
         audit["all_converged"]
@@ -89,7 +127,8 @@ def main() -> None:
     args = parser.parse_args()
     if len(args.input_dirs) != 3:
         raise ValueError("EXACTLY_THREE_HELDOUT_LANES_REQUIRED")
-    lane_indices = [int(path.name.removeprefix("lane")) for path in args.input_dirs]
+    lane_inputs = [resolve_lane_input(path) for path in args.input_dirs]
+    lane_indices = [item[0] for item in lane_inputs]
     if sorted(lane_indices) != [0, 1, 2]:
         raise ValueError(f"HELDOUT_LANES_MUST_BE_EXACTLY_0_1_2:{lane_indices}")
     freeze = json.loads(args.freeze_manifest.read_text(encoding="utf-8"))
@@ -106,12 +145,11 @@ def main() -> None:
     for rate_index, rate in enumerate(("05", "10")):
         deltas = {metric: [] for metric in METRICS}
         per_lane = []
-        for lane_dir in args.input_dirs:
-            lane_index = int(lane_dir.name.removeprefix("lane"))
-            complete_path = lane_dir / "HELDOUT_ONCE_COMPLETE.json"
-            summary_path = lane_dir / f"rate{rate}" / "fohi" / "summary.json"
-            vectors_path = lane_dir / f"rate{rate}" / "fohi" / "metric_vectors.npz"
-            cache_manifest_path = lane_dir / f"rate{rate}" / "cache" / "test_cache_manifest.json"
+        for lane_index, result_root, receipt_root in lane_inputs:
+            complete_path = receipt_root / "HELDOUT_ONCE_COMPLETE.json"
+            summary_path = result_root / f"rate{rate}" / "fohi" / "summary.json"
+            vectors_path = result_root / f"rate{rate}" / "fohi" / "metric_vectors.npz"
+            cache_manifest_path = result_root / f"rate{rate}" / "cache" / "test_cache_manifest.json"
             for path in (complete_path, summary_path, vectors_path, cache_manifest_path):
                 if not path.is_file():
                     raise FileNotFoundError(path)
@@ -239,6 +277,7 @@ def main() -> None:
         "holm_adjusted_p_values": holm,
         "holm_all_six_below_0_05": all(value < 0.05 for value in holm.values()),
         "freeze_manifest_sha256": sha256(args.freeze_manifest),
+        "freeze_manifest_canonical_json_sha256": canonical_json_sha256(freeze),
         "input_hashes": input_hashes,
         "post_test_tuning_permitted": False,
     }
